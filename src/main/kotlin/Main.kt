@@ -84,7 +84,9 @@ fun main() = application {
 
         // Construct a merge tree from a String
         val tree = parseTree("(100(40(20)(10))(60))")
-
+        extend(Camera()) {
+            enableRotation = true;
+        }
         extend {
             drawer.apply {
                 clear(ColorRGBa.WHITE)
