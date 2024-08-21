@@ -1,21 +1,29 @@
-import kotlinx.coroutines.flow.merge
+import org.openrndr.KEY_SPACEBAR
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.Drawer
-import org.openrndr.draw.isolated
-import org.openrndr.extra.olive.oliveProgram
+import org.openrndr.drawComposition
+import org.openrndr.extra.gui.GUI
+import org.openrndr.extra.parameters.ActionParameter
+import org.openrndr.extra.parameters.TextParameter
+import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
+import org.openrndr.shape.CompositionDrawer
+import org.openrndr.shape.bounds
 import org.openrndr.shape.contour
+import org.openrndr.shape.viewBox
+import org.openrndr.svg.saveToFile
+import java.io.File
+import kotlin.math.min
 
 class MergeTree(val height: Double, val children: List<MergeTree> = emptyList())
 
-fun Drawer.node(pos: Vector2) {
+fun CompositionDrawer.node(pos: Vector2) {
     stroke = ColorRGBa.BLACK
     fill = ColorRGBa.WHITE
     circle(pos, 3.0)
 }
 
-fun Drawer.edge(pos1: Vector2, pos2: Vector2) {
+fun CompositionDrawer.edge(pos1: Vector2, pos2: Vector2) {
     val control = Vector2(pos2.x, pos1.y)
     val c = contour {
         moveTo(pos1)
@@ -24,7 +32,7 @@ fun Drawer.edge(pos1: Vector2, pos2: Vector2) {
     contour(c)
 }
 
-fun Drawer.mergeTree(tree: MergeTree, pos: Vector2 = Vector2.ZERO) {
+fun CompositionDrawer.mergeTree(tree: MergeTree, pos: Vector2 = Vector2.ZERO) {
     translate(pos)
 
     stroke = ColorRGBa.BLACK
@@ -83,18 +91,52 @@ fun main() = application {
 //        val tree = MergeTree(100.0, listOf(c1, c2))
 
         // Construct a merge tree from a String
-        val tree = parseTree("(100(40(20)(10))(60))")
-        extend(Camera()) {
+        val tree = parseTree("(0(60(80)(90))(40))")
+
+        val camera = Camera()
+        extend(camera) {
             enableRotation = true;
         }
+
+        val composition = drawComposition {
+            isolated {
+                mergeTree(tree, drawer.bounds.center)
+            }
+        }
+        val compBounds = composition.findShapes().map { it.bounds }.bounds
+        val bbox = compBounds.offsetEdges(min(compBounds.width, compBounds.height) * 0.1)
+
+        // Settings
+        val s = object {
+            @ActionParameter("Fit to screen")
+            fun fitToScreen() {
+                camera.view = Matrix44.fit(bbox, drawer.bounds)
+            }
+
+            @TextParameter("File name")
+            var svgFileName: String = "output"
+
+            @ActionParameter("Export to SVG")
+            fun exportToSVG() {
+                composition.saveToFile(File("${svgFileName}.svg"))
+                composition.documentStyle.viewBox
+            }
+        }
+
+        keyboard.keyDown.listen {
+            if (it.key == KEY_SPACEBAR) {
+                s.fitToScreen()
+            }
+        }
+
+        val gui = GUI()
+        gui.add(s, "Settings")
+
+        extend(gui)
         extend {
             drawer.apply {
                 clear(ColorRGBa.WHITE)
-                translate(0.0, height * 1.0)
-                scale(1.0, -1.0)
-                isolated {
-                    mergeTree(tree, drawer.bounds.center)
-                }
+                composition(composition)
             }
         }
     }
