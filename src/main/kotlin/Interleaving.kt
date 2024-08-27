@@ -95,3 +95,17 @@ fun <T: MergeTreeLike<T>> leafMapping(leafMap: Map<T, T>, delta: Double): TreeMa
 
     return TreeMapping(leafToPointMap)
 }
+
+//Helper method to check if two nodes are on one monotone path.
+fun <T1: MergeTreeLike<T1>, T2: MergeTreeLike<T2>> shareMonotonePath(tree1: T1, tree2: T2)
+: Boolean {
+    if(tree1 == tree2) return true
+
+    for (current in tree1.nodes()) {
+        for (other in tree2.nodes()) {
+            if (current == other) return true
+        }
+    }
+
+    return false
+}
