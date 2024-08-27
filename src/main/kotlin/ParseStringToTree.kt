@@ -18,11 +18,14 @@ fun findSubtrees(s: String): List<String> = buildList {
     }
 }
 
-fun parseTree(s: String): MergeTree {
+fun parseTree(s: String, parent: MergeTree? = null): MergeTree {
     assert(s.first() == '(' && s.last() == ')')
     val i = s.withIndex().firstOrNull() { it.index > 0 && it.value == '(' }?.index ?: s.length
     val h = s.substring(1, i)
 
-    val subtrees = if (i == s.length) emptyList() else findSubtrees(s.substring(i, s.length)).map { parseTree(it) }
-    return MergeTree(h.toDouble(), subtrees)
+    val tree = MergeTree(h.toDouble(), parent=parent)
+    val subtrees = if (i == s.length) emptyList() else findSubtrees(s.substring(i, s.length)).map { parseTree(it, tree) }
+    tree.children.addAll(subtrees)
+
+    return tree
 }
