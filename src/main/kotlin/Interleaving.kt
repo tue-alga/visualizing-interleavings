@@ -24,6 +24,30 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
             q.add(kvPair.toPair())
         }
 
+        //Create Groups of leaves that map to the same monotone path.
+        for (currentLeaf in leafMap) {
+            var addedToGroup = false;
+            for (group in leaveGroups) {
+                if(shareMonotonePath(leafMap[group[0]]!!.firstDown, currentLeaf.value.firstDown)) {
+                    group.add(currentLeaf.key)
+                    addedToGroup = true
+                    break
+                }
+            }
+            if (!addedToGroup) {
+                leaveGroups.add(mutableListOf(currentLeaf.key))
+            }
+        }
+
+//        println(leaveGroups)
+//
+//        for (group in leaveGroups) {
+//            println(group)
+//            for (node in group) {
+//                println(leafMap[node])
+//            }
+//        }
+
         while (q.isNotEmpty()) {
             val (node, point) = q.first()
             q.removeFirst()
@@ -99,8 +123,10 @@ fun <T: MergeTreeLike<T>> leafMapping(leafMap: Map<T, T>, delta: Double): TreeMa
 //Helper method to check if two nodes are on one monotone path.
 fun <T1: MergeTreeLike<T1>, T2: MergeTreeLike<T2>> shareMonotonePath(tree1: T1, tree2: T2)
 : Boolean {
+    //return true if roots are equal
     if(tree1 == tree2) return true
 
+    //return true if they share a common child.
     for (current in tree1.nodes()) {
         for (other in tree2.nodes()) {
             if (current == other) return true
