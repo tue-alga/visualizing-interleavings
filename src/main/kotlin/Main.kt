@@ -107,12 +107,18 @@ fun main() = application {
     program {
         val camera = Camera()
 
-        val visualization = example1(drawer.bounds.center)
+        var blobsEnabled = false;
 
+        val visualization = example1(drawer.bounds.center)
+        
         val viewSettings = object {
             @ActionParameter("Fit to screen")
             fun fitToScreen() {
                 camera.view = Matrix44.fit(visualization.bbox, drawer.bounds)
+            }
+            @ActionParameter("Toggle Blobs")
+            fun toggleBlobs() {
+                blobsEnabled = !blobsEnabled;
             }
         }
 
@@ -182,6 +188,47 @@ fun main() = application {
             }
         }
 
+        fun drawBlobs() {
+            if (!blobsEnabled) return;
+            drawer.apply {
+                val t1 = visualization.interleaving.f;
+                val t2 = visualization.interleaving.g;
+
+                val c1 = ColorRGBa.GREEN;
+                val c2 = ColorRGBa.MAGENTA;
+                val c3 = ColorRGBa.BLUE;
+                val c4 = ColorRGBa.RED;
+
+                var colorSwitch = false;
+
+                strokeWeight = visualization.ds.markRadius / 3
+                stroke = null
+
+                //Draw blobs of tree1
+                for (group in t1.leafGroups) {
+                    for (tree in group) {
+                        fill = if(colorSwitch) c1 else c2;
+                        colorSwitch = !colorSwitch;
+
+                        val pos = visualization.fromTree1Local(tree.pos)
+                        circle(pos, 2.0)
+                    }
+                }
+
+                colorSwitch = false;
+                //Draw blobs of tree2
+                for (group in t2.leafGroups) {
+                    for (tree in group) {
+                        fill = if(colorSwitch) c3 else c4;
+                        colorSwitch = !colorSwitch;
+
+                        val pos = visualization.fromTree2Local(tree.pos)
+                        circle(pos, 2.0)
+                    }
+                }
+            }
+        }
+
         viewSettings.fitToScreen()
 
         // Press F11 to toggle the GUI
@@ -209,6 +256,8 @@ fun main() = application {
                 mouseTree2Position?.let {
                     drawMatching(it, false)
                 }
+
+                drawBlobs();
 
                 isolated {
                     view *= camera.view.inversed
