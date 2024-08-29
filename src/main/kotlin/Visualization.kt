@@ -17,6 +17,9 @@ class Visualization(val tree1: MergeTree,
     lateinit var tree2E: EmbeddedMergeTree
     lateinit var interleaving: Interleaving<EmbeddedMergeTree>
     lateinit var composition: Composition
+    //Blobs sorted from deepest path to highest path.
+    var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+    var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     private lateinit var tree1EMatrix: Matrix44
     private lateinit var tree2EMatrix: Matrix44
     val compBounds: Rectangle get() = composition.findShapes().map { it.effectiveShape.bounds }.bounds
@@ -34,8 +37,13 @@ class Visualization(val tree1: MergeTree,
 
         treePairComposition()
 
-        blobComposition(true, ColorRGBa.GREEN, ColorRGBa.MAGENTA)
-        blobComposition(false, ColorRGBa.BLUE, ColorRGBa.RED)
+        val blue = ColorRGBa.fromHex("#8EBBD9")
+        val red = ColorRGBa.fromHex("#F08C8D")
+        val green = ColorRGBa.fromHex("#99CF95")
+        val purple = ColorRGBa.fromHex("#AC8BD1")
+
+        blobComposition(true, green, purple)
+        blobComposition(false, blue, red)
     }
 
     /** Draw tree1E and tree2E side by side */
@@ -89,6 +97,15 @@ class Visualization(val tree1: MergeTree,
                     node = node.parent;
                 }
             }
+
+            val distinctPath = path.distinct();
+            path.clear()
+            path.addAll(distinctPath)
+
+            if (t1)
+                tree1Blobs.add(Pair(path, groupColor))
+            else tree2Blobs.add(Pair(path, groupColor))
+
             for (n in path) {
                 n.blobColor = groupColor
             }
@@ -106,14 +123,24 @@ class Visualization(val tree1: MergeTree,
         return tree1EMatrix * posLocalT1
     }
 
+    /** Transforms a contour in 'world space' to the 'model space' of tree1 */
+    fun fromTree1Local(contour: ShapeContour): ShapeContour {
+        return contour.transform(tree1EMatrix);
+    }
+
     /** Transforms a point in 'world space' to the 'model space' of tree2 */
     fun toTree2Local(posWorldSpace: Vector2): Vector2 {
         return tree2EMatrix.inversed * posWorldSpace
     }
 
-    /** Transforms a point in 'world space' to the 'model space' of tree1 */
+    /** Transforms a point in 'world space' to the 'model space' of tree2 */
     fun fromTree2Local(posLocalT2: Vector2): Vector2 {
         return tree2EMatrix * posLocalT2
+    }
+
+    /** Transforms a contour in 'world space' to the 'model space' of tree2 */
+    fun fromTree2Local(contour: ShapeContour): ShapeContour {
+        return contour.transform(tree2EMatrix);
     }
 
     private fun closestPositionTi(tree: EmbeddedMergeTree, pos: Vector2, radius: Double): TreePosition<EmbeddedMergeTree>? {

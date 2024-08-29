@@ -34,7 +34,10 @@ fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
 
 data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0)
-    var markRadius: Double = 3.0
+    var markRadius: Double = 3.0,
+
+    @DoubleParameter("Blob radius", 0.1, 10.0)
+    var blobRadius: Double = 5.0
 )
 
 fun example1(pos: Vector2): Visualization {
@@ -203,17 +206,44 @@ fun main() = application {
                 strokeWeight = visualization.ds.markRadius / 3
                 stroke = null
 
-                //Draw blobs of tree1
-                for (node in visualization.tree1E.nodes()) {
-                    fill = node.blobColor;
-                    val pos = visualization.fromTree1Local(node.pos)
-                    circle(pos, 2.0)
+                //Draw blobs of tree1 (reversed to draw large blobs on top of smaller blobs)
+                for (blob in visualization.tree1Blobs.reversed()) {
+                    for (node in blob.first){
+                        //Draw blob around node
+                        fill = blob.second
+                        stroke = null
+                        val pos = visualization.fromTree1Local(node.pos)
+                        circle(pos, visualization.ds.blobRadius)
+
+                        //Draw blob along edge
+                        stroke = blob.second
+                        fill = null
+                        strokeWeight = visualization.ds.blobRadius *2
+                        if (node.edgeContour != null) {
+                            contour(visualization.fromTree1Local(node.edgeContour))
+                        }
+
+                    }
                 }
-                //Draw blobs of tree2
-                for (node in visualization.tree2E.nodes()) {
-                    fill = node.blobColor;
-                    val pos = visualization.fromTree2Local(node.pos)
-                    circle(pos, 2.0)
+
+                //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
+                for (blob in visualization.tree2Blobs.reversed()) {
+                    //Draw blob around node
+                    fill = blob.second;
+                    for (node in blob.first){
+                        fill = blob.second
+                        stroke = null
+                        val pos = visualization.fromTree2Local(node.pos)
+                        circle(pos, visualization.ds.blobRadius)
+
+                        //Draw blob along edge
+                        stroke = blob.second
+                        fill = null
+                        strokeWeight = visualization.ds.blobRadius *2
+                        if (node.edgeContour != null) {
+                            contour(visualization.fromTree2Local(node.edgeContour))
+                        }
+                    }
                 }
             }
         }
@@ -237,6 +267,8 @@ fun main() = application {
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                
+                drawBlobs();
 
                 composition(visualization.composition)
                 mouseTree1Position?.let {
@@ -246,7 +278,6 @@ fun main() = application {
                     drawMatching(it, false)
                 }
 
-                drawBlobs();
 
                 isolated {
                     view *= camera.view.inversed
