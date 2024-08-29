@@ -1,3 +1,5 @@
+import org.openrndr.color.ColorRGBa
+import org.openrndr.extra.color.presets.ORANGE
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
@@ -31,6 +33,9 @@ class Visualization(val tree1: MergeTree,
         interleaving = createInterleaving(tree1E, tree2E)
 
         treePairComposition()
+
+        blobComposition(true, ColorRGBa.GREEN, ColorRGBa.MAGENTA)
+        blobComposition(false, ColorRGBa.BLUE, ColorRGBa.RED)
     }
 
     /** Draw tree1E and tree2E side by side */
@@ -53,6 +58,41 @@ class Visualization(val tree1: MergeTree,
                 tree2EMatrix = model
                 composition(tree2C)
             }
+        }
+    }
+
+    private fun blobComposition(t1: Boolean, color1: ColorRGBa, color2: ColorRGBa){
+        val tree = if(t1) interleaving.f else interleaving.g;
+
+        var groupColor = color1;
+
+        for (group in tree.leafGroups) {
+            var colorDetermined = false;
+            val path = mutableListOf<EmbeddedMergeTree>()
+
+            for (leaf in group){
+                var node: EmbeddedMergeTree? = leaf;
+                //groupColor = currentColor;
+                path.add(leaf)
+
+                while (node != null) {
+                    val nodeColor = node.blobColor;
+                    if (nodeColor != ColorRGBa.BLACK) {
+                        //if we encounter a node that already has an assigned color
+                        if (!colorDetermined) {
+                            groupColor = if (nodeColor == color1) color2 else color1;
+                            colorDetermined = true;
+                        }
+                        break;
+                    }
+                    path.add(node)
+                    node = node.parent;
+                }
+            }
+            for (n in path) {
+                n.blobColor = groupColor
+            }
+            groupColor = if (groupColor == color1) color2 else color1;
         }
     }
 

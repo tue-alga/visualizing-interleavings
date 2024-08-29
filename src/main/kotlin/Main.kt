@@ -43,14 +43,16 @@ fun example1(pos: Vector2): Visualization {
                 "(10(30)(40(50)(50)))" +
                 "(20(25)(30))" +
                 "(15(22)(32(40)(37)(45)))" +
-                ")")
+                ")"
+    )
     val tree2 = parseTree(
         "(0" +
                 "(10(40)(30(35)(38(43)(43))))" +
                 "(20)" +
                 "(10(15)(20))" +
                 "(15(30)(32(45)(50)))" +
-                ")")
+                ")"
+    )
 
     val ds = DrawSettings(1.5)
     val tes = TreeEmbedSettings(17.5)
@@ -107,12 +109,19 @@ fun main() = application {
     program {
         val camera = Camera()
 
+        var blobsEnabled = false;
+
         val visualization = example1(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
             fun fitToScreen() {
                 camera.view = Matrix44.fit(visualization.bbox, drawer.bounds)
+            }
+
+            @ActionParameter("Toggle Blobs")
+            fun toggleBlobs() {
+                blobsEnabled = !blobsEnabled;
             }
         }
 
@@ -162,10 +171,16 @@ fun main() = application {
         fun drawMatching(one: TreePosition<EmbeddedMergeTree>, t1ToT2: Boolean) {
             drawer.apply {
                 treePositionToPoint(one)?.let { onePoint ->
-                    val other = if(t1ToT2) visualization.interleaving.f[one] else visualization.interleaving.g[one]
+                    val other = if (t1ToT2) visualization.interleaving.f[one] else visualization.interleaving.g[one]
                     treePositionToPoint(other)?.let { otherPoint ->
-                        val onePos = if (t1ToT2) visualization.fromTree1Local(onePoint) else visualization.fromTree2Local(onePoint)
-                        val otherPos = if (t1ToT2) visualization.fromTree2Local(otherPoint) else visualization.fromTree1Local(otherPoint)
+                        val onePos =
+                            if (t1ToT2) visualization.fromTree1Local(onePoint) else visualization.fromTree2Local(
+                                onePoint
+                            )
+                        val otherPos =
+                            if (t1ToT2) visualization.fromTree2Local(otherPoint) else visualization.fromTree1Local(
+                                otherPoint
+                            )
 
                         strokeWeight = visualization.ds.markRadius / 3
                         stroke = ColorRGBa.BLUE
@@ -178,6 +193,27 @@ fun main() = application {
                         circle(onePos, 1.0)
                         circle(otherPos, 1.0)
                     }
+                }
+            }
+        }
+
+        fun drawBlobs() {
+            if (!blobsEnabled) return;
+            drawer.apply {
+                strokeWeight = visualization.ds.markRadius / 3
+                stroke = null
+
+                //Draw blobs of tree1
+                for (node in visualization.tree1E.nodes()) {
+                    fill = node.blobColor;
+                    val pos = visualization.fromTree1Local(node.pos)
+                    circle(pos, 2.0)
+                }
+                //Draw blobs of tree2
+                for (node in visualization.tree2E.nodes()) {
+                    fill = node.blobColor;
+                    val pos = visualization.fromTree2Local(node.pos)
+                    circle(pos, 2.0)
                 }
             }
         }
@@ -209,6 +245,8 @@ fun main() = application {
                 mouseTree2Position?.let {
                     drawMatching(it, false)
                 }
+
+                drawBlobs();
 
                 isolated {
                     view *= camera.view.inversed

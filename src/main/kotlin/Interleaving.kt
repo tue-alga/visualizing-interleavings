@@ -14,6 +14,9 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
     val nodeMap: MutableMap<T, TreePosition<T>> = mutableMapOf()
     val edgeMap: MutableMap<T, List<Pair<Double, T>>> = mutableMapOf()
 
+    //A list containing groups of leaves (represented as a list) that map to the same monotonically increasing path in the other merge tree.
+    val leafGroups: MutableList<MutableList<T>> = mutableListOf()
+
     init {
         val key = leafMap.keys.first()
         val delta = abs(leafMap[key]!!.height - key.height)
@@ -23,6 +26,23 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         for (kvPair in leafMap) {
             q.add(kvPair.toPair())
         }
+
+        //Create Groups of leaves that map to the same monotone path.
+        for (currentLeaf in leafMap) {
+            var addedToGroup = false;
+            for (group in leafGroups) {
+                if(shareMonotonePath(leafMap[group[0]]!!.firstDown, currentLeaf.value.firstDown)) {
+                    group.add(currentLeaf.key)
+                    addedToGroup = true
+                    break
+                }
+            }
+            if (!addedToGroup) {
+                leafGroups.add(mutableListOf(currentLeaf.key))
+            }
+        }
+        //Sort groups based on deepest leaf
+        leafGroups.sortByDescending { group -> group.maxOf {it.height} }
 
         while (q.isNotEmpty()) {
             val (node, point) = q.first()
@@ -94,4 +114,20 @@ fun <T: MergeTreeLike<T>> leafMapping(leafMap: Map<T, T>, delta: Double): TreeMa
     }
 
     return TreeMapping(leafToPointMap)
+}
+
+//Helper method to check if two nodes are on one monotone path.
+fun <T1: MergeTreeLike<T1>, T2: MergeTreeLike<T2>> shareMonotonePath(tree1: T1, tree2: T2)
+: Boolean {
+    //return true if roots are equal
+    if(tree1 == tree2) return true
+
+    //return true if they share a common child.
+    for (current in tree1.nodes()) {
+        for (other in tree2.nodes()) {
+            if (current == other) return true
+        }
+    }
+
+    return false
 }
