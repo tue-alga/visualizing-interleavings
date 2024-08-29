@@ -83,6 +83,9 @@ class EmbeddedMergeTree(val pos: Vector2,
         this.leaves()
     }
 
+    //Color of the root node from the blob decomposition. BLACK = not assigned.
+    var blobColor = ColorRGBa.BLACK;
+
     fun draw(drawer: CompositionDrawer, markRadius: Double) {
         drawer.apply {
             for (child in children) {

@@ -17,7 +17,6 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
     //A list containing groups of leaves (represented as a list) that map to the same monotonically increasing path in the other merge tree.
     val leafGroups: MutableList<MutableList<T>> = mutableListOf()
 
-
     init {
         val key = leafMap.keys.first()
         val delta = abs(leafMap[key]!!.height - key.height)
@@ -44,7 +43,6 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         }
         //Sort groups based on deepest leaf
         leafGroups.sortByDescending { group -> group.maxOf {it.height} }
-
 
         while (q.isNotEmpty()) {
             val (node, point) = q.first()
