@@ -319,6 +319,7 @@ fun main() = application {
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                //Draw nodes of the trees on top of the path decomposition
                 composition(visualization.nodeComposition)
             }
         }
@@ -345,6 +346,7 @@ fun main() = application {
 
                 drawBlobs();
 
+                //Draw tree
                 composition(visualization.composition)
 
                 drawBlobPaths();
