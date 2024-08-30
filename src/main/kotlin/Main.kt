@@ -200,6 +200,7 @@ fun main() = application {
             }
         }
 
+        //TODO: Include paths below nodes in blobs instead of drawing blobs only between the nodes in a blob
         fun drawBlobs() {
             if (!blobsEnabled) return;
             drawer.apply {
@@ -248,6 +249,7 @@ fun main() = application {
             }
         }
 
+        //TODO: Draw nodes on top of path decomposition
         fun drawBlobPaths() {
             if (!blobsEnabled) return;
             drawer.apply {
