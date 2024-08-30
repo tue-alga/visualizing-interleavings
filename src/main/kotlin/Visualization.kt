@@ -17,6 +17,7 @@ class Visualization(val tree1: MergeTree,
     lateinit var tree2E: EmbeddedMergeTree
     lateinit var interleaving: Interleaving<EmbeddedMergeTree>
     lateinit var composition: Composition
+    lateinit var nodeComposition: Composition
     //Blobs sorted from deepest path to highest path.
     var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
@@ -50,6 +51,8 @@ class Visualization(val tree1: MergeTree,
     private fun treePairComposition() {
         val tree1C = drawComposition { tree1E.draw(this, ds.markRadius) }
         val tree2C = drawComposition { tree2E.draw(this, ds.markRadius) }
+        val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
+        val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
         val bounds1 = tree1C.findShapes().map { it.bounds }.bounds
         val bounds2 = tree2C.findShapes().map { it.bounds }.bounds
         val halfGap = ds.markRadius * 4
@@ -66,6 +69,20 @@ class Visualization(val tree1: MergeTree,
                 tree2EMatrix = model
                 composition(tree2C)
             }
+        }
+
+        nodeComposition = drawComposition {
+                translate(pos)
+                isolated {
+                    translate(-bounds1.width / 2 - halfGap, 0.0)
+                    tree1EMatrix = model
+                    composition(tree1NC)
+                }
+                isolated {
+                    translate(bounds2.width / 2 + halfGap, 0.0)
+                    tree2EMatrix = model
+                    composition(tree2NC)
+                }
         }
     }
 

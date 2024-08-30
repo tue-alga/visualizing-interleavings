@@ -249,7 +249,6 @@ fun main() = application {
             }
         }
 
-        //TODO: Draw nodes on top of path decomposition
         fun drawBlobPaths() {
             if (!blobsEnabled) return;
             drawer.apply {
@@ -320,6 +319,7 @@ fun main() = application {
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                composition(visualization.nodeComposition)
             }
         }
 

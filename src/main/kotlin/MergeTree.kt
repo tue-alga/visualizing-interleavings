@@ -99,6 +99,7 @@ class EmbeddedMergeTree(val pos: Vector2,
         }
     }
 
+    fun drawNodes(drawer: CompositionDrawer, markRadius: Double) {
     override fun toString(): String {
         return "({${pos}}${children.joinToString { it.toString() }})"
     }
