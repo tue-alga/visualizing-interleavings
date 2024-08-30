@@ -18,9 +18,15 @@ class Visualization(val tree1: MergeTree,
     lateinit var interleaving: Interleaving<EmbeddedMergeTree>
     lateinit var composition: Composition
     lateinit var nodeComposition: Composition
-    //Blobs sorted from deepest path to highest path.
+    //Blobs sorted from the deepest path to the highest path.
     var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+
+    //TODO: Find path decomposition and use that to create blobs
+    //Path decompositions: List of paths. Path is defined by a leaf and the highest node <leaf, highestnode>
+    var tree1PathDecomposition: MutableList<Pair<EmbeddedMergeTree, EmbeddedMergeTree>> = mutableListOf();
+    var tree2PathDecomposition: MutableList<Pair<EmbeddedMergeTree, EmbeddedMergeTree>> = mutableListOf();
+
     private lateinit var tree1EMatrix: Matrix44
     private lateinit var tree2EMatrix: Matrix44
     val compBounds: Rectangle get() = composition.findShapes().map { it.effectiveShape.bounds }.bounds
@@ -86,6 +92,7 @@ class Visualization(val tree1: MergeTree,
         }
     }
 
+    /** Construct blob decomposition into tree1Blobs if t1=true and into tree2Blobs if t1=false */
     private fun blobComposition(t1: Boolean, color1: ColorRGBa, color2: ColorRGBa){
         val tree = if(t1) interleaving.f else interleaving.g;
 
