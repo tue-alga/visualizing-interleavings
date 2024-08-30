@@ -123,6 +123,11 @@ fun main() = application {
             fun toggleBlobs() {
                 blobsEnabled = !blobsEnabled;
             }
+
+            @ActionParameter("Compute monotone")
+            fun computeMonotone() {
+                test()
+            }
         }
 
         val exportSettings = object {
