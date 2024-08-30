@@ -30,6 +30,41 @@ class Interval(
     }
 }
 
+fun monotoneDistance(source: MergeTree, target: MergeTree) : Double{
+    val sourceCurve = inducedCurve(source)
+    val targetCurve = inducedCurve(target)
+
+    println(sourceCurve)
+    println(targetCurve)
+    return computeFrechet(sourceCurve, targetCurve)
+}
+
+fun inducedCurve(tree: MergeTree) : List<Double> {
+    val curve = mutableListOf<Double>()
+    val leaves = tree.leaves()
+    curve.add(100.0)
+    for ((leaf, nextLeaf) in leaves.subList(0, leaves.size-1).zip(leaves.subList(1, leaves.size))) {
+        curve.add(leaf.height)
+        curve.add(lca(leaf, nextLeaf).height)
+    }
+    curve.add(leaves.last().height)
+    curve.add(100.0)
+    return curve
+}
+
+fun lca(t1: MergeTree, t2: MergeTree) : MergeTree {
+    if (t1 == t2 || t1.parent == null) {
+        return t1
+    } else if (t2.parent == null) {
+        return t2
+    }
+
+    if (t1.height > t2.height) {
+        return lca(t1.parent, t2)
+    }
+    return lca(t1, t2.parent)
+}
+
 fun test() {
     val source = listOf(20.0, 0.0, 5.0, 2.0, 10.0, 0.0, 20.0)
     val target = listOf(20.0, 2.0, 5.0, 0.0, 10.0, 0.0, 20.0)
