@@ -72,6 +72,8 @@ class Visualization(val tree1: MergeTree,
     private fun blobComposition(t1: Boolean, color1: ColorRGBa, color2: ColorRGBa){
         val tree = if(t1) interleaving.f else interleaving.g;
 
+        if (t1) tree1Blobs.clear() else tree2Blobs.clear()
+
         var groupColor = color1;
 
         for (group in tree.leafGroups) {
