@@ -112,7 +112,7 @@ fun main() = application {
     program {
         val camera = Camera()
 
-        var blobsEnabled = false;
+        var blobsEnabled = true;
 
         val visualization = example1(drawer.bounds.center)
 
@@ -248,6 +248,79 @@ fun main() = application {
             }
         }
 
+        fun drawBlobPaths() {
+            if (!blobsEnabled) return;
+            drawer.apply {
+                stroke = ColorRGBa.BLACK
+                fill = null
+                strokeWeight = visualization.ds.markRadius * 0.9
+
+                //Draw mapping of blob in the first tree onto the second tree
+                for (blob in visualization.tree1Blobs.reversed()) {
+                    stroke = blob.second;
+
+                    val currentNode = blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
+                    val lowestPathPoint = visualization.interleaving.f.nodeMap[currentNode];
+
+                    if (lowestPathPoint != null) {
+
+                        //Draw lowest sub edge delta up from the leaf of the path
+                        val edge = lowestPathPoint.firstDown.edgeContour;
+                        val interval = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
+                        val subContour = edge.sub(0.0, interval!!)
+                        contour(visualization.fromTree2Local(subContour))
+
+                        //draw rest of the path till the root node.
+                        var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
+                        while(pathParent != null) {
+
+                            if (pathParent.edgeContour != null) {
+                                contour(visualization.fromTree2Local(pathParent.edgeContour!!))
+                            }
+
+                            pathParent = pathParent.parent;
+                        }
+                    }
+                }
+
+                //Draw mapping of blob in the second tree onto the second tree
+                for (blob in visualization.tree2Blobs.reversed()) {
+                    stroke = blob.second;
+
+                    val currentNode = blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
+                    val lowestPathPoint = visualization.interleaving.g.nodeMap[currentNode];
+
+                    if (lowestPathPoint != null) {
+
+                        //Draw lowest sub edge delta up from the leaf of the path
+                        val edge = lowestPathPoint.firstDown.edgeContour;
+                        val interval = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
+                        val subContour = edge.sub(0.0, interval!!)
+                        contour(visualization.fromTree1Local(subContour))
+
+                        //draw rest of the path till the root node.
+                        var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
+                        while(pathParent != null) {
+
+                            if (pathParent.edgeContour != null) {
+                                contour(visualization.fromTree1Local(pathParent.edgeContour!!))
+                            }
+
+                            pathParent = pathParent.parent;
+                        }
+                    }
+                }
+
+                //Draw Rays from root
+                val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
+                stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
+                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
+                stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
+                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+            }
+        }
+
         viewSettings.fitToScreen()
 
         // Press F11 to toggle the GUI
@@ -267,10 +340,13 @@ fun main() = application {
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
-                
+
                 drawBlobs();
 
                 composition(visualization.composition)
+
+                drawBlobPaths();
+
                 mouseTree1Position?.let {
                     drawMatching(it, true)
                 }
