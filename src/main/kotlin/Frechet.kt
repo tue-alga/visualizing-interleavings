@@ -242,3 +242,43 @@ fun computeReachableSpace(
 
     return Pair(reachableLeft, reachableBottom)
 }
+
+data class ReachablePathPoint (
+    val i : Int, val j: Int, val bottom: Double, val left: Double
+)
+
+fun getReachablePath(
+    reachableLeft: MutableList<MutableList<Double>>,
+    reachableBottom : MutableList<MutableList<Double>>
+) : MutableList<ReachablePathPoint> {
+    var i = reachableLeft.size - 1
+    var j = reachableBottom[0].size - 1
+    val points = mutableListOf<ReachablePathPoint>(ReachablePathPoint(i, j, 0.0, 0.0))
+
+    var fromTop = true
+    var start = 0.0
+
+    while (!(i==0 || j==0)) {
+        val left = max(0.0, min(1.0, reachableLeft[i][j]))
+        val bottom = max(0.0, min(1.0, reachableBottom[i][j]))
+        if (left < Double.POSITIVE_INFINITY || (!fromTop && left < start)) {
+            points.add(ReachablePathPoint(i,j,left,0.0))
+            j -= 1
+            fromTop = false
+            start = 1.0-left
+        } else {
+            points.add(ReachablePathPoint(i, j, 0.0, bottom))
+            i -= 1
+            fromTop = true
+            start = 1.0-bottom
+        }
+    }
+
+    for (k in 0..i) {
+        points.add(ReachablePathPoint(k, 0, 0.0, 0.0))
+    }
+    for (k in 0..j+1) {
+        points.add(ReachablePathPoint(0, k, 0.0, 0.0))
+    }
+    return points
+}
