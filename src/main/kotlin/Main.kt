@@ -201,101 +201,51 @@ fun main() = application {
             }
         }
 
-        //TODO: Include paths below nodes in blobs instead of drawing blobs only between the nodes in a blob
-        //TODO: Refactor to reduce duplicate code for both trees
-        fun drawBlobs() {
-            if (!blobsEnabled) return;
+        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>){
             drawer.apply {
                 strokeWeight = visualization.ds.markRadius / 3
                 stroke = null
+                fill = blob.second
+                for (node in blob.first) {
+                    fill = blob.second
+                    stroke = null
+                    val pos = if(tree == visualization.tree1E) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
+                    circle(pos, visualization.ds.blobRadius)
 
-                //Draw blobs of tree1 (reversed to draw large blobs on top of smaller blobs)
-                for (blob in visualization.tree1Blobs.reversed()) {
-                    for (node in blob.first){
-                        //Draw blob around node
-                        fill = blob.second
-                        stroke = null
-                        val pos = visualization.fromTree1Local(node.pos)
-                        circle(pos, visualization.ds.blobRadius)
-
-                        //Draw blob along edge
-                        stroke = blob.second
-                        fill = null
-                        strokeWeight = visualization.ds.blobRadius *2
-                        if (node.edgeContour != null) {
+                    //Draw blob along edge
+                    stroke = blob.second
+                    fill = null
+                    strokeWeight = visualization.ds.blobRadius * 2
+                    if (node.edgeContour != null) {
+                        if (tree == visualization.tree1E)
                             contour(visualization.fromTree1Local(node.edgeContour))
-                        }
-
-                        //Draw blob around sub path
-                        for (child in node.children) {
-                            if (child.blobColor != node.blobColor) {
-                                val lowestPathPoint = visualization.interleaving.f.nodeMap[child];
-                                if (lowestPathPoint != null) {
-                                    val delta = child.height - lowestPathPoint.height
-
-                                    var heightDelta = 0.0;
-                                    //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
-                                    if (lowestPathPoint.firstUp != null)  {
-                                        heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
-                                    }
-
-                                    val treePos = TreePosition(child, heightDelta)
-                                    val edge = child.edgeContour;
-                                    val point = treePositionToPoint(treePos);
-
-                                    //if point is null, mapping path no part of the path to the child should be in the blob.
-                                    if (point != null) {
-                                        val curveOffset = edge!!.on(point, 0.5);
-                                        val subContour = edge.sub(0.0, curveOffset!!)
-                                        contour(visualization.fromTree1Local(subContour))
-                                    }
-                                }
-                            }
-                        }
+                        else contour(visualization.fromTree2Local(node.edgeContour))
                     }
-                }
 
-                //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
-                for (blob in visualization.tree2Blobs.reversed()) {
-                    //Draw blob around node
-                    fill = blob.second;
-                    for (node in blob.first){
-                        fill = blob.second
-                        stroke = null
-                        val pos = visualization.fromTree2Local(node.pos)
-                        circle(pos, visualization.ds.blobRadius)
+                    //Draw blob around sub path
+                    for (child in node.children) {
+                        if (child.blobColor != node.blobColor) {
+                            val lowestPathPoint = if(tree == visualization.tree1E) visualization.interleaving.f.nodeMap[child] else visualization.interleaving.g.nodeMap[child]
+                            if (lowestPathPoint != null) {
+                                val delta = child.height - lowestPathPoint.height
 
-                        //Draw blob along edge
-                        stroke = blob.second
-                        fill = null
-                        strokeWeight = visualization.ds.blobRadius *2
-                        if (node.edgeContour != null) {
-                            contour(visualization.fromTree2Local(node.edgeContour))
-                        }
+                                var heightDelta = 0.0;
+                                //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
+                                if (lowestPathPoint.firstUp != null) {
+                                    heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
+                                }
 
-                        //Draw blob around sub path
-                        for (child in node.children) {
-                            if (child.blobColor != node.blobColor) {
-                                val lowestPathPoint = visualization.interleaving.g.nodeMap[child];
-                                if (lowestPathPoint != null) {
-                                    val delta = child.height - lowestPathPoint.height
+                                val treePos = TreePosition(child, heightDelta)
+                                val edge = child.edgeContour;
+                                val point = treePositionToPoint(treePos);
 
-                                    var heightDelta = 0.0;
-                                    //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
-                                    if (lowestPathPoint.firstUp != null)  {
-                                        heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
-                                    }
-
-                                    val treePos = TreePosition(child, heightDelta)
-                                    val edge = child.edgeContour;
-                                    val point = treePositionToPoint(treePos);
-
-                                    //if point is null, mapping path no part of the path to the child should be in the blob.
-                                    if (point != null) {
-                                        val curveOffset = edge!!.on(point, 0.2);
-                                        val subContour = edge.sub(0.0, curveOffset!!)
-                                        contour(visualization.fromTree2Local(subContour))
-                                    }
+                                //if point is null, mapping path no part of the path to the child should be in the blob.
+                                if (point != null) {
+                                    val curveOffset = edge!!.on(point, 0.2);
+                                    val subContour = edge.sub(0.0, curveOffset!!)
+                                    if (tree == visualization.tree1E)
+                                        contour(visualization.fromTree1Local(subContour))
+                                    else contour(visualization.fromTree2Local(subContour))
                                 }
                             }
                         }
@@ -303,6 +253,22 @@ fun main() = application {
                 }
             }
         }
+
+        fun drawBlobs() {
+            if (!blobsEnabled) return;
+
+            //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
+            for (blob in visualization.tree1Blobs.reversed()) {
+                drawBlob(visualization.tree1E, blob)
+            }
+
+            //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
+            for (blob in visualization.tree2Blobs.reversed()) {
+                drawBlob(visualization.tree2E, blob)
+            }
+        }
+
+
 
         //TODO: Refactor to reduce duplicate code for both trees
         fun drawBlobPaths() {
