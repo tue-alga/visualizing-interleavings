@@ -105,8 +105,8 @@ fun example2(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width = 800
-        height = 800
+        width = 1600
+        height = 900
         title = "Visualizing interleavings"
     }
     program {
@@ -132,6 +132,7 @@ fun main() = application {
             @TextParameter("File name")
             var svgFileName: String = "output"
 
+            //TODO: Refactor blob and path decomposition to be part of the composition so that it can be exported to svg.
             @ActionParameter("Export to SVG")
             fun exportToSVG() {
                 visualization.composition.saveToFile(File("${svgFileName}.svg"))
@@ -201,6 +202,7 @@ fun main() = application {
         }
 
         //TODO: Include paths below nodes in blobs instead of drawing blobs only between the nodes in a blob
+        //TODO: Refactor to reduce duplicate code for both trees
         fun drawBlobs() {
             if (!blobsEnabled) return;
             drawer.apply {
@@ -224,6 +226,32 @@ fun main() = application {
                             contour(visualization.fromTree1Local(node.edgeContour))
                         }
 
+                        //Draw blob around sub path
+                        for (child in node.children) {
+                            if (child.blobColor != node.blobColor) {
+                                val lowestPathPoint = visualization.interleaving.f.nodeMap[child];
+                                if (lowestPathPoint != null) {
+                                    val delta = child.height - lowestPathPoint.height
+
+                                    var heightDelta = 0.0;
+                                    //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
+                                    if (lowestPathPoint.firstUp != null)  {
+                                        heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
+                                    }
+
+                                    val treePos = TreePosition(child, heightDelta)
+                                    val edge = child.edgeContour;
+                                    val point = treePositionToPoint(treePos);
+
+                                    //if point is null, mapping path no part of the path to the child should be in the blob.
+                                    if (point != null) {
+                                        val curveOffset = edge!!.on(point, 0.5);
+                                        val subContour = edge.sub(0.0, curveOffset!!)
+                                        contour(visualization.fromTree1Local(subContour))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -244,11 +272,39 @@ fun main() = application {
                         if (node.edgeContour != null) {
                             contour(visualization.fromTree2Local(node.edgeContour))
                         }
+
+                        //Draw blob around sub path
+                        for (child in node.children) {
+                            if (child.blobColor != node.blobColor) {
+                                val lowestPathPoint = visualization.interleaving.g.nodeMap[child];
+                                if (lowestPathPoint != null) {
+                                    val delta = child.height - lowestPathPoint.height
+
+                                    var heightDelta = 0.0;
+                                    //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
+                                    if (lowestPathPoint.firstUp != null)  {
+                                        heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
+                                    }
+
+                                    val treePos = TreePosition(child, heightDelta)
+                                    val edge = child.edgeContour;
+                                    val point = treePositionToPoint(treePos);
+
+                                    //if point is null, mapping path no part of the path to the child should be in the blob.
+                                    if (point != null) {
+                                        val curveOffset = edge!!.on(point, 0.2);
+                                        val subContour = edge.sub(0.0, curveOffset!!)
+                                        contour(visualization.fromTree2Local(subContour))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
+        //TODO: Refactor to reduce duplicate code for both trees
         fun drawBlobPaths() {
             if (!blobsEnabled) return;
             drawer.apply {
@@ -265,10 +321,10 @@ fun main() = application {
 
                     if (lowestPathPoint != null) {
 
-                        //Draw lowest sub edge delta up from the leaf of the path
+                        //Draw the lowest sub edge delta up from the leaf of the path
                         val edge = lowestPathPoint.firstDown.edgeContour;
-                        val interval = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
-                        val subContour = edge.sub(0.0, interval!!)
+                        val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
+                        val subContour = edge.sub(0.0, curveOffset!!)
                         contour(visualization.fromTree2Local(subContour))
 
                         //draw rest of the path till the root node.
@@ -293,7 +349,7 @@ fun main() = application {
 
                     if (lowestPathPoint != null) {
 
-                        //Draw lowest sub edge delta up from the leaf of the path
+                        //Draw the lowest sub edge delta up from the leaf of the path
                         val edge = lowestPathPoint.firstDown.edgeContour;
                         val interval = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
                         val subContour = edge.sub(0.0, interval!!)
@@ -319,6 +375,7 @@ fun main() = application {
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+
                 //Draw nodes of the trees on top of the path decomposition
                 composition(visualization.nodeComposition)
             }
