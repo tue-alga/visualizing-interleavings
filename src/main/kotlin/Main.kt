@@ -201,7 +201,9 @@ fun main() = application {
             }
         }
 
-        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>){
+        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>) {
+            val tree1 = (tree == visualization.tree1E)
+
             drawer.apply {
                 strokeWeight = visualization.ds.markRadius / 3
                 stroke = null
@@ -209,7 +211,8 @@ fun main() = application {
                 for (node in blob.first) {
                     fill = blob.second
                     stroke = null
-                    val pos = if(tree == visualization.tree1E) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
+                    val pos =
+                        if (tree1) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
                     circle(pos, visualization.ds.blobRadius)
 
                     //Draw blob along edge
@@ -217,7 +220,7 @@ fun main() = application {
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
                     if (node.edgeContour != null) {
-                        if (tree == visualization.tree1E)
+                        if (tree1)
                             contour(visualization.fromTree1Local(node.edgeContour))
                         else contour(visualization.fromTree2Local(node.edgeContour))
                     }
@@ -225,7 +228,8 @@ fun main() = application {
                     //Draw blob around sub path
                     for (child in node.children) {
                         if (child.blobColor != node.blobColor) {
-                            val lowestPathPoint = if(tree == visualization.tree1E) visualization.interleaving.f.nodeMap[child] else visualization.interleaving.g.nodeMap[child]
+                            val lowestPathPoint =
+                                if (tree1) visualization.interleaving.f.nodeMap[child] else visualization.interleaving.g.nodeMap[child]
                             if (lowestPathPoint != null) {
                                 val delta = child.height - lowestPathPoint.height
 
@@ -243,7 +247,7 @@ fun main() = application {
                                 if (point != null) {
                                     val curveOffset = edge!!.on(point, 0.2);
                                     val subContour = edge.sub(0.0, curveOffset!!)
-                                    if (tree == visualization.tree1E)
+                                    if (tree1)
                                         contour(visualization.fromTree1Local(subContour))
                                     else contour(visualization.fromTree2Local(subContour))
                                 }
@@ -268,73 +272,63 @@ fun main() = application {
             }
         }
 
+        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>) {
+            val tree1 = (tree == visualization.tree1E)
 
+            drawer.apply {
+                fill = null
+                strokeWeight = visualization.ds.markRadius * 0.9
+                stroke = blob.second;
 
-        //TODO: Refactor to reduce duplicate code for both trees
+                val currentNode =
+                    blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
+                val lowestPathPoint =
+                    if (tree1) visualization.interleaving.f.nodeMap[currentNode] else visualization.interleaving.g.nodeMap[currentNode]
+
+                if (lowestPathPoint == null) return //return if we don't hit the other tree.
+
+                //Draw the lowest sub edge delta up from the leaf of the path
+                val edge = lowestPathPoint.firstDown.edgeContour;
+                val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
+                val subContour = edge.sub(0.0, curveOffset!!)
+                if (tree1)
+                    contour(visualization.fromTree2Local(subContour))
+                else contour(visualization.fromTree1Local(subContour))
+
+                //draw rest of the path till the root node.
+                var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
+                while (pathParent != null) {
+
+                    if (pathParent.edgeContour != null) {
+                        if (tree1)
+                            contour(visualization.fromTree2Local(pathParent.edgeContour!!))
+                        else contour(visualization.fromTree1Local(pathParent.edgeContour!!))
+                    }
+
+                    pathParent = pathParent.parent;
+                }
+            }
+        }
+
         fun drawBlobPaths() {
             if (!blobsEnabled) return;
+
+            //Draw mapping of blob in the first tree onto the second tree
+            for (blob in visualization.tree1Blobs.reversed()) {
+                drawBlobPath(visualization.tree1E, blob)
+            }
+
+            //Draw mapping of blob in the second tree onto the second tree
+            for (blob in visualization.tree2Blobs.reversed()) {
+                drawBlobPath(visualization.tree2E, blob)
+            }
+
+            //Draw Rays from root
             drawer.apply {
                 stroke = ColorRGBa.BLACK
                 fill = null
                 strokeWeight = visualization.ds.markRadius * 0.9
 
-                //Draw mapping of blob in the first tree onto the second tree
-                for (blob in visualization.tree1Blobs.reversed()) {
-                    stroke = blob.second;
-
-                    val currentNode = blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
-                    val lowestPathPoint = visualization.interleaving.f.nodeMap[currentNode];
-
-                    if (lowestPathPoint != null) {
-
-                        //Draw the lowest sub edge delta up from the leaf of the path
-                        val edge = lowestPathPoint.firstDown.edgeContour;
-                        val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
-                        val subContour = edge.sub(0.0, curveOffset!!)
-                        contour(visualization.fromTree2Local(subContour))
-
-                        //draw rest of the path till the root node.
-                        var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
-                        while(pathParent != null) {
-
-                            if (pathParent.edgeContour != null) {
-                                contour(visualization.fromTree2Local(pathParent.edgeContour!!))
-                            }
-
-                            pathParent = pathParent.parent;
-                        }
-                    }
-                }
-
-                //Draw mapping of blob in the second tree onto the second tree
-                for (blob in visualization.tree2Blobs.reversed()) {
-                    stroke = blob.second;
-
-                    val currentNode = blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
-                    val lowestPathPoint = visualization.interleaving.g.nodeMap[currentNode];
-
-                    if (lowestPathPoint != null) {
-
-                        //Draw the lowest sub edge delta up from the leaf of the path
-                        val edge = lowestPathPoint.firstDown.edgeContour;
-                        val interval = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
-                        val subContour = edge.sub(0.0, interval!!)
-                        contour(visualization.fromTree1Local(subContour))
-
-                        //draw rest of the path till the root node.
-                        var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
-                        while(pathParent != null) {
-
-                            if (pathParent.edgeContour != null) {
-                                contour(visualization.fromTree1Local(pathParent.edgeContour!!))
-                            }
-
-                            pathParent = pathParent.parent;
-                        }
-                    }
-                }
-
-                //Draw Rays from root
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
