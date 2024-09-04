@@ -1,6 +1,4 @@
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class Interval(
     var begin: Double = 1.0,
@@ -30,29 +28,70 @@ class Interval(
     }
 }
 
-fun monotoneDistance(source: MergeTree, target: MergeTree) : Double{
-    val sourceCurve = inducedCurve(source)
-    val targetCurve = inducedCurve(target)
+fun <T: MergeTreeLike<T>> monotoneInterleaving(source: T, target: T): Interleaving<T> {
+    val highestPoint = min(source.height, target.height)
+    val rootHeight = highestPoint - 1
+    val sourceCurve = inducedCurve(source, rootHeight)
+    val targetCurve = inducedCurve(target, rootHeight)
 
-    println(sourceCurve)
-    println(targetCurve)
-    return computeFrechet(sourceCurve, targetCurve)
+    val (delta, reachableSpace) = computeFrechet(sourceCurve, targetCurve)
+    val path = getReachablePath(reachableSpace)
+    val matching = getMatching(path)
+    val (sourceToTarget, targetToSource) = matching
+
+    val stLeafMap = mutableMapOf<T, T>()
+    val tsLeafMap = mutableMapOf<T, T>()
+
+    val sLeaves = source.leaves()
+    val tLeaves = target.leaves()
+
+    for (i in 0 until sLeaves.size) {
+        val pathVertexIndex = i * 2 + 1
+        val map = sourceToTarget.first { it.first == pathVertexIndex }
+
+        // Take floor and ceiling of curve parameter.
+        // The integer that is odd is the 'leaf index'
+        val f = floor(map.second).toInt()
+        val c = ceil(map.second).toInt()
+        val l = listOf(f, c).first { it % 2 == 1 }
+
+        val sourceLeaf = sLeaves[(map.first - 1) / 2]
+        val targetLeaf = tLeaves[(l - 1)/2]
+        stLeafMap[sourceLeaf] = targetLeaf
+    }
+
+    for (i in 0 until target.leaves().size) {
+        val pathVertexIndex = i * 2 + 1
+        val map = targetToSource.first { it.first == pathVertexIndex }
+
+        // Take floor and ceiling of curve parameter.
+        // The integer that is odd is the 'leaf index'
+        val f = floor(map.second).toInt()
+        val c = ceil(map.second).toInt()
+        val l = listOf(f, c).first { it % 2 == 1 }
+
+        val targetLeaf = tLeaves[(map.first - 1) / 2]
+        val sourceLeaf = sLeaves[(l - 1)/2]
+        tsLeafMap[targetLeaf] = sourceLeaf
+    }
+
+    return Interleaving(leafMapping(stLeafMap, delta), leafMapping(tsLeafMap, delta), delta)
 }
 
-fun inducedCurve(tree: MergeTree) : List<Double> {
+fun <T: MergeTreeLike<T>>inducedCurve(tree: T, rootHeight: Double) : List<Double> {
     val curve = mutableListOf<Double>()
     val leaves = tree.leaves()
-    curve.add(100.0)
-    for ((leaf, nextLeaf) in leaves.subList(0, leaves.size-1).zip(leaves.subList(1, leaves.size))) {
+    curve.add(rootHeight)
+    leaves.zipWithNext { leaf, nextLeaf ->
         curve.add(leaf.height)
         curve.add(lca(leaf, nextLeaf).height)
     }
     curve.add(leaves.last().height)
-    curve.add(100.0)
+    curve.add(rootHeight)
     return curve
 }
 
-fun lca(t1: MergeTree, t2: MergeTree) : MergeTree {
+fun <T: MergeTreeLike<T>> lca(t1: T, t2: T) : T {
     if (t1 == t2 || t1.parent == null) {
         return t1
     } else if (t2.parent == null) {
@@ -60,30 +99,17 @@ fun lca(t1: MergeTree, t2: MergeTree) : MergeTree {
     }
 
     if (t1.height > t2.height) {
-        return lca(t1.parent, t2)
+        return lca(t1.parent!!, t2)
     }
-    return lca(t1, t2.parent)
+    return lca(t1, t2.parent!!)
 }
 
-fun test() {
-    val source = listOf(20.0, 0.0, 5.0, 2.0, 10.0, 0.0, 20.0)
-    val target = listOf(20.0, 2.0, 5.0, 0.0, 10.0, 0.0, 20.0)
-
-    val delta = 2.0
-    val (freeLeft, freeBottom) = computeFreeSpace(delta, source, target)
-    val (reachableLeft, reachableBottom) = computeReachableSpace(delta, source, target, freeLeft, freeBottom)
-//    println(getReachablePath(reachableLeft, reachableBottom))
-    getReachablePath(reachableLeft, reachableBottom)
-
-}
-
-fun computeFrechet(source: List<Double>, target: List<Double>) : Double{
+fun computeFrechet(source: List<Double>, target: List<Double>) : Pair<Double, ReachableSpace> {
     val n1 = source.size;
     val n2 = target.size;
 
     if (n1 < 2 || n2 < 2) {
-        println("WARNING: comparison possible only for curves of at least 2 points!");
-        return -1.0;
+        error("WARNING: comparison possible only for curves of at least 2 points!")
     }
 
     var lowerbound = 0.0;
@@ -96,32 +122,31 @@ fun computeFrechet(source: List<Double>, target: List<Double>) : Double{
     // Binary search to find frechet distance
     // Error margin currently 0.01
     var count = 0
+    var finalReachableSpace: ReachableSpace? = null
     while (upperbound - lowerbound > 0.01) {
         val mid = (upperbound + lowerbound) / 2
-        if (frechetDecision(mid, source, target)) {
+        val (passed, reachableSpace) = frechetDecision(mid, source, target)
+        if (passed) {
             upperbound = mid
+            finalReachableSpace = reachableSpace
         } else {
             lowerbound = mid
         }
         count++
     }
 
-    println(upperbound)
-    return upperbound;
+    return upperbound to finalReachableSpace!!
 }
 
-fun frechetDecision(delta: Double, source: List<Double>, target: List<Double>) : Boolean {
+fun frechetDecision(delta: Double, source: List<Double>, target: List<Double>) : Pair<Boolean, ReachableSpace?> {
     if (abs(source[0] - target[0]) > delta || abs(source.last() - target.last()) > delta) {
-        return false
+        return false to null
     }
 
     val (freeLeft, freeBottom) = computeFreeSpace(delta, source, target)
-    println(freeLeft)
 
-    val (reachableLeft, reachableBottom) = computeReachableSpace(delta, source, target, freeLeft, freeBottom)
-    println(delta)
-    println(reachableLeft)
-    return (reachableLeft.last().last() < Double.POSITIVE_INFINITY)
+    val reachable = computeReachableSpace(delta, source, target, freeLeft, freeBottom)
+    return (reachable.left.last().last() < Double.POSITIVE_INFINITY) to reachable
 }
 
 fun computeFreeSpace(delta: Double, source: List<Double>, target: List<Double>) : Pair<MutableList<MutableList<Interval>>, MutableList<MutableList<Interval>>> {
@@ -170,13 +195,16 @@ fun freeBoundary(delta: Double, h: Double, start: Double, end: Double) : Interva
     return Interval(max(0.0, ineq2), min(1.0, ineq1))
 }
 
+typealias Grid<T> = List<List<T>>
+data class ReachableSpace(val left: Grid<Double>, val bottom: Grid<Double>)
+
 fun computeReachableSpace(
     delta: Double,
     source: List<Double>,
     target: List<Double>,
-    freeLeft: MutableList<MutableList<Interval>>,
-    freeBottom: MutableList<MutableList<Interval>>
-) : Pair<MutableList<MutableList<Double>>, MutableList<MutableList<Double>>> {
+    freeLeft: Grid<Interval>,
+    freeBottom: Grid<Interval>
+) : ReachableSpace {
 
     val reachableLeft = mutableListOf<MutableList<Double>>()
     val reachableBottom = mutableListOf<MutableList<Double>>()
@@ -245,11 +273,11 @@ fun computeReachableSpace(
         }
     }
 
-    return Pair(reachableLeft, reachableBottom)
+    return ReachableSpace(reachableLeft, reachableBottom)
 }
 
 data class ReachablePathPoint (
-    val i : Int, val j: Int, val bottom: Double, val left: Double
+    val i : Int, val j: Int, val left: Double, val bottom: Double
 ) {
     override fun toString(): String {
         return "(${i}, ${j}, ${bottom}, ${left})"
@@ -257,19 +285,20 @@ data class ReachablePathPoint (
 }
 
 fun getReachablePath(
-    reachableLeft: MutableList<MutableList<Double>>,
-    reachableBottom : MutableList<MutableList<Double>>
+    reachableSpace: ReachableSpace
 ) : MutableList<ReachablePathPoint> {
+    val reachableLeft = reachableSpace.left
+    val reachableBottom = reachableSpace.bottom
     var i = reachableLeft.size - 1
     var j = reachableBottom[0].size - 1
-    val points = mutableListOf<ReachablePathPoint>(ReachablePathPoint(i+1, j+1, 0.0, 0.0))
+    val points = mutableListOf(ReachablePathPoint(i+1, j+1, 0.0, 0.0))
 
     var fromTop = true
     var start = 0.0
 
-    while (!(i==-1 || j==-1)) {
-        val left = max(0.0, min(1.0, reachableLeft[i][j]))
-        val bottom = max(0.0, min(1.0, reachableBottom[i][j]))
+    while (i >= 0 && j >= 0) {
+        val left = reachableLeft[i][j]
+        val bottom = reachableBottom[i][j]
         // Not precise
         if (left == 0.0 || bottom == 0.0) {
             points.add(ReachablePathPoint(i, j, 0.0, 0.0))
@@ -299,38 +328,6 @@ fun getReachablePath(
     return points
 }
 
-//fun getReachablePath(
-//    reachableLeft: MutableList<MutableList<Double>>,
-//    reachableBottom : MutableList<MutableList<Double>>
-//) : MutableList<Pair<Int, Int>> {
-//    var i = reachableLeft.size-1
-//    var j = reachableBottom[0].size-1
-//    val points = mutableListOf(Pair(i+1, j+1))
-//
-//    print("Testing: ")
-//    println(reachableLeft + " and\n " + reachableBottom)
-//
-//    while (i < reachableLeft.size-1 && j < reachableBottom[0].size-1) {
-//
-//        if (reachableBottom[i+1][j] < Double.POSITIVE_INFINITY) {
-//            points.add(Pair(i+1, j))
-//            i++
-//        } else {
-//            points.add(Pair(i, j+1))
-//            j++
-//        }
-//    }
-//
-////    for (k in i..<reachableLeft.size) {
-////        points.add(Pair(k, reachableBottom[0].size))
-////    }
-////    for (k in j..< reachableBottom[0].size) {
-////        points.add(Pair(reachableLeft.size, k))
-////    }
-//    println(points)
-//    return points
-//}
-
 fun getMatching(points : MutableList<ReachablePathPoint>) :
         Pair<MutableList<Pair<Int, Double>>,MutableList<Pair<Int, Double>>> {
     val i = points[0].i
@@ -347,5 +344,7 @@ fun getMatching(points : MutableList<ReachablePathPoint>) :
             beta.add(Pair(point.j, point.i.toDouble() + point.left))
         }
     }
+    alpha.reverse()
+    beta.reverse()
     return Pair(alpha, beta)
 }

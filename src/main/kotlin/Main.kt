@@ -58,22 +58,23 @@ fun example1(pos: Vector2): Visualization {
     val tes = TreeEmbedSettings(17.5)
 
     return Visualization(tree1, tree2, pos, tes, ds) { tree1E, tree2E ->
-        val leaves1 = tree1E.leaves
-        val leaves2 = tree2E.leaves
-
-        val delta = 10.0
-        val map12 = leafMapping(buildMap {
-            listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
-                set(leaves1[i], leaves2[j])
-            }
-        }, delta)
-        val map21 = leafMapping(buildMap {
-            listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
-                set(leaves2[i], leaves1[j])
-            }
-        }, delta)
-
-        Interleaving(map12, map21, delta)
+        monotoneInterleaving(tree1E, tree2E)
+//        val leaves1 = tree1E.leaves
+//        val leaves2 = tree2E.leaves
+//
+//        val delta = 10.0
+//        val map12 = leafMapping(buildMap {
+//            listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
+//                set(leaves1[i], leaves2[j])
+//            }
+//        }, delta)
+//        val map21 = leafMapping(buildMap {
+//            listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
+//                set(leaves2[i], leaves1[j])
+//            }
+//        }, delta)
+//
+//        Interleaving(map12, map21, delta)
     }
 }
 
@@ -100,6 +101,15 @@ fun example2(pos: Vector2): Visualization {
     }
 }
 
+fun example3(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0(40)(10(25)(35)))")
+    val tree2 = parseTree("(0(10(35)(25))(40))")
+
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
 fun main() = application {
     configure {
         width = 800
@@ -109,7 +119,7 @@ fun main() = application {
     program {
         val camera = Camera()
 
-        var blobsEnabled = false;
+        var blobsEnabled = false
 
         val visualization = example1(drawer.bounds.center)
 
@@ -126,23 +136,7 @@ fun main() = application {
 
             @ActionParameter("Compute monotone")
             fun computeMonotone() {
-//                val tree1 = parseTree(
-//                    "(0" +
-//                            "(10(30)(40(50)(50)))" +
-//                            "(20(25)(30))" +
-//                            "(15(22)(32(40)(37)(45)))" +
-//                            ")"
-//                )
-//                val tree2 = parseTree(
-//                    "(0" +
-//                            "(10(40)(30(35)(38(43)(43))))" +
-//                            "(20)" +
-//                            "(10(15)(20))" +
-//                            "(15(30)(32(45)(50)))" +
-//                            ")"
-//                )
-//                monotoneDistance(tree1, tree2)
-                test()
+                monotoneInterleaving(visualization.tree1, visualization.tree2)
             }
         }
 
