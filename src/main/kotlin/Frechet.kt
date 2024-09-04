@@ -69,7 +69,12 @@ fun test() {
     val source = listOf(20.0, 0.0, 5.0, 2.0, 10.0, 0.0, 20.0)
     val target = listOf(20.0, 2.0, 5.0, 0.0, 10.0, 0.0, 20.0)
 
-    computeFrechet(source, target)
+    val delta = 2.0
+    val (freeLeft, freeBottom) = computeFreeSpace(delta, source, target)
+    val (reachableLeft, reachableBottom) = computeReachableSpace(delta, source, target, freeLeft, freeBottom)
+//    println(getReachablePath(reachableLeft, reachableBottom))
+    getReachablePath(reachableLeft, reachableBottom)
+
 }
 
 fun computeFrechet(source: List<Double>, target: List<Double>) : Double{
@@ -245,7 +250,11 @@ fun computeReachableSpace(
 
 data class ReachablePathPoint (
     val i : Int, val j: Int, val bottom: Double, val left: Double
-)
+) {
+    override fun toString(): String {
+        return "(${i}, ${j}, ${bottom}, ${left})"
+    }
+}
 
 fun getReachablePath(
     reachableLeft: MutableList<MutableList<Double>>,
@@ -253,15 +262,22 @@ fun getReachablePath(
 ) : MutableList<ReachablePathPoint> {
     var i = reachableLeft.size - 1
     var j = reachableBottom[0].size - 1
-    val points = mutableListOf<ReachablePathPoint>(ReachablePathPoint(i, j, 0.0, 0.0))
+    val points = mutableListOf<ReachablePathPoint>(ReachablePathPoint(i+1, j+1, 0.0, 0.0))
 
     var fromTop = true
     var start = 0.0
 
-    while (!(i==0 || j==0)) {
+    while (!(i==-1 || j==-1)) {
         val left = max(0.0, min(1.0, reachableLeft[i][j]))
         val bottom = max(0.0, min(1.0, reachableBottom[i][j]))
-        if (left < Double.POSITIVE_INFINITY || (!fromTop && left < start)) {
+        // Not precise
+        if (left == 0.0 || bottom == 0.0) {
+            points.add(ReachablePathPoint(i, j, 0.0, 0.0))
+            i--
+            j--
+            fromTop = false
+            start = 0.0
+        } else if (left < Double.POSITIVE_INFINITY || (!fromTop && left < start)) {
             points.add(ReachablePathPoint(i,j,left,0.0))
             j -= 1
             fromTop = false
@@ -277,8 +293,59 @@ fun getReachablePath(
     for (k in 0..i) {
         points.add(ReachablePathPoint(k, 0, 0.0, 0.0))
     }
-    for (k in 0..j+1) {
+    for (k in 0..j) {
         points.add(ReachablePathPoint(0, k, 0.0, 0.0))
     }
     return points
+}
+
+//fun getReachablePath(
+//    reachableLeft: MutableList<MutableList<Double>>,
+//    reachableBottom : MutableList<MutableList<Double>>
+//) : MutableList<Pair<Int, Int>> {
+//    var i = reachableLeft.size-1
+//    var j = reachableBottom[0].size-1
+//    val points = mutableListOf(Pair(i+1, j+1))
+//
+//    print("Testing: ")
+//    println(reachableLeft + " and\n " + reachableBottom)
+//
+//    while (i < reachableLeft.size-1 && j < reachableBottom[0].size-1) {
+//
+//        if (reachableBottom[i+1][j] < Double.POSITIVE_INFINITY) {
+//            points.add(Pair(i+1, j))
+//            i++
+//        } else {
+//            points.add(Pair(i, j+1))
+//            j++
+//        }
+//    }
+//
+////    for (k in i..<reachableLeft.size) {
+////        points.add(Pair(k, reachableBottom[0].size))
+////    }
+////    for (k in j..< reachableBottom[0].size) {
+////        points.add(Pair(reachableLeft.size, k))
+////    }
+//    println(points)
+//    return points
+//}
+
+fun getMatching(points : MutableList<ReachablePathPoint>) :
+        Pair<MutableList<Pair<Int, Double>>,MutableList<Pair<Int, Double>>> {
+    val i = points[0].i
+    val j = points[0].j
+
+    val alpha = mutableListOf<Pair<Int, Double>>(Pair(i, j.toDouble()))
+    val beta = mutableListOf<Pair<Int, Double>>(Pair(j, i.toDouble()))
+
+    for (point in points) {
+        if (point.i < i) {
+            alpha.add(Pair(point.i, point.j.toDouble() + point.bottom))
+        }
+        if (point.j < j) {
+            beta.add(Pair(point.j, point.i.toDouble() + point.left))
+        }
+    }
+    return Pair(alpha, beta)
 }
