@@ -7,8 +7,8 @@ import org.openrndr.shape.contour
 
 fun CompositionDrawer.node(pos: Vector2, markRadius: Double) {
     stroke = ColorRGBa.BLACK
-    fill = ColorRGBa.WHITE
-    strokeWeight = markRadius / 3.0
+    fill = ColorRGBa.BLACK
+    strokeWeight = markRadius / 4.0
     circle(pos, markRadius)
 }
 

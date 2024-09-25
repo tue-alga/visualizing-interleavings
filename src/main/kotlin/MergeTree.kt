@@ -99,6 +99,18 @@ class EmbeddedMergeTree(val pos: Vector2,
         }
     }
 
+    fun drawNodes(drawer: CompositionDrawer, markRadius: Double) {
+        drawer.apply {
+            for (child in children) {
+                stroke = ColorRGBa.BLACK
+                fill = null
+                strokeWeight = markRadius / 3.0
+                child.drawNodes(this, markRadius)
+            }
+            node(pos, markRadius)
+        }
+    }
+
     override fun toString(): String {
         return "({${pos}}${children.joinToString { it.toString() }})"
     }
