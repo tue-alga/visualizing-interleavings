@@ -1,5 +1,4 @@
 import org.openrndr.color.ColorRGBa
-import org.openrndr.extra.color.presets.ORANGE
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
@@ -55,13 +54,13 @@ class Visualization(val tree1: MergeTree,
 
     /** Draw tree1E and tree2E side by side */
     private fun treePairComposition() {
-        val tree1C = drawComposition { tree1E.draw(this, ds.markRadius) }
-        val tree2C = drawComposition { tree2E.draw(this, ds.markRadius) }
+        val tree1C = drawComposition { tree1E.draw(this, ds) }
+        val tree2C = drawComposition { tree2E.draw(this, ds) }
         val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
         val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
         val bounds1 = tree1C.findShapes().map { it.bounds }.bounds
         val bounds2 = tree2C.findShapes().map { it.bounds }.bounds
-        val halfGap = ds.markRadius * 4
+        val halfGap = ds.markRadius * 20
 
         composition = drawComposition {
             translate(pos)

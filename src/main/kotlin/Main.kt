@@ -3,9 +3,7 @@ import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.draw.isolated
 import org.openrndr.extra.gui.GUI
-import org.openrndr.extra.parameters.ActionParameter
-import org.openrndr.extra.parameters.DoubleParameter
-import org.openrndr.extra.parameters.TextParameter
+import org.openrndr.extra.parameters.*
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
@@ -36,8 +34,20 @@ data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0)
     var markRadius: Double = 3.0,
 
+    @BooleanParameter("Draw Nodes")
+    var drawNodes: Boolean = false,
+
+    @DoubleParameter("Vertical Edge Width", 0.1, 5.0)
+    var verticalEdgeWidth: Double = 2.5,
+
+    @DoubleParameter("Horizontal Edge Width", 0.1, 5.0)
+    var horizontalEdgeWidth: Double = verticalEdgeWidth/2,
+
     @DoubleParameter("Blob radius", 0.1, 10.0)
-    var blobRadius: Double = 5.0
+    var blobRadius: Double = 4.0,
+
+    @ColorParameter("EdgeColor", order = 0)
+    var edgeColor: ColorRGBa = ColorRGBa.BLACK
 )
 
 fun example1(pos: Vector2): Visualization {
@@ -58,7 +68,7 @@ fun example1(pos: Vector2): Visualization {
     )
 
     val ds = DrawSettings(1.5)
-    val tes = TreeEmbedSettings(17.5)
+    val tes = TreeEmbedSettings(8.0)
 
     return Visualization(tree1, tree2, pos, tes, ds) { tree1E, tree2E ->
         val leaves1 = tree1E.leaves
@@ -112,7 +122,7 @@ fun main() = application {
     program {
         val camera = Camera()
 
-        var blobsEnabled = false;
+        var blobsEnabled = true;
 
         val visualization = example1(drawer.bounds.center)
 
@@ -155,7 +165,7 @@ fun main() = application {
         gui.onChange { name, value ->
             // name is the name of the variable that changed
             when (name) {
-                "nodeWidth", "markRadius" -> {
+                "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "edgeColor"-> {
                     visualization.compute()
                 }
             }
@@ -209,20 +219,25 @@ fun main() = application {
                 stroke = null
                 fill = blob.second
                 for (node in blob.first) {
-                    fill = blob.second
-                    stroke = null
-                    val pos =
-                        if (tree1) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
-                    circle(pos, visualization.ds.blobRadius)
+
+                    //Visualizing rounded ends of the blobs
+//                    fill = blob.second
+//                    stroke = null
+//                    val pos =
+//                        if (tree1) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
+//                    circle(pos, visualization.ds.blobRadius)
 
                     //Draw blob along edge
                     stroke = blob.second
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
                     if (node.edgeContour != null) {
+                        val pos = node.edgeContour.position(0.0)
+                        val blobContour = LineSegment(pos, Vector2(pos.x, -5.0)).contour
+
                         if (tree1)
-                            contour(visualization.fromTree1Local(node.edgeContour))
-                        else contour(visualization.fromTree2Local(node.edgeContour))
+                            contour(visualization.fromTree1Local(blobContour))
+                        else contour(visualization.fromTree2Local(blobContour))
                     }
 
                     //Draw blob around sub path
@@ -277,7 +292,7 @@ fun main() = application {
 
             drawer.apply {
                 fill = null
-                strokeWeight = visualization.ds.markRadius * 0.9
+                strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
                 stroke = blob.second;
 
                 val currentNode =
@@ -327,7 +342,7 @@ fun main() = application {
             drawer.apply {
                 stroke = ColorRGBa.BLACK
                 fill = null
-                strokeWeight = visualization.ds.markRadius * 0.9
+                strokeWeight = visualization.ds.verticalEdgeWidth*0.4
 
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
@@ -337,7 +352,8 @@ fun main() = application {
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
 
                 //Draw nodes of the trees on top of the path decomposition
-                composition(visualization.nodeComposition)
+                if(visualization.ds.drawNodes)
+                    composition(visualization.nodeComposition)
             }
         }
 
@@ -356,7 +372,7 @@ fun main() = application {
 
                 // Draw ray upward from roots
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
-                strokeWeight = visualization.ds.markRadius / 3
+                strokeWeight = visualization.ds.verticalEdgeWidth
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))

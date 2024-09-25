@@ -21,7 +21,7 @@ fun edgeContour(pos1: Vector2, pos2: Vector2): ShapeContour {
     }
 
     val cornerPoint = Vector2(pos2.x, pos1.y)
-    return LineSegment(pos2, cornerPoint).contour
+    return LineSegment(cornerPoint, pos2).contour
 }
 
 fun horizontalConnector(pos1: Vector2, pos2: Vector2): ShapeContour {
@@ -30,6 +30,6 @@ fun horizontalConnector(pos1: Vector2, pos2: Vector2): ShapeContour {
     }
 
     val cornerPoint = Vector2(pos2.x, pos1.y)
-    return LineSegment(pos1, cornerPoint).contour
+    return LineSegment(cornerPoint, pos1).contour
 
 }

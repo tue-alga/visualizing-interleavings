@@ -46,7 +46,7 @@ public class Atze {
         int deepestLeafIndex = leaves.indexOf(deepestLeaf);  // Get the position of the deepest leaf
 
         // Calculate the spacing based on the number of leaves
-        double leafSpacing = 10;  // Arbitrary value for space between leaves
+        double leafSpacing = t.w;  // Arbitrary value for space between leaves
         // Adjust the startX based on the deepest leaf position
         double startX = -(deepestLeafIndex+1) * leafSpacing / 2.0;
 
