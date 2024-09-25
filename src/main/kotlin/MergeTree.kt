@@ -1,6 +1,8 @@
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
+import org.openrndr.panel.elements.Element
 import org.openrndr.shape.CompositionDrawer
+import org.openrndr.shape.LineSegment
 import org.openrndr.shape.ShapeContour
 import java.util.*
 
@@ -87,17 +89,36 @@ class EmbeddedMergeTree(val pos: Vector2,
     //Color of the root node from the blob decomposition. BLACK = not assigned.
     var blobColor = ColorRGBa.BLACK;
 
-    fun draw(drawer: CompositionDrawer, markRadius: Double) {
+    fun draw(drawer: CompositionDrawer, ds: DrawSettings) {
         drawer.apply {
             for (child in children) {
-                stroke = ColorRGBa.BLACK
+                stroke = ds.edgeColor
                 fill = null
-                strokeWeight = markRadius / 3.0
+                strokeWeight = ds.verticalEdgeWidth
                 contour(child.edgeContour!!)
-                contour(child.horizontalContour!!)
-                child.draw(this, markRadius)
+                strokeWeight = ds.horizontalEdgeWidth
+
+                //val blobContour = LineSegment(pos, Vector2(pos.x, -5.0)).contour
+                var hContour = child.horizontalContour
+                if (hContour != null) {
+                    var pos1 = hContour.position(0.0)
+                    val pos2 = hContour.position(1.0)
+                    if (pos1.x != pos2.x) {
+                        if (pos1.x < pos2.x) {
+                            pos1 = Vector2(pos1.x - ds.verticalEdgeWidth/2, pos1.y)
+                        }
+                        else {
+                            pos1 = Vector2(pos1.x + ds.verticalEdgeWidth/2, pos1.y)
+                        }
+                        hContour = LineSegment(pos1, pos2).contour
+                    }
+                }
+                contour(hContour!!)
+
+                child.draw(this, ds)
             }
-            node(pos, markRadius)
+            if (ds.drawNodes)
+                node(pos, ds.markRadius)
         }
     }
 
