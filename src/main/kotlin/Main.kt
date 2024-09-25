@@ -112,7 +112,7 @@ fun main() = application {
     program {
         val camera = Camera()
 
-        var blobsEnabled = true;
+        var blobsEnabled = false;
 
         val visualization = example1(drawer.bounds.center)
 

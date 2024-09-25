@@ -75,6 +75,7 @@ fun MergeTree.reverse(): MergeTree {
 
 class EmbeddedMergeTree(val pos: Vector2,
                         val edgeContour: ShapeContour?,
+                        val horizontalContour: ShapeContour?,
                         override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
                         override val parent: EmbeddedMergeTree? = null) : MergeTreeLike<EmbeddedMergeTree> {
     override val height: Double = pos.y
@@ -93,6 +94,7 @@ class EmbeddedMergeTree(val pos: Vector2,
                 fill = null
                 strokeWeight = markRadius / 3.0
                 contour(child.edgeContour!!)
+                contour(child.horizontalContour!!)
                 child.draw(this, markRadius)
             }
             node(pos, markRadius)

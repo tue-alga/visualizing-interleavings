@@ -29,7 +29,7 @@ public class Atze {
 
         // Recursively apply firstWalk to all children
         for (int i = 0; i < t.childCount; i++) {
-            firstWalk(t.c[i]);
+            setInternalNodePositions(t.c[i]);
         }
 
         Tree deepestLeaf = findDeepestLeaf(t);
