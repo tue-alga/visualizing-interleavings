@@ -89,10 +89,10 @@ class EmbeddedMergeTree(val pos: Vector2,
     //Color of the root node from the blob decomposition. BLACK = not assigned.
     var blobColor = ColorRGBa.BLACK;
 
-    fun draw(drawer: CompositionDrawer, ds: DrawSettings) {
+    fun draw(drawer: CompositionDrawer, ds: DrawSettings, globalcs: GlobalColorSettings) {
         drawer.apply {
             for (child in children) {
-                stroke = ds.edgeColor
+                stroke = globalcs.edgeColor
                 fill = null
                 strokeWeight = ds.verticalEdgeWidth
                 contour(child.edgeContour!!)
@@ -115,7 +115,7 @@ class EmbeddedMergeTree(val pos: Vector2,
                 }
                 contour(hContour!!)
 
-                child.draw(this, ds)
+                child.draw(this, ds, globalcs)
             }
             if (ds.drawNodes)
                 node(pos, ds.markRadius)

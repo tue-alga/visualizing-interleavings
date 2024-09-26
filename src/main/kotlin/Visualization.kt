@@ -1,9 +1,11 @@
 import org.openrndr.color.ColorRGBa
+import org.openrndr.extra.shadestyles.linearGradient
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
 import kotlin.math.max
 import kotlin.math.min
+import org.openrndr.math.mix
 
 class Visualization(val tree1: MergeTree,
                     val tree2: MergeTree,
@@ -51,20 +53,31 @@ class Visualization(val tree1: MergeTree,
         val green = ColorRGBa.fromHex("#99CF95")
         val purple = ColorRGBa.fromHex("#AC8BD1")
 
-//        val c1 = ColorRGBa.fromHex(cs.t1c1Hex)
-//        val c2 = ColorRGBa.fromHex(cs.t1c2Hex)
-//        val c3 = ColorRGBa.fromHex(cs.t2c1Hex)
-//        val c4 = ColorRGBa.fromHex(cs.t2c2Hex)
-
+//        val t1Gradient = ColorGrad(gcs.t1c1, gcs.t1c2)
+//        val t2Gradient = linearGradient(gcs.t2c1, gcs.t2c2)
 
         blobComposition(true, tcs.t1c1, tcs.t1c2)
         blobComposition(false, tcs.t2c1, tcs.t2c2)
     }
 
+    fun colorGradiantValue(t1: Boolean, t: Double): ColorRGBa {
+        val clampedT = t.coerceIn(0.0, 1.0)
+
+        val startColor = if(t1) gcs.t1c1 else gcs.t2c1;
+        val endColor = if(t1) gcs.t1c2 else gcs.t2c2;
+
+        val r = startColor.r * (1.0 - clampedT) + endColor.r * clampedT
+        val g = startColor.g * (1.0 - clampedT) + endColor.g * clampedT
+        val b = startColor.b * (1.0 - clampedT) + endColor.b * clampedT
+
+        // Return the interpolated color
+        return ColorRGBa(r, g, b)
+    }
+
     /** Draw tree1E and tree2E side by side */
     private fun treePairComposition() {
-        val tree1C = drawComposition { tree1E.draw(this, ds) }
-        val tree2C = drawComposition { tree2E.draw(this, ds) }
+        val tree1C = drawComposition { tree1E.draw(this, ds, globalcs) }
+        val tree2C = drawComposition { tree2E.draw(this, ds, globalcs) }
         val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
         val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
         val bounds1 = tree1C.findShapes().map { it.bounds }.bounds
