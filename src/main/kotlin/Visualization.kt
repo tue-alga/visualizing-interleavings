@@ -10,6 +10,9 @@ class Visualization(val tree1: MergeTree,
                     val pos: Vector2,
                     val tes: TreeEmbedSettings = TreeEmbedSettings(),
                     val ds: DrawSettings = DrawSettings(),
+                    val globalcs: GlobalColorSettings = GlobalColorSettings(),
+                    val tcs: TwoColorSettings = TwoColorSettings(),
+                    val gcs: GradientColorSettings = GradientColorSettings(),
                     val createInterleaving: (EmbeddedMergeTree, EmbeddedMergeTree) -> Interleaving<EmbeddedMergeTree>
 ) {
     lateinit var tree1E: EmbeddedMergeTree
@@ -48,8 +51,14 @@ class Visualization(val tree1: MergeTree,
         val green = ColorRGBa.fromHex("#99CF95")
         val purple = ColorRGBa.fromHex("#AC8BD1")
 
-        blobComposition(true, green, purple)
-        blobComposition(false, blue, red)
+//        val c1 = ColorRGBa.fromHex(cs.t1c1Hex)
+//        val c2 = ColorRGBa.fromHex(cs.t1c2Hex)
+//        val c3 = ColorRGBa.fromHex(cs.t2c1Hex)
+//        val c4 = ColorRGBa.fromHex(cs.t2c2Hex)
+
+
+        blobComposition(true, tcs.t1c1, tcs.t1c2)
+        blobComposition(false, tcs.t2c1, tcs.t2c2)
     }
 
     /** Draw tree1E and tree2E side by side */

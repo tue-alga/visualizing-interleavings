@@ -47,7 +47,48 @@ data class DrawSettings(
     var blobRadius: Double = 4.0,
 
     @ColorParameter("EdgeColor", order = 0)
-    var edgeColor: ColorRGBa = ColorRGBa.BLACK
+    var edgeColor: ColorRGBa = ColorRGBa.WHITE
+)
+
+data class GlobalColorSettings(
+    @BooleanParameter("Enable Gradient")
+    var enableGradient: Boolean = false
+)
+
+data class TwoColorSettings(
+    //@ColorParameter
+    //pathColor parameter here
+
+    @ColorParameter("Tree1 color1 hexcode")
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#99CF95"), //green
+
+    @ColorParameter("Tree1 color2 hexcode")
+    var t1c2: ColorRGBa = ColorRGBa.fromHex("#AC8BD1"), //purple
+
+    @ColorParameter("Tree2 color1 hexcode")
+    var t2c1: ColorRGBa = ColorRGBa.fromHex("#8EBBD9"), //blue
+
+    @ColorParameter("Tree2 color2 hexcode")
+    var t2c2: ColorRGBa = ColorRGBa.fromHex("#F08C8D") //red
+
+)
+//val blue = ColorRGBa.fromHex("#8EBBD9")
+//val red = ColorRGBa.fromHex("#F08C8D")
+//val green = ColorRGBa.fromHex("#99CF95")
+//val purple = ColorRGBa.fromHex("#AC8BD1")
+
+data class GradientColorSettings(
+    @ColorParameter("Tree1 Gradient Start")
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#99CF95"), //green
+
+    @ColorParameter("Tree1 Gradient End")
+    var t1c2: ColorRGBa = ColorRGBa.fromHex("#AC8BD1"), //purple
+
+    @ColorParameter("Tree2 Gradient Start")
+    var t2c1: ColorRGBa = ColorRGBa.fromHex("#8EBBD9"), //blue
+
+    @ColorParameter("Tree2 Gradient End")
+    var t2c2: ColorRGBa = ColorRGBa.fromHex("#F08C8D") //red
 )
 
 fun example1(pos: Vector2): Visualization {
@@ -68,9 +109,12 @@ fun example1(pos: Vector2): Visualization {
     )
 
     val ds = DrawSettings(1.5)
+    val globalcs = GlobalColorSettings()
+    val tcs = TwoColorSettings()
+    val gcs = GradientColorSettings()
     val tes = TreeEmbedSettings(8.0)
 
-    return Visualization(tree1, tree2, pos, tes, ds) { tree1E, tree2E ->
+    return Visualization(tree1, tree2, pos, tes, ds, globalcs, tcs, gcs) { tree1E, tree2E ->
         val leaves1 = tree1E.leaves
         val leaves2 = tree2E.leaves
 
@@ -138,6 +182,8 @@ fun main() = application {
             }
         }
 
+
+
         val exportSettings = object {
             @TextParameter("File name")
             var svgFileName: String = "output"
@@ -159,13 +205,18 @@ fun main() = application {
         val gui = GUI()
         gui.add(visualization.tes, "Tree embedding")
         gui.add(visualization.ds, "Drawing")
+        gui.add(visualization.globalcs, "Global Color Settings")
+        gui.add(visualization.tcs, "Two Color Settings")
+        gui.add(visualization.gcs, "Gradient Color Settings")
+
         gui.add(viewSettings, "View")
         gui.add(exportSettings, "Export")
 
         gui.onChange { name, value ->
             // name is the name of the variable that changed
             when (name) {
-                "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "edgeColor"-> {
+                "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth",
+                "edgeColor", "t1c1", "t1c2", "t2c1", "t2c2"-> {
                     visualization.compute()
                 }
             }
@@ -228,6 +279,8 @@ fun main() = application {
 
         fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>) {
             val tree1 = (tree == visualization.tree1E)
+            val deepestNodeInBlob = deepestnodeInBlob(blob);
+            val deepestPos = deepestNodeInBlob!!.pos
 
             drawer.apply {
                 strokeWeight = visualization.ds.markRadius / 3
@@ -247,9 +300,14 @@ fun main() = application {
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
                     if (node.edgeContour != null) {
-                        val deepestNodeInBlob = deepestnodeInBlob(blob);
                         val pos = node.edgeContour.position(1.0)
-                        val blobContour = LineSegment(Vector2(pos.x, deepestNodeInBlob!!.height), Vector2(pos.x, -5.0)).contour
+
+                        val midX = (pos.x + deepestPos.x)/2
+                        val width = abs(pos.x - deepestPos.x)
+
+                        strokeWeight = width + (visualization.ds.blobRadius * 2)
+
+                        val blobContour = LineSegment(Vector2(midX, deepestPos.y), Vector2(midX, -5.0)).contour
 
                         if (tree1)
                             contour(visualization.fromTree1Local(blobContour))
@@ -279,7 +337,13 @@ fun main() = application {
                                     val curveOffset = edge!!.on(point, 0.2);
                                     val subContour = edge.sub(0.0, curveOffset!!)
                                     val pos = subContour.position(1.0)
-                                    val contour = LineSegment(pos, Vector2(pos.x, -5.0)).contour
+
+                                    val midX = (pos.x + deepestPos.x)/2
+                                    val width = abs(pos.x - deepestPos.x)
+
+                                    strokeWeight = width + (visualization.ds.blobRadius * 2)
+
+                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, -5.0)).contour
                                     if (tree1)
                                         contour(visualization.fromTree1Local(contour))
                                     else contour(visualization.fromTree2Local(contour))
@@ -364,10 +428,10 @@ fun main() = application {
 
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
-                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
-                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
 
                 //Draw nodes of the trees on top of the path decomposition
                 if(visualization.ds.drawNodes)
@@ -395,9 +459,9 @@ fun main() = application {
                 stroke = visualization.ds.edgeColor
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 strokeWeight = visualization.ds.verticalEdgeWidth
-                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
-                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
+                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
 
                 //Draw tree
                 composition(visualization.composition)
