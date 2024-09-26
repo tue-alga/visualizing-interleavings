@@ -388,14 +388,16 @@ fun main() = application {
             drawer.apply {
                 clear(ColorRGBa.WHITE)
 
+
+                drawBlobs();
+
                 // Draw ray upward from roots
+                stroke = visualization.ds.edgeColor
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 strokeWeight = visualization.ds.verticalEdgeWidth
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.0)).y))
-
-                drawBlobs();
 
                 //Draw tree
                 composition(visualization.composition)
