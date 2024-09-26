@@ -78,7 +78,14 @@ data class TwoColorSettings(
 //val green = ColorRGBa.fromHex("#99CF95")
 //val purple = ColorRGBa.fromHex("#AC8BD1")
 
+enum class ColorInterpolationType {
+    RGBLinear, HSVShort
+}
+
 data class GradientColorSettings(
+    @OptionParameter("Interpolation type")
+    var colorInterpolation: ColorInterpolationType = ColorInterpolationType.RGBLinear,
+
     @ColorParameter("Tree1 Gradient Start")
     var t1c1: ColorRGBa = ColorRGBa.fromHex("#f01d0e"), //red
 
@@ -217,7 +224,7 @@ fun main() = application {
             // name is the name of the variable that changed
             when (name) {
                 "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth",
-                "edgeColor", "enableGradient", "t1c1", "t1c2", "t2c1", "t2c2"-> {
+                "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t2c1", "t2c2"-> {
                     visualization.compute()
                 }
             }

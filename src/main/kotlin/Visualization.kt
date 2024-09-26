@@ -1,3 +1,4 @@
+import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import org.openrndr.extra.shadestyles.linearGradient
 import org.openrndr.math.Matrix44
@@ -66,12 +67,19 @@ class Visualization(val tree1: MergeTree,
         val startColor = if(t1) gcs.t1c1 else gcs.t2c1;
         val endColor = if(t1) gcs.t1c2 else gcs.t2c2;
 
-        val r = startColor.r * (1.0 - clampedT) + endColor.r * clampedT
-        val g = startColor.g * (1.0 - clampedT) + endColor.g * clampedT
-        val b = startColor.b * (1.0 - clampedT) + endColor.b * clampedT
+        when (gcs.colorInterpolation)
+        {
+            ColorInterpolationType.RGBLinear -> {
+                return startColor.mix(endColor, t)
+            }
+            ColorInterpolationType.HSVShort -> {
+                val hsvStartColor = ColorHSVa.fromRGBa(startColor)
+                val hsvEndColor = ColorHSVa.fromRGBa(endColor)
+                return hsvStartColor.mix(hsvEndColor, t).toRGBa();
+            }
+        }
 
-        // Return the interpolated color
-        return ColorRGBa(r, g, b)
+
     }
 
     /** Draw tree1E and tree2E side by side */
