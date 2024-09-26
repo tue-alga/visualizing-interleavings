@@ -211,6 +211,21 @@ fun main() = application {
             }
         }
 
+        fun deepestnodeInBlob(blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>): EmbeddedMergeTree? {
+            var deepest: EmbeddedMergeTree? = null;
+
+            for (node in blob.first){
+                if (deepest == null){
+                    deepest = node
+                    continue
+                }
+                if (node.height > deepest.height){
+                    deepest = node;
+                }
+            }
+            return deepest
+        }
+
         fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>) {
             val tree1 = (tree == visualization.tree1E)
 
@@ -232,8 +247,9 @@ fun main() = application {
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
                     if (node.edgeContour != null) {
-                        val pos = node.edgeContour.position(0.0)
-                        val blobContour = LineSegment(pos, Vector2(pos.x, -5.0)).contour
+                        val deepestNodeInBlob = deepestnodeInBlob(blob);
+                        val pos = node.edgeContour.position(1.0)
+                        val blobContour = LineSegment(Vector2(pos.x, deepestNodeInBlob!!.height), Vector2(pos.x, -5.0)).contour
 
                         if (tree1)
                             contour(visualization.fromTree1Local(blobContour))
@@ -262,9 +278,11 @@ fun main() = application {
                                 if (point != null) {
                                     val curveOffset = edge!!.on(point, 0.2);
                                     val subContour = edge.sub(0.0, curveOffset!!)
+                                    val pos = subContour.position(1.0)
+                                    val contour = LineSegment(pos, Vector2(pos.x, -5.0)).contour
                                     if (tree1)
-                                        contour(visualization.fromTree1Local(subContour))
-                                    else contour(visualization.fromTree2Local(subContour))
+                                        contour(visualization.fromTree1Local(contour))
+                                    else contour(visualization.fromTree2Local(contour))
                                 }
                             }
                         }
