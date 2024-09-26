@@ -478,13 +478,15 @@ fun main() = application {
                 strokeWeight = visualization.ds.verticalEdgeWidth*0.4
 
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
-                stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
-                stroke = visualization.colorGradiantValue(false, t2values[visualization.tree2Blobs.size-1])
+                //stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
+                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values[visualization.tree2Blobs.size-1])
+                else visualization.tree2E.blobColor
 
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
-                stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
-                stroke = visualization.colorGradiantValue(true, t1values[visualization.tree1Blobs.size-1])
+                //stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
+                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values[visualization.tree1Blobs.size-1])
+                else visualization.tree1E.blobColor
 
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
 
