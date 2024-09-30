@@ -447,7 +447,7 @@ fun main() = application {
                 var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
                 while (pathParent != null) {
 
-                    if (pathParent.edgeContour != null) {
+                    if (pathParent.edgeContour != null && pathParent.pos.x == lowestPathPoint.firstDown.pos.x) {
                         if (tree1)
                             contour(visualization.fromTree2Local(pathParent.edgeContour!!))
                         else contour(visualization.fromTree1Local(pathParent.edgeContour!!))
