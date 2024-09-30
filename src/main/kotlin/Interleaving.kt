@@ -28,17 +28,17 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         }
 
         //Create Groups of leaves that map to the same monotone path.
-        for (currentLeaf in leafMap) {
+        for (currentLeaf in leafMap.keys.reversed()) {
             var addedToGroup = false;
             for (group in leafGroups) {
-                if(shareMonotonePath(leafMap[group[0]]!!.firstDown, currentLeaf.value.firstDown)) {
-                    group.add(currentLeaf.key)
+                if(shareMonotonePath(leafMap[group[0]]!!.firstDown, leafMap[currentLeaf]!!.firstDown)) {
+                    group.add(currentLeaf)
                     addedToGroup = true
                     break
                 }
             }
             if (!addedToGroup) {
-                leafGroups.add(mutableListOf(currentLeaf.key))
+                leafGroups.add(mutableListOf(currentLeaf))
             }
         }
         //Sort groups based on deepest leaf

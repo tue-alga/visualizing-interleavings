@@ -41,7 +41,7 @@ data class DrawSettings(
     var verticalEdgeWidth: Double = 2.5,
 
     @DoubleParameter("Horizontal Edge Width", 0.1, 5.0)
-    var horizontalEdgeWidth: Double = verticalEdgeWidth/2,
+    var horizontalEdgeWidth: Double = verticalEdgeWidth,
 
     @DoubleParameter("Blob radius", 0.1, 10.0)
     var blobRadius: Double = 4.0,
@@ -87,10 +87,10 @@ data class GradientColorSettings(
     var colorInterpolation: ColorInterpolationType = ColorInterpolationType.RGBLinear,
 
     @ColorParameter("Tree1 Gradient Start")
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#f01d0e"), //red
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#e1ff69"), //yellow
 
     @ColorParameter("Tree1 Gradient End")
-    var t1c2: ColorRGBa = ColorRGBa.fromHex("#e1ff69"), //yellow
+    var t1c2: ColorRGBa = ColorRGBa.fromHex("#f01d0e"), //red
 
     @ColorParameter("Tree2 Gradient Start")
     var t2c1: ColorRGBa = ColorRGBa.fromHex("#61faff"), //light blue
