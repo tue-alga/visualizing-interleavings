@@ -68,21 +68,15 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                 val thisHeight = current.height + delta
 
                 // Check if current is mapped to by a point on this edge
-                if (thisHeight >= node.parent!!.height) {
-                    //TODO: I want to probably look at child. Now it will give me paths form 1 level below what I want.
-
+                if (thisHeight > node.parent!!.height) {
                     //heightDelta = node.height - (lowestPathPoint.firstUp!!.height + delta)
                     //thisHeight - (node.height - current.height)
                     val treePoint = TreePosition(node, thisHeight - (node.height))// - current.height))
-                    if (thisHeight > node.parent!!.height) {
+                    if (thisHeight >= node.parent!!.height) {
                         if (!inverseNodeEpsilonMap.contains(current)) {
                             inverseNodeEpsilonMap[current] = mutableListOf()
                         }
                         inverseNodeEpsilonMap[current]!!.add(treePoint)
-                        println("current: " + current)
-                        println("node: " + node)
-                        println("thisHeight: " + thisHeight)
-                        println("treePoint: " + treePoint)
                     }
                     thisEdgeMap.add(Pair(thisHeight, current))
                     current = current.parent
@@ -101,15 +95,15 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
             edgeMap[node] = thisEdgeMap
         }
 
-        println(inverseNodeEpsilonMap.size)
-        //println(inverseNodeEpsilonMap)
-        for (node in leafMap.keys) {
-            //println(edgeMap[node]!!.size)
-            if(edgeMap[node]!!.isNotEmpty()){
-                //println(node)
-                //println(edgeMap[node]!![0].second)
-            }
-        }
+//        println(inverseNodeEpsilonMap.size)
+//        //println(inverseNodeEpsilonMap)
+//        for (node in leafMap.keys) {
+//            //println(edgeMap[node]!!.size)
+//            if(edgeMap[node]!!.isNotEmpty()){
+//                //println(node)
+//                //println(edgeMap[node]!![0].second)
+//            }
+//        }
 
     }
 
