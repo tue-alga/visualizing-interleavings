@@ -92,6 +92,14 @@ class Visualization(val tree1: MergeTree,
         }
     }
 
+    private fun pathDecomposition(t1: Boolean, color1: ColorRGBa, color2: ColorRGBa) {
+        val tree = if(t1) interleaving.f else interleaving.g
+
+        if(t1) tree1PathDecomposition.clear() else tree2PathDecomposition.clear()
+
+        var pathColor = color1
+    }
+
     /** Construct blob decomposition into tree1Blobs if t1=true and into tree2Blobs if t1=false */
     private fun blobComposition(t1: Boolean, color1: ColorRGBa, color2: ColorRGBa){
         val tree = if(t1) interleaving.f else interleaving.g;

@@ -13,6 +13,7 @@ data class TreePosition<T: MergeTreeLike<T>>(val firstDown: T, val heightDelta: 
 class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
     val nodeMap: MutableMap<T, TreePosition<T>> = mutableMapOf()
     val edgeMap: MutableMap<T, List<Pair<Double, T>>> = mutableMapOf()
+    val inverseNodeEpsilonMap: MutableMap<T, MutableList<TreePosition<T>>> = mutableMapOf()
 
     //A list containing groups of leaves (represented as a list) that map to the same monotonically increasing path in the other merge tree.
     val leafGroups: MutableList<MutableList<T>> = mutableListOf()
@@ -68,8 +69,24 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
 
                 // Check if current is mapped to by a point on this edge
                 if (thisHeight >= node.parent!!.height) {
+                    //TODO: I want to probably look at child. Now it will give me paths form 1 level below what I want.
+
+                    //heightDelta = node.height - (lowestPathPoint.firstUp!!.height + delta)
+                    //thisHeight - (node.height - current.height)
+                    val treePoint = TreePosition(node, thisHeight - (node.height))// - current.height))
+                    if (thisHeight > node.parent!!.height) {
+                        if (!inverseNodeEpsilonMap.contains(current)) {
+                            inverseNodeEpsilonMap[current] = mutableListOf()
+                        }
+                        inverseNodeEpsilonMap[current]!!.add(treePoint)
+                        println("current: " + current)
+                        println("node: " + node)
+                        println("thisHeight: " + thisHeight)
+                        println("treePoint: " + treePoint)
+                    }
                     thisEdgeMap.add(Pair(thisHeight, current))
                     current = current.parent
+
                 } else {
                     break
                 }
@@ -83,6 +100,17 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
 
             edgeMap[node] = thisEdgeMap
         }
+
+        println(inverseNodeEpsilonMap.size)
+        //println(inverseNodeEpsilonMap)
+        for (node in leafMap.keys) {
+            //println(edgeMap[node]!!.size)
+            if(edgeMap[node]!!.isNotEmpty()){
+                //println(node)
+                //println(edgeMap[node]!![0].second)
+            }
+        }
+
     }
 
     operator fun get(pos: TreePosition<T>): TreePosition<T> {
@@ -97,6 +125,11 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         } ?: TreePosition(nodeResult.firstDown, nodeResult.heightDelta + pos.heightDelta)
     }
 }
+
+// tm : TreeMapping
+// tp: TreePosition
+// tm[tp]
+// tm.get(tp)
 
 data class Interleaving<T: MergeTreeLike<T>>(val f: TreeMapping<T>, val g: TreeMapping<T>, val delta: Double)
 

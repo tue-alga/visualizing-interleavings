@@ -64,12 +64,14 @@ fun example1(pos: Vector2): Visualization {
         val leaves1 = tree1E.leaves
         val leaves2 = tree2E.leaves
 
+        println("First")
         val delta = 10.0
         val map12 = leafMapping(buildMap {
             listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
                 set(leaves1[i], leaves2[j])
             }
         }, delta)
+        println("Second")
         val map21 = leafMapping(buildMap {
             listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
                 set(leaves2[i], leaves1[j])
@@ -197,6 +199,31 @@ fun main() = application {
                         circle(onePos, 1.0)
                         circle(otherPos, 1.0)
                     }
+                }
+            }
+        }
+
+        fun drawInverseMatching(tree: EmbeddedMergeTree, t1ToT2: Boolean){
+            drawer.apply {
+                val treeMapping = if(t1ToT2) visualization.interleaving.g else visualization.interleaving.f
+
+                for (node in tree.nodes()) {
+                    val pos1 = if(t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
+                    if (treeMapping.inverseNodeEpsilonMap.contains(node)) {
+                        //println("yeet")
+                        for (treePos in treeMapping.inverseNodeEpsilonMap[node]!!) {
+                            val point = treePositionToPoint(treePos)
+                            if (point != null) {
+                                val pos2 =  if(t1ToT2) visualization.fromTree2Local(treePositionToPoint(treePos)!!) else visualization.fromTree1Local(treePositionToPoint(treePos)!!)
+                                strokeWeight = visualization.ds.markRadius / 3
+                                stroke = ColorRGBa.BLUE
+                                fill = null
+                                lineSegment(pos1, pos2)
+                            }
+                        }
+                        //return;
+                    }
+
                 }
             }
         }
@@ -367,6 +394,9 @@ fun main() = application {
                 composition(visualization.composition)
 
                 drawBlobPaths();
+
+                //drawInverseMatching(visualization.tree2E, true)
+                drawInverseMatching(visualization.tree1E, true)
 
                 mouseTree1Position?.let {
                     drawMatching(it, true)
