@@ -29,8 +29,8 @@ class Visualization(val tree1: MergeTree,
 
     //TODO: Find path decomposition and use that to create blobs
     //Path decompositions: List of paths. Path is defined by a leaf and the highest node <leaf, highestnode>
-    var tree1PathDecomposition: MutableList<Pair<EmbeddedMergeTree, EmbeddedMergeTree>> = mutableListOf();
-    var tree2PathDecomposition: MutableList<Pair<EmbeddedMergeTree, EmbeddedMergeTree>> = mutableListOf();
+    var tree1PathDecomposition: MutableList<MutableList<EmbeddedMergeTree>> = mutableListOf();
+    var tree2PathDecomposition: MutableList<MutableList<EmbeddedMergeTree>> = mutableListOf();
 
     private lateinit var tree1EMatrix: Matrix44
     private lateinit var tree2EMatrix: Matrix44
@@ -45,9 +45,31 @@ class Visualization(val tree1: MergeTree,
         tree1E = tidyTree(tree1, tes)
         tree2E = tidyTree(tree2, tes)
 
+        tree1E.setID(0)
+        tree2E.setID(0)
+
         interleaving = createInterleaving(tree1E, tree2E)
 
+        pathDecomposition(true)
+        pathDecomposition(false)
+
+        //repositionNodes(false, tree2E)
+        //Redraw tidyTree based on pathDecomposition
+        //Do the below or just "move" vertices and horizontal segments
+
+        //tree1E = TidyTree(tree1, tes, redraw=true)
+        //tree2E = TidyTree(tree2, tes, redraw=true)
+
+        //interleaving = createInterleaving(tree1E, tree2E) -> probably don't need that
+        repositionNodes(true, tree1E)
+        repositionNodes(false, tree2E)
+
+
         treePairComposition()
+
+
+
+
 
         val blue = ColorRGBa.fromHex("#8EBBD9")
         val red = ColorRGBa.fromHex("#F08C8D")
@@ -59,6 +81,79 @@ class Visualization(val tree1: MergeTree,
 
         blobComposition(true, tcs.t1c1, tcs.t1c2)
         blobComposition(false, tcs.t2c1, tcs.t2c2)
+    }
+
+    private fun pathDecomposition(t1: Boolean){
+        val tree = if (t1) interleaving.f else interleaving.g
+
+        for (path in tree.pathDecomposition) {
+            if (t1){
+                tree1PathDecomposition.add(path)
+            }
+            else {
+                tree2PathDecomposition.add(path)
+            }
+        }
+    }
+
+    private fun repositionNodes(t1: Boolean, t: EmbeddedMergeTree){
+        if (t.children.isEmpty()) return //Don't reposition leaves
+
+        for (c in t.children) {
+            repositionNodes(t1, c)
+        }
+
+        val pc = getChildInSamePath(t1, t)
+
+        if (pc != null) {
+            t.pos = Vector2(pc.pos.x, t.pos.y)
+        }
+
+//        if (t.parent == null){
+//            t.pos = Vector2(t.pos.x, t.pos.y)
+//        }
+        //println("nooooooooooooooo")
+
+
+        for (c in t.children) {
+            val contour: ShapeContour? = c.parent?.let {
+                edgeContour(t.pos, c.pos)
+            }
+            c.edgeContour = contour
+
+            val horizontal: ShapeContour? = c.parent?.let {
+                horizontalConnector(t.pos, c.pos)
+            }
+            c.horizontalContour = horizontal
+
+        }
+
+        //Check which child is in same path
+        //Set x pos as that and do the (horizontal) edge contours for all childs
+    }
+
+    private fun getChildInSamePath(t1: Boolean, t:  EmbeddedMergeTree): EmbeddedMergeTree? {
+        if (t.children.isEmpty()) return null
+
+        val pathID = if (t1) getPathID(t, tree1PathDecomposition) else getPathID(t, tree2PathDecomposition)
+
+        for (c in t.children) {
+            val childPathID = if (t1) getPathID(c, tree1PathDecomposition) else getPathID(c, tree2PathDecomposition)
+            if (pathID == childPathID) { return c}
+        }
+        return null
+    }
+
+    private fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {
+        for (i in paths.indices) {
+            for (node in paths[i]) {
+                if (node.id == t.id) {
+                    return i
+                }
+            }
+        }
+
+        return -1
     }
 
     fun colorGradiantValue(t1: Boolean, t: Double): ColorRGBa {

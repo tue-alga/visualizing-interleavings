@@ -102,17 +102,17 @@ data class GradientColorSettings(
 fun example1(pos: Vector2): Visualization {
     val tree1 = parseTree(
         "(0" +
-                "(10(30)(40(50)(50)))" +
+                "(11(30)(40(50)(50)))" +
                 "(20(25)(30))" +
                 "(15(22)(32(40)(37)(45)))" +
                 ")"
     )
     val tree2 = parseTree(
         "(0" +
-                "(10(40)(30(35)(38(51)(51))))" +
+                "(11(40)(30(35)(38(51)(51))))" +
                 "(20)" +
-                "(10(15)(20))" +
-                "(15(30)(32(45)(50)))" +
+                "(11(15)(20))" +
+                "(15(31)(32(45)(50)))" +
                 ")"
     )
 
@@ -126,12 +126,14 @@ fun example1(pos: Vector2): Visualization {
         val leaves1 = tree1E.leaves
         val leaves2 = tree2E.leaves
 
+        println("First")
         val delta = 10.0
         val map12 = leafMapping(buildMap {
             listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
                 set(leaves1[i], leaves2[j])
             }
         }, delta)
+        println("Second")
         val map21 = leafMapping(buildMap {
             listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
                 set(leaves2[i], leaves1[j])
@@ -189,8 +191,6 @@ fun main() = application {
                 blobsEnabled = !blobsEnabled;
             }
         }
-
-
 
         val exportSettings = object {
             @TextParameter("File name")
@@ -270,8 +270,64 @@ fun main() = application {
             }
         }
 
-        fun deepestnodeInBlob(blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>): EmbeddedMergeTree? {
-            var deepest: EmbeddedMergeTree? = null;
+        fun drawInverseMatching(tree: EmbeddedMergeTree, t1ToT2: Boolean){
+            drawer.apply {
+                val treeMapping = if(t1ToT2) visualization.interleaving.g else visualization.interleaving.f
+
+                for (node in tree.nodes()) {
+                    val pos1 = if(t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
+                    if (treeMapping.inverseNodeEpsilonMap.contains(node)) {
+                        //println("yeet")
+                        for (treePos in treeMapping.inverseNodeEpsilonMap[node]!!) {
+                            val point = treePositionToPoint(treePos)
+                            if (point != null) {
+                                val pos2 =  if(t1ToT2) visualization.fromTree2Local(treePositionToPoint(treePos)!!) else visualization.fromTree1Local(treePositionToPoint(treePos)!!)
+                                strokeWeight = visualization.ds.markRadius / 3
+                                stroke = ColorRGBa.BLUE
+                                fill = null
+                                lineSegment(pos1, pos2)
+                            }
+                        }
+                        //return;
+                    }
+
+                    //println(treeMapping.pathDecomposition)
+
+//                    if (treeMapping.pathCharges.contains(node)) {
+//                        if (treeMapping.pathCharges[node]!! > 1) {
+//
+//                            val pos = if(t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
+//                            strokeWeight = visualization.ds.markRadius / 3
+//                            stroke = null
+//                            fill = ColorRGBa.BLUE
+//                            circle(pos, 2.0)
+//                        }
+//
+//                    }
+
+                }
+
+
+                //println("Pathcount = " + treeMapping.pathDecomposition.size)
+                for (path in treeMapping.pathDecomposition) {
+                    for (node in treeMapping.pathDecomposition[5]) {
+                        //if (path.contains(node)) {
+                            val pos =
+                                if (t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(
+                                    node.pos
+                                )
+                            strokeWeight = visualization.ds.markRadius / 3
+                            stroke = null
+                            fill = ColorRGBa.BLUE
+                            circle(pos, 2.0)
+                        //}
+                    }
+                }
+            }
+        }
+
+        fun deepestNodeInBlob(blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>): EmbeddedMergeTree? {
+            var deepest:EmbeddedMergeTree? = null
 
             for (node in blob.first){
                 if (deepest == null){
@@ -279,7 +335,7 @@ fun main() = application {
                     continue
                 }
                 if (node.height > deepest.height){
-                    deepest = node;
+                    deepest = node
                 }
             }
             return deepest
@@ -287,7 +343,7 @@ fun main() = application {
 
         fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>, gradientInterval: Double) {
             val tree1 = (tree == visualization.tree1E)
-            val deepestNodeInBlob = deepestnodeInBlob(blob);
+            val deepestNodeInBlob = deepestNodeInBlob(blob);
             val deepestPos = deepestNodeInBlob!!.pos
 
             drawer.apply {
@@ -317,7 +373,7 @@ fun main() = application {
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
                     if (node.edgeContour != null) {
-                        val pos = node.edgeContour.position(1.0)
+                        val pos = node.edgeContour!!.position(1.0)
 
                         val midX = (pos.x + deepestPos.x)/2
                         val width = abs(pos.x - deepestPos.x)
@@ -531,6 +587,9 @@ fun main() = application {
                 composition(visualization.composition)
 
                 drawBlobPaths();
+
+                //drawInverseMatching(visualization.tree2E, false)
+                drawInverseMatching(visualization.tree1E, true)
 
                 mouseTree1Position?.let {
                     drawMatching(it, true)

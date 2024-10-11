@@ -10,6 +10,7 @@ interface MergeTreeLike<T> {
     val height: Double
     val children: List<T>
     val parent: T?
+    var id: Int
 }
 
 fun <T: MergeTreeLike<T>> T.leaves(): List<T> {
@@ -41,7 +42,8 @@ fun <T: MergeTreeLike<T>> T.nodes(): Iterable<T> = object : Iterable<T> {
 class MergeTree(
     override val height: Double,
     override val children: MutableList<MergeTree> = mutableListOf(),
-    override val parent: MergeTree? = null): MergeTreeLike<MergeTree> {
+    override val parent: MergeTree? = null,
+    override var id: Int = -1): MergeTreeLike<MergeTree> {
 
     val leaves: List<MergeTree> by lazy {
         this.leaves()
@@ -75,15 +77,26 @@ fun MergeTree.reverse(): MergeTree {
     return MergeTree(height, children.map { it.reverse() }.reversed().toMutableList(), this)
 }
 
-class EmbeddedMergeTree(val pos: Vector2,
-                        val edgeContour: ShapeContour?,
-                        val horizontalContour: ShapeContour?,
-                        override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
-                        override val parent: EmbeddedMergeTree? = null) : MergeTreeLike<EmbeddedMergeTree> {
+open class EmbeddedMergeTree(var pos: Vector2,
+                             var edgeContour: ShapeContour?,
+                             var horizontalContour: ShapeContour?,
+                             override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
+                             override val parent: EmbeddedMergeTree? = null,
+                             override var id: Int = -1) : MergeTreeLike<EmbeddedMergeTree> {
     override val height: Double = pos.y
 
     val leaves: List<EmbeddedMergeTree> by lazy {
         this.leaves()
+    }
+
+    public fun setID(currentID: Int): Int{
+        id = currentID
+        var nextID = currentID + 1
+
+        for (child in children) {
+            nextID = child.setID(nextID)
+        }
+        return nextID
     }
 
     //Color of the root node from the blob decomposition. BLACK = not assigned.
