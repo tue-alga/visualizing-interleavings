@@ -26,8 +26,8 @@ class Visualization(val tree1: MergeTree,
     //Blobs sorted from the deepest path to the highest path.
     var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
-    var tree1BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
-    var tree2BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+    var tree1BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, Int>> = mutableListOf();
+    var tree2BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, Int>> = mutableListOf();
 
     //TODO: Find path decomposition and use that to create blobs
     //Path decompositions: List of paths. Path is defined by a leaf and the highest node <leaf, highestnode>
@@ -212,8 +212,8 @@ class Visualization(val tree1: MergeTree,
 
         if (t1) {
             tree1BlobsTest.clear()
-            for (path in tree2PathDecomposition) {
-                tree1BlobsTest.add(Pair(mutableListOf(), ColorRGBa.BLACK))
+            for (i in tree2PathDecomposition.indices) {
+                tree1BlobsTest.add(Pair(mutableListOf(), i))
             }
             for (node in tree1E.nodes()){
                 val other = tree.nodeMap[node];
@@ -226,8 +226,8 @@ class Visualization(val tree1: MergeTree,
         }
         else {
             tree2BlobsTest.clear()
-            for (path in tree1PathDecomposition) {
-                tree2BlobsTest.add(Pair(mutableListOf(), ColorRGBa.BLACK))
+            for (i in tree1PathDecomposition.indices) {
+                tree2BlobsTest.add(Pair(mutableListOf(), i))
             }
             for (node in tree2E.nodes()){
                 val other = tree.nodeMap[node]

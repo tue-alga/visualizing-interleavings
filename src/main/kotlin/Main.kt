@@ -318,7 +318,7 @@ fun main() = application {
             }
         }
 
-        fun deepestNodeInBlob(blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>): EmbeddedMergeTree? {
+        fun deepestNodeInBlob(blob: Pair<MutableList<EmbeddedMergeTree>, Int>): EmbeddedMergeTree? {
             var deepest:EmbeddedMergeTree? = null
 
             for (node in blob.first){
@@ -333,7 +333,7 @@ fun main() = application {
             return deepest
         }
 
-        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>, gradientInterval: Double) {
+        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, Int>, gradientInterval: Double) {
             val tree1 = (tree == visualization.tree1E)
             val deepestNodeInBlob = deepestNodeInBlob(blob);
             val deepestPos = deepestNodeInBlob!!.pos
@@ -345,14 +345,14 @@ fun main() = application {
                 if (visualization.globalcs.enableGradient)
                     visualization.colorGradiantValue(tree1, gradientInterval)
                 else
-                    fill = blob.second
+                    fill = ColorRGBa.BLACK
 
                 for (node in blob.first) {
                     //Draw blob along edge
                     stroke = if (visualization.globalcs.enableGradient)
                         visualization.colorGradiantValue(tree1, gradientInterval)
                     else
-                        blob.second
+                        ColorRGBa.BLACK
 
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
@@ -467,7 +467,7 @@ fun main() = application {
             }
         }
 
-        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>, gradientInterval: Double) {
+        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, Int>, gradientInterval: Double) {
             val tree1 = (tree == visualization.tree1E)
 
             drawer.apply {
@@ -477,7 +477,7 @@ fun main() = application {
                 stroke = if (visualization.globalcs.enableGradient)
                     visualization.colorGradiantValue(tree1, gradientInterval)
                 else
-                    blob.second
+                    ColorRGBa.BLACK
 
                 //fill = blob.second
 
@@ -510,6 +510,30 @@ fun main() = application {
             }
         }
 
+        fun drawPathSquares(t1: Boolean, path: MutableList<EmbeddedMergeTree>, gradientInterval: Double) {
+            drawer.apply {
+
+                fill = if (visualization.globalcs.enableGradient)
+                    visualization.colorGradiantValue(!t1, gradientInterval)
+                else
+                    ColorRGBa.BLACK
+
+                strokeWeight = visualization.ds.verticalEdgeWidth * 0.15
+                stroke = visualization.globalcs.edgeColor
+
+                val parent = path.last().parent
+                val posY = parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta)
+                var pos = Vector2(path.last().pos.x, posY)
+
+                pos = if (t1) visualization.fromTree1Local(pos) else visualization.fromTree2Local(pos)
+
+                val rectWidth = visualization.ds.verticalEdgeWidth * 1.5
+                pos -= rectWidth / 2
+                rectangle(pos, rectWidth)
+
+            }
+        }
+
         fun drawBlobPaths() {
             if (!blobsEnabled) return;
 
@@ -520,14 +544,16 @@ fun main() = application {
 
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
-                drawBlobPath(visualization.tree1E, blob, t1values[count])
+                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t2values[blob.second])
+                drawBlobPath(visualization.tree1E, blob, t1values[blob.second])
                 count += 1
             }
 
             count = 0
             //Draw mapping of blob in the second tree onto the second tree
             for (blob in visualization.tree2BlobsTest) {
-                drawBlobPath(visualization.tree2E, blob, t2values[count])
+                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t1values[blob.second])
+                drawBlobPath(visualization.tree2E, blob, t2values[blob.second])
                 count+=1
             }
 
@@ -539,16 +565,16 @@ fun main() = application {
 
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 //stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
-                val pathID1 = visualization.getPathID(visualization.tree2E, visualization.tree2PathDecomposition)
-                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values.first()) // t2values[visualization.tree2Blobs.size-1])
+                val pathID1 = visualization.tree1BlobsTest.first().second
+                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values[pathID1]) // t2values[visualization.tree2Blobs.size-1])
                 else visualization.tree2E.blobColor
 
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
-                val pathID2 = visualization.getPathID(visualization.tree2E, visualization.tree2PathDecomposition)
+                val pathID2 = visualization.tree2BlobsTest.first().second
 
                 //stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
-                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values.first())// t1values[visualization.tree1Blobs.size-1])
+                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values[pathID2])// t1values[visualization.tree1Blobs.size-1])
                 else visualization.tree1E.blobColor
 
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
