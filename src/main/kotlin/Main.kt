@@ -364,7 +364,7 @@ fun main() = application {
 
                         strokeWeight = width + (visualization.ds.blobRadius * 2)
 
-                        val blobContour = LineSegment(Vector2(midX, deepestPos.y), Vector2(midX, -5.0)).contour
+                        val blobContour = LineSegment(Vector2(midX, deepestPos.y), Vector2(midX, 0.0)).contour
 
                         if (tree1)
                             contour(visualization.fromTree1Local(blobContour))
@@ -400,7 +400,7 @@ fun main() = application {
 
                                     strokeWeight = width + (visualization.ds.blobRadius * 2)
 
-                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, -5.0)).contour
+                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, 0.0)).contour
                                     if (tree1)
                                         contour(visualization.fromTree1Local(contour))
                                     else contour(visualization.fromTree2Local(contour))
@@ -417,7 +417,7 @@ fun main() = application {
                         strokeWeight = width + (visualization.ds.blobRadius * 2)
 
                         val  midX = (leftLeave.pos.x + rightLeave.pos.x) / 2
-                        val contour = LineSegment(Vector2(midX, node.pos.y - delta), Vector2(midX, node.pos.y + delta)).contour
+                        val contour = LineSegment(Vector2(midX, node.pos.y - visualization.ds.blobRadius), Vector2(midX, node.pos.y + delta)).contour
                         if (tree1)
                             contour(visualization.fromTree1Local(contour))
                         else contour(visualization.fromTree2Local(contour))
