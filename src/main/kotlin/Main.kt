@@ -563,21 +563,25 @@ fun main() = application {
                 fill = null
                 strokeWeight = visualization.ds.verticalEdgeWidth*0.4
 
-                val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
-                //stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
+                //Set path Color
                 val pathID1 = visualization.tree1BlobsTest.first().second
                 stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values[pathID1]) // t2values[visualization.tree2Blobs.size-1])
                 else visualization.tree2E.blobColor
 
-                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
-                val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
-                val pathID2 = visualization.tree2BlobsTest.first().second
+                //Draw Contour
+                val pos1  = visualization.tree1E.pos
+                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - visualization.interleaving.delta)).contour
+                contour(visualization.fromTree1Local(contour1))
 
-                //stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
+                //Set path Color
+                val pathID2 = visualization.tree2BlobsTest.first().second
                 stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values[pathID2])// t1values[visualization.tree1Blobs.size-1])
                 else visualization.tree1E.blobColor
 
-                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
+                //Draw Contour
+                val pos2  = visualization.tree2E.pos
+                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - visualization.interleaving.delta)).contour
+                contour(visualization.fromTree2Local(contour2))
 
                 //Draw nodes of the trees on top of the path decomposition
                 if(visualization.ds.drawNodes)
