@@ -117,12 +117,7 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                 pathCharges[pathNode] = pathCharges[pathNode]!! + 1;
             }
         }
-        //println(pathCharges)
         createPaths(root)
-
-//        for (path in pathDecomposition){
-//            print(path.size)
-//        }
     }
 
     private fun createPaths(node: T) {
@@ -131,9 +126,6 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         }
 
         //First node of path
-//        if (!hasChargedChildren(node)){
-//            print("yeet")
-//        }
         if (!hasChargedChildren(node) && pathCharges.contains(node)) {
             pathDecomposition.add(mutableListOf(node))
             if (!pathCharges.contains(node.parent)){
@@ -191,20 +183,14 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                 }
             }
         }
-        //println("childCount: " + node.children.size)
-        //println("chargeList: " + chargeList[highestCharge].toString())
-
-        //println(chargeList[highestCharge])
         if (chargeList[highestCharge]!!.count() == 1) {
-            println("higheestCharge: " + highestCharge)
             getPathID(chargeList[highestCharge]!!.first())//id of chargeList[highestCharge].first()
         }
 
         return getPathID(getDeepestPath(chargeList[highestCharge]!!))
-        //return 1// getPathID(chargeList[highestCharge]!!.first())
     }
 
-    public fun getPathID(node: T): Int {
+    fun getPathID(node: T): Int {
         for (i in pathDecomposition.indices) {
             if (pathDecomposition[i].contains(node)) {
                 return i;
@@ -221,17 +207,12 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
             if (i == 0) continue
 
             if(getPathID(nodes[i]) == -1){ continue }
-           // println(getPathID(nodes[i]))
 
             if (getPathID(deepestPath) == -1){
                 deepestPath = nodes[i]
                 continue
             }
-//
-            //println("deepestPath: " + pathDecomposition[getPathID(nodes[i])])
-            //println(pathDecomposition[getPathID(nodes[i])].last().height)
-//            println(deepestPath)
-//            println(pathDecomposition[getPathID(deepestPath)])
+
             if (pathDecomposition[getPathID(nodes[i])].first().height >= pathDecomposition[getPathID(deepestPath)].first().height) {
                 deepestPath = nodes[i]
             }
@@ -239,22 +220,6 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         }
 
         return deepestPath
-    }
-//    private fun addToPath(node: MergeTreeLike<T>) {
-//        for (path in pathDecomposition) {
-//
-//        }
-//    }
-
-    fun InSameLeaveGroup(node1: T, node2: T): Pair<Boolean, Int> {
-        var index = 0
-        for (list in leafGroups) {
-            index++
-            if (list.contains(node1) && list.contains(node2)) {
-                return Pair(true, index)
-            }
-        }
-        return Pair(false, index)
     }
 
     operator fun get(pos: TreePosition<T>): TreePosition<T> {

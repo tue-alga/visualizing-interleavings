@@ -26,6 +26,8 @@ class Visualization(val tree1: MergeTree,
     //Blobs sorted from the deepest path to the highest path.
     var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+    var tree1BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+    var tree2BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
 
     //TODO: Find path decomposition and use that to create blobs
     //Path decompositions: List of paths. Path is defined by a leaf and the highest node <leaf, highestnode>
@@ -45,31 +47,24 @@ class Visualization(val tree1: MergeTree,
         tree1E = tidyTree(tree1, tes)
         tree2E = tidyTree(tree2, tes)
 
+        interleaving = createInterleaving(tree1E, tree2E)
+
         tree1E.setID(0)
         tree2E.setID(0)
-
-        interleaving = createInterleaving(tree1E, tree2E)
+        if (interleaving.g.inverseNodeEpsilonMap.keys.first().parent == null){
+            interleaving.g.inverseNodeEpsilonMap.keys.first().setID(0)
+        }
+        if (interleaving.f.inverseNodeEpsilonMap.keys.first().parent == null){
+            interleaving.f.inverseNodeEpsilonMap.keys.first().setID(0)
+        }
 
         pathDecomposition(true)
         pathDecomposition(false)
 
-        //repositionNodes(false, tree2E)
-        //Redraw tidyTree based on pathDecomposition
-        //Do the below or just "move" vertices and horizontal segments
-
-        //tree1E = TidyTree(tree1, tes, redraw=true)
-        //tree2E = TidyTree(tree2, tes, redraw=true)
-
-        //interleaving = createInterleaving(tree1E, tree2E) -> probably don't need that
         repositionNodes(true, tree1E)
         repositionNodes(false, tree2E)
 
-
         treePairComposition()
-
-
-
-
 
         val blue = ColorRGBa.fromHex("#8EBBD9")
         val red = ColorRGBa.fromHex("#F08C8D")
@@ -81,10 +76,16 @@ class Visualization(val tree1: MergeTree,
 
         blobComposition(true, tcs.t1c1, tcs.t1c2)
         blobComposition(false, tcs.t2c1, tcs.t2c2)
+
+        blobCompositionTest(true, tcs.t1c1, tcs.t1c2)
+        blobCompositionTest(false, tcs.t1c1, tcs.t1c2)
+
     }
 
     private fun pathDecomposition(t1: Boolean){
-        val tree = if (t1) interleaving.f else interleaving.g
+        val tree = if (t1) interleaving.g else interleaving.f
+
+        if (t1) tree1PathDecomposition.clear() else tree2PathDecomposition.clear()
 
         for (path in tree.pathDecomposition) {
             if (t1){
@@ -105,15 +106,9 @@ class Visualization(val tree1: MergeTree,
 
         val pc = getChildInSamePath(t1, t)
 
-        if (pc != null) {
+        if (pc != null && t.id != pc.id) {
             t.pos = Vector2(pc.pos.x, t.pos.y)
         }
-
-//        if (t.parent == null){
-//            t.pos = Vector2(t.pos.x, t.pos.y)
-//        }
-        //println("nooooooooooooooo")
-
 
         for (c in t.children) {
             val contour: ShapeContour? = c.parent?.let {
@@ -127,9 +122,6 @@ class Visualization(val tree1: MergeTree,
             c.horizontalContour = horizontal
 
         }
-
-        //Check which child is in same path
-        //Set x pos as that and do the (horizontal) edge contours for all childs
     }
 
     private fun getChildInSamePath(t1: Boolean, t:  EmbeddedMergeTree): EmbeddedMergeTree? {
@@ -139,20 +131,19 @@ class Visualization(val tree1: MergeTree,
 
         for (c in t.children) {
             val childPathID = if (t1) getPathID(c, tree1PathDecomposition) else getPathID(c, tree2PathDecomposition)
-            if (pathID == childPathID) { return c}
+            if (pathID == childPathID) {
+                return c
+            }
         }
         return null
     }
 
-    private fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {
+    fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {
         for (i in paths.indices) {
             for (node in paths[i]) {
-                if (node.id == t.id) {
-                    return i
-                }
+                if (node.id == t.id) return i
             }
         }
-
         return -1
     }
 
@@ -213,6 +204,40 @@ class Visualization(val tree1: MergeTree,
                     tree2EMatrix = model
                     composition(tree2NC)
                 }
+        }
+    }
+
+    private fun blobCompositionTest(t1: Boolean, color1: ColorRGBa, color2: ColorRGBa) {
+        val tree = if(t1) interleaving.f else interleaving.g;
+
+        if (t1) {
+            tree1BlobsTest.clear()
+            for (path in tree2PathDecomposition) {
+                tree1BlobsTest.add(Pair(mutableListOf(), ColorRGBa.BLACK))
+            }
+            for (node in tree1E.nodes()){
+                val other = tree.nodeMap[node];
+                val otherPathID = getPathID(other!!.firstDown, tree2PathDecomposition)
+
+                tree1BlobsTest[otherPathID].first.add(node)
+            }
+
+            tree1BlobsTest.sortBy { it.first.first().height }
+        }
+        else {
+            tree2BlobsTest.clear()
+            for (path in tree1PathDecomposition) {
+                tree2BlobsTest.add(Pair(mutableListOf(), ColorRGBa.BLACK))
+            }
+            for (node in tree2E.nodes()){
+                val other = tree.nodeMap[node]
+                val otherPathID = getPathID(other!!.firstDown, tree1PathDecomposition)
+
+                tree2BlobsTest[otherPathID].first.add(node)
+            }
+
+            tree2BlobsTest.sortBy { it.first.first().height }
+
         }
     }
 

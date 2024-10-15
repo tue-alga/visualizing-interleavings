@@ -87,10 +87,10 @@ data class GradientColorSettings(
     var colorInterpolation: ColorInterpolationType = ColorInterpolationType.RGBLinear,
 
     @ColorParameter("Tree1 Gradient Start")
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#e1ff69"), //yellow
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#f01d0e"), //red
 
     @ColorParameter("Tree1 Gradient End")
-    var t1c2: ColorRGBa = ColorRGBa.fromHex("#f01d0e"), //red
+    var t1c2: ColorRGBa = ColorRGBa.fromHex("#e1ff69"), //yellow
 
     @ColorParameter("Tree2 Gradient Start")
     var t2c1: ColorRGBa = ColorRGBa.fromHex("#61faff"), //light blue
@@ -103,7 +103,7 @@ fun example1(pos: Vector2): Visualization {
     val tree1 = parseTree(
         "(0" +
                 "(11(30)(40(50)(50)))" +
-                "(20(25)(30))" +
+                "(20.1(25)(30))" +
                 "(15(22)(32(40)(37)(45)))" +
                 ")"
     )
@@ -169,8 +169,8 @@ fun example2(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width = 1600
-        height = 900
+        width = 800
+        height = 450
         title = "Visualizing interleavings"
     }
     program {
@@ -290,9 +290,6 @@ fun main() = application {
                         }
                         //return;
                     }
-
-                    //println(treeMapping.pathDecomposition)
-
 //                    if (treeMapping.pathCharges.contains(node)) {
 //                        if (treeMapping.pathCharges[node]!! > 1) {
 //
@@ -304,14 +301,10 @@ fun main() = application {
 //                        }
 //
 //                    }
-
                 }
 
-
-                //println("Pathcount = " + treeMapping.pathDecomposition.size)
                 for (path in treeMapping.pathDecomposition) {
-                    for (node in treeMapping.pathDecomposition[5]) {
-                        //if (path.contains(node)) {
+                    for (node in treeMapping.pathDecomposition[2]) {
                             val pos =
                                 if (t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(
                                     node.pos
@@ -320,7 +313,6 @@ fun main() = application {
                             stroke = null
                             fill = ColorRGBa.BLUE
                             circle(pos, 2.0)
-                        //}
                     }
                 }
             }
@@ -356,14 +348,6 @@ fun main() = application {
                     fill = blob.second
 
                 for (node in blob.first) {
-
-                    //Visualizing rounded ends of the blobs
-//                    fill = blob.second
-//                    stroke = null
-//                    val pos =
-//                        if (tree1) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
-//                    circle(pos, visualization.ds.blobRadius)
-
                     //Draw blob along edge
                     stroke = if (visualization.globalcs.enableGradient)
                         visualization.colorGradiantValue(tree1, gradientInterval)
@@ -424,6 +408,21 @@ fun main() = application {
                             }
                         }
                     }
+
+                    if (node.parent == null){
+                        val delta = visualization.interleaving.delta
+                        val leftLeave = if (tree1) visualization.tree1E.leaves.first() else visualization.tree2E.leaves.first()
+                        val rightLeave = if (tree1) visualization.tree1E.leaves.last() else visualization.tree2E.leaves.last()
+                        val width = abs(leftLeave.pos.x - rightLeave.pos.x)
+                        strokeWeight = width + (visualization.ds.blobRadius * 2)
+
+                        val  midX = (leftLeave.pos.x + rightLeave.pos.x) / 2
+                        val contour = LineSegment(Vector2(midX, node.pos.y - delta), Vector2(midX, node.pos.y + delta)).contour
+                        if (tree1)
+                            contour(visualization.fromTree1Local(contour))
+                        else contour(visualization.fromTree2Local(contour))
+                    }
+
                 }
             }
         }
@@ -450,21 +449,19 @@ fun main() = application {
         fun drawBlobs() {
             if (!blobsEnabled) return;
 
-            //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
-            //var blobCount = visualization.tree1Blobs.size;
-
-            var values = alternatingSpacedValues(visualization.tree1Blobs.size)
+            //Everything with blobs is drawn in reversed order so that higher up blobs will be drawn on top of lower blobs
+            var values = alternatingSpacedValues(visualization.tree1BlobsTest.size).reversed()
 
             var count: Int = 0;
-            for (blob in visualization.tree1Blobs.reversed()) {
+            for (blob in visualization.tree1BlobsTest.reversed()) {
                 drawBlob(visualization.tree1E, blob, values[count])
                 count+=1
             }
 
-            values = alternatingSpacedValues(visualization.tree2Blobs.size)
+            values = alternatingSpacedValues(visualization.tree2BlobsTest.size).reversed()
             count = 0
             //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
-            for (blob in visualization.tree2Blobs.reversed()) {
+            for (blob in visualization.tree2BlobsTest.reversed()) {
                 drawBlob(visualization.tree2E, blob, values[count])
                 count+=1
             }
@@ -508,7 +505,6 @@ fun main() = application {
                             contour(visualization.fromTree2Local(pathParent.edgeContour!!))
                         else contour(visualization.fromTree1Local(pathParent.edgeContour!!))
                     }
-
                     pathParent = pathParent.parent;
                 }
             }
@@ -517,19 +513,20 @@ fun main() = application {
         fun drawBlobPaths() {
             if (!blobsEnabled) return;
 
-            val t1values = alternatingSpacedValues(visualization.tree1Blobs.size)
+            val t1values = alternatingSpacedValues(visualization.tree1BlobsTest.size)
+            val t2values = alternatingSpacedValues(visualization.tree2BlobsTest.size)
+
             var count: Int = 0;
 
             //Draw mapping of blob in the first tree onto the second tree
-            for (blob in visualization.tree1Blobs.reversed()) {
+            for (blob in visualization.tree1BlobsTest) {
                 drawBlobPath(visualization.tree1E, blob, t1values[count])
                 count += 1
             }
 
-            val t2values = alternatingSpacedValues(visualization.tree2Blobs.size)
             count = 0
             //Draw mapping of blob in the second tree onto the second tree
-            for (blob in visualization.tree2Blobs.reversed()) {
+            for (blob in visualization.tree2BlobsTest) {
                 drawBlobPath(visualization.tree2E, blob, t2values[count])
                 count+=1
             }
@@ -542,13 +539,16 @@ fun main() = application {
 
                 val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
                 //stroke = visualization.tree2E.blobColor //path should be color of the other tree its root
-                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values[visualization.tree2Blobs.size-1])
+                val pathID1 = visualization.getPathID(visualization.tree2E, visualization.tree2PathDecomposition)
+                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values.first()) // t2values[visualization.tree2Blobs.size-1])
                 else visualization.tree2E.blobColor
 
                 lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
                 val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
+                val pathID2 = visualization.getPathID(visualization.tree2E, visualization.tree2PathDecomposition)
+
                 //stroke = visualization.tree1E.blobColor //path should be color of the other tree its root
-                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values[visualization.tree1Blobs.size-1])
+                stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values.first())// t1values[visualization.tree1Blobs.size-1])
                 else visualization.tree1E.blobColor
 
                 lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
@@ -589,7 +589,7 @@ fun main() = application {
                 drawBlobPaths();
 
                 //drawInverseMatching(visualization.tree2E, false)
-                drawInverseMatching(visualization.tree1E, true)
+                //drawInverseMatching(visualization.tree1E, true)
 
                 mouseTree1Position?.let {
                     drawMatching(it, true)

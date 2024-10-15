@@ -89,7 +89,7 @@ open class EmbeddedMergeTree(var pos: Vector2,
         this.leaves()
     }
 
-    public fun setID(currentID: Int): Int{
+    fun setID(currentID: Int): Int{
         id = currentID
         var nextID = currentID + 1
 
