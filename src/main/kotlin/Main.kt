@@ -43,10 +43,16 @@ data class DrawSettings(
     @DoubleParameter("Horizontal Edge Width", 0.1, 5.0)
     var horizontalEdgeWidth: Double = verticalEdgeWidth,
 
+    @DoubleParameter("Path Area Scale", 0.0, 3.0)
+    var pathAreaPatchScale: Double = 1.5,
+
+    @DoubleParameter("Patch Area Stroke Scale", 0.0, 0.5)
+    var patchStrokeScale: Double = 0.15,
+
     @DoubleParameter("Blob radius", 0.1, 10.0)
     var blobRadius: Double = 4.0,
 
-)
+    )
 
 data class GlobalColorSettings(
     @BooleanParameter("Enable Gradient")
@@ -223,7 +229,7 @@ fun main() = application {
         gui.onChange { name, value ->
             // name is the name of the variable that changed
             when (name) {
-                "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth",
+                "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
                 "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t2c1", "t2c2"-> {
                     visualization.compute()
                 }
@@ -518,7 +524,7 @@ fun main() = application {
                 else
                     ColorRGBa.BLACK
 
-                strokeWeight = visualization.ds.verticalEdgeWidth * 0.15
+                strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.patchStrokeScale
                 stroke = visualization.globalcs.edgeColor
 
                 val parent = path.last().parent
@@ -527,7 +533,7 @@ fun main() = application {
 
                 pos = if (t1) visualization.fromTree1Local(pos) else visualization.fromTree2Local(pos)
 
-                val rectWidth = visualization.ds.verticalEdgeWidth * 1.5
+                val rectWidth = visualization.ds.verticalEdgeWidth * visualization.ds.pathAreaPatchScale
                 pos -= rectWidth / 2
                 rectangle(pos, rectWidth)
 
