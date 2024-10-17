@@ -248,10 +248,10 @@ fun <T: MergeTreeLike<T>> leafMapping(leafMap: Map<T, T>, delta: Double): TreeMa
     val leafToPointMap = buildMap {
         for ((leaf1, leaf2) in leafMap) {
             var current = leaf2
-            while (current.parent != null && current.parent!!.height > leaf1.height - delta) {
+            while (current.parent != null && current.parent!!.height > leaf1.height - delta - 0.0001) {
                 current = current.parent!!
             }
-            set(leaf1, TreePosition(current, current.height - (leaf1.height - delta)))
+            set(leaf1, TreePosition(current, current.height - (leaf1.height - delta - 0.0001)))
         }
     }
 

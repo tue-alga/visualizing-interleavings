@@ -162,7 +162,44 @@ fun example2(pos: Vector2): Visualization {
     val tree1 = parseTree("(0(10)(20))")
     val tree2 = parseTree("(0(8)(20))")
 
-    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+    val ds = DrawSettings(1.5)
+    val globalcs = GlobalColorSettings()
+    val tcs = ThreeColorSettings()
+    val gcs = GradientColorSettings()
+    val tes = TreeEmbedSettings(8.0)
+
+
+    return Visualization(tree1, tree2, pos, tes, ds, globalcs, tcs, gcs) { tree1E, tree2E ->
+        val leaves1 = tree1E.leaves
+        val leaves2 = tree2E.leaves
+
+        val delta = 2.0
+        val map12 = leafMapping(buildMap {
+            listOf(0, 1).forEachIndexed { i, j ->
+                set(leaves1[i], leaves2[j])
+            }
+        }, delta)
+        val map21 = leafMapping(buildMap {
+            listOf(0, 1).forEachIndexed { i, j ->
+                set(leaves2[i], leaves1[j])
+            }
+        }, delta)
+        Interleaving(map12, map21, delta)
+    }
+}
+
+fun example3(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0(10)(20))")
+    val tree2 = parseTree("(0(8)(20))")
+
+    val ds = DrawSettings(1.5)
+    val globalcs = GlobalColorSettings()
+    val tcs = ThreeColorSettings()
+    val gcs = GradientColorSettings()
+    val tes = TreeEmbedSettings(8.0)
+
+
+    return Visualization(tree1, tree2, pos, tes, ds, globalcs, tcs, gcs) { tree1E, tree2E ->
         val leaves1 = tree1E.leaves
         val leaves2 = tree2E.leaves
 
