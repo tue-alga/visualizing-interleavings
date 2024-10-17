@@ -5,7 +5,7 @@ import kotlin.math.abs
 
 data class TreeEmbedSettings(
     @DoubleParameter("Node width", 0.1, 50.0)
-    var nodeWidth: Double = 20.0,
+    var nodeWidth: Double = 8.0,
 )
 
 private fun MergeTree.toAtzeTree(w: Double, h: Double = 0.0): Atze.Tree {

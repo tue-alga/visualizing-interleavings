@@ -169,7 +169,7 @@ class Visualization(val tree1: MergeTree,
         val c2 = if (t1) tcs.t1c2 else tcs.t2c2;
         val c3 = if (t1) tcs.t1c3 else tcs.t2c3;
 
-        val values = if (t1) listOf(c3, c3, c1, c3, c2, c3) else listOf(c1, c2, c3, c2, c3, c1)
+        val values = if (t1) listOf(c3, c3, c1, c3, c2, c3) else listOf(c1, c2, c3, c2, c3, c2)
         return List(size) { index -> values[index % values.size] }
 
     }

@@ -32,7 +32,7 @@ fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
 
 data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0)
-    var markRadius: Double = 3.0,
+    var markRadius: Double = 1.0,
 
     @BooleanParameter("Draw Nodes")
     var drawNodes: Boolean = false,
@@ -130,31 +130,25 @@ fun example1(pos: Vector2): Visualization {
                 ")"
     )
 
-    val ds = DrawSettings(1.5)
-    val globalcs = GlobalColorSettings()
-    val tcs = ThreeColorSettings()
-    val gcs = GradientColorSettings()
-    val tes = TreeEmbedSettings(8.0)
 
-    return Visualization(tree1, tree2, pos, tes, ds, globalcs, tcs, gcs) { tree1E, tree2E ->
-        val leaves1 = tree1E.leaves
-        val leaves2 = tree2E.leaves
-
-        println("First")
-        val delta = 10.0
-        val map12 = leafMapping(buildMap {
-            listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
-                set(leaves1[i], leaves2[j])
-            }
-        }, delta)
-        println("Second")
-        val map21 = leafMapping(buildMap {
-            listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
-                set(leaves2[i], leaves1[j])
-            }
-        }, delta)
-
-        Interleaving(map12, map21, delta)
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+//        val leaves1 = tree1E.leaves
+//        val leaves2 = tree2E.leaves
+//
+//        val delta = 10.0
+//        val map12 = leafMapping(buildMap {
+//            listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
+//                set(leaves1[i], leaves2[j])
+//            }
+//        }, delta)
+//        val map21 = leafMapping(buildMap {
+//            listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
+//                set(leaves2[i], leaves1[j])
+//            }
+//        }, delta)
+//
+//        Interleaving(map12, map21, delta)
     }
 }
 
@@ -162,59 +156,17 @@ fun example2(pos: Vector2): Visualization {
     val tree1 = parseTree("(0(10)(20))")
     val tree2 = parseTree("(0(8)(20))")
 
-    val ds = DrawSettings(1.5)
-    val globalcs = GlobalColorSettings()
-    val tcs = ThreeColorSettings()
-    val gcs = GradientColorSettings()
-    val tes = TreeEmbedSettings(8.0)
-
-
-    return Visualization(tree1, tree2, pos, tes, ds, globalcs, tcs, gcs) { tree1E, tree2E ->
-        val leaves1 = tree1E.leaves
-        val leaves2 = tree2E.leaves
-
-        val delta = 2.0
-        val map12 = leafMapping(buildMap {
-            listOf(0, 1).forEachIndexed { i, j ->
-                set(leaves1[i], leaves2[j])
-            }
-        }, delta)
-        val map21 = leafMapping(buildMap {
-            listOf(0, 1).forEachIndexed { i, j ->
-                set(leaves2[i], leaves1[j])
-            }
-        }, delta)
-        Interleaving(map12, map21, delta)
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
     }
 }
 
 fun example3(pos: Vector2): Visualization {
-    val tree1 = parseTree("(0(10)(20))")
-    val tree2 = parseTree("(0(8)(20))")
+    val tree1 = parseTree("(0(40)(10(25)(35)))")
+    val tree2 = parseTree("(0(10(35)(25))(40))")
 
-    val ds = DrawSettings(1.5)
-    val globalcs = GlobalColorSettings()
-    val tcs = ThreeColorSettings()
-    val gcs = GradientColorSettings()
-    val tes = TreeEmbedSettings(8.0)
-
-
-    return Visualization(tree1, tree2, pos, tes, ds, globalcs, tcs, gcs) { tree1E, tree2E ->
-        val leaves1 = tree1E.leaves
-        val leaves2 = tree2E.leaves
-
-        val delta = 2.0
-        val map12 = leafMapping(buildMap {
-            listOf(0, 1).forEachIndexed { i, j ->
-                set(leaves1[i], leaves2[j])
-            }
-        }, delta)
-        val map21 = leafMapping(buildMap {
-            listOf(0, 1).forEachIndexed { i, j ->
-                set(leaves2[i], leaves1[j])
-            }
-        }, delta)
-        Interleaving(map12, map21, delta)
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
     }
 }
 
@@ -227,7 +179,7 @@ fun main() = application {
     program {
         val camera = Camera()
 
-        var blobsEnabled = true;
+        var blobsEnabled = true
 
         val visualization = example1(drawer.bounds.center)
 
@@ -241,13 +193,17 @@ fun main() = application {
             fun toggleBlobs() {
                 blobsEnabled = !blobsEnabled;
             }
+
+            @ActionParameter("Compute monotone")
+            fun computeMonotone() {
+                monotoneInterleaving(visualization.tree1, visualization.tree2)
+            }
         }
 
         val exportSettings = object {
             @TextParameter("File name")
             var svgFileName: String = "output"
 
-            //TODO: Refactor blob and path decomposition to be part of the composition so that it can be exported to svg.
             @ActionParameter("Export to SVG")
             fun exportToSVG() {
                 visualization.composition.saveToFile(File("${svgFileName}.svg"))
@@ -612,15 +568,15 @@ fun main() = application {
 
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
-                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t2values[blob.second], visualization.colorThreeValues(true, visualization.tree1BlobsTest.size)[blob.second])
+                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], visualization.colorThreeValues(true, visualization.tree1BlobsTest.size)[blob.second])
                 drawBlobPath(visualization.tree1E, blob, t1values[blob.second], visualization.tree1BlobsTest.size)
                 count += 1
             }
-
-            count = 0
-            //Draw mapping of blob in the second tree onto the second tree
+//
+//            count = 0
+//            //Draw mapping of blob in the second tree onto the second tree
             for (blob in visualization.tree2BlobsTest) {
-                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t1values[blob.second], visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
+                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
                 drawBlobPath(visualization.tree2E, blob, t2values[blob.second], visualization.tree2BlobsTest.size)
                 count+=1
             }
