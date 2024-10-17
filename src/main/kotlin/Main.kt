@@ -553,7 +553,7 @@ fun main() = application {
                 stroke = visualization.globalcs.edgeColor
 
                 val parent = path.last().parent
-                val posY = parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta)
+                val posY = parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta - visualization.ds.blobRadius)
                 var pos = Vector2(path.last().pos.x, posY)
 
                 pos = if (t1) visualization.fromTree1Local(pos) else visualization.fromTree2Local(pos)
@@ -601,7 +601,7 @@ fun main() = application {
 
                 //Draw Contour
                 val pos1  = visualization.tree1E.pos
-                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - visualization.interleaving.delta)).contour
+                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
                 contour(visualization.fromTree1Local(contour1))
 
                 //Set path Color
@@ -611,7 +611,7 @@ fun main() = application {
 
                 //Draw Contour
                 val pos2  = visualization.tree2E.pos
-                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - visualization.interleaving.delta)).contour
+                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
                 contour(visualization.fromTree2Local(contour2))
 
                 //Draw nodes of the trees on top of the path decomposition
