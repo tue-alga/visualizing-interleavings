@@ -123,32 +123,15 @@ fun example1(pos: Vector2): Visualization {
     )
     val tree2 = parseTree(
         "(0" +
-                "(11(40)(30(35)(38(51)(51))))" +
+                "(10(40)(30(35)(38(51)(51))))" +
                 "(20)" +
                 "(11(15)(20))" +
                 "(15(31)(32(45)(50)))" +
                 ")"
     )
 
-
     return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
-//        val leaves1 = tree1E.leaves
-//        val leaves2 = tree2E.leaves
-//
-//        val delta = 10.0
-//        val map12 = leafMapping(buildMap {
-//            listOf(0, 2, 3, 5, 6, 7, 8, 8, 9).forEachIndexed { i, j ->
-//                set(leaves1[i], leaves2[j])
-//            }
-//        }, delta)
-//        val map21 = leafMapping(buildMap {
-//            listOf(0, 1, 2, 2, 3, 4, 4, 5, 6, 8).forEachIndexed { i, j ->
-//                set(leaves2[i], leaves1[j])
-//            }
-//        }, delta)
-//
-//        Interleaving(map12, map21, delta)
     }
 }
 
