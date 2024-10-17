@@ -56,27 +56,35 @@ data class DrawSettings(
 
 data class GlobalColorSettings(
     @BooleanParameter("Enable Gradient")
-    var enableGradient: Boolean = true,
+    var enableGradient: Boolean = false,
 
     @ColorParameter("EdgeColor", order = 0)
     var edgeColor: ColorRGBa = ColorRGBa.WHITE
 )
 
-data class TwoColorSettings(
+data class ThreeColorSettings(
     //@ColorParameter
     //pathColor parameter here
 
+    //Tree 1
     @ColorParameter("Tree1 color1 hexcode")
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#99CF95"), //green
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
 
     @ColorParameter("Tree1 color2 hexcode")
-    var t1c2: ColorRGBa = ColorRGBa.fromHex("#AC8BD1"), //purple
+    var t1c2: ColorRGBa = ColorRGBa.fromHex("#E96222"), //orange
 
+    @ColorParameter("Tree1 color3 hexcode")
+    var t1c3: ColorRGBa = ColorRGBa.fromHex("#FCC60E"), //yellow
+
+    //Tree2
     @ColorParameter("Tree2 color1 hexcode")
-    var t2c1: ColorRGBa = ColorRGBa.fromHex("#8EBBD9"), //blue
+    var t2c1: ColorRGBa = ColorRGBa.fromHex("#454F96"), //dark-blue
 
     @ColorParameter("Tree2 color2 hexcode")
-    var t2c2: ColorRGBa = ColorRGBa.fromHex("#F08C8D") //red
+    var t2c2: ColorRGBa = ColorRGBa.fromHex("#0695BA"), //light-blue
+
+    @ColorParameter("Tree2 color3 hexcode")
+    var t2c3: ColorRGBa = ColorRGBa.fromHex("#8DBB25") //green
 
 )
 //val blue = ColorRGBa.fromHex("#8EBBD9")
@@ -124,7 +132,7 @@ fun example1(pos: Vector2): Visualization {
 
     val ds = DrawSettings(1.5)
     val globalcs = GlobalColorSettings()
-    val tcs = TwoColorSettings()
+    val tcs = ThreeColorSettings()
     val gcs = GradientColorSettings()
     val tes = TreeEmbedSettings(8.0)
 
@@ -175,8 +183,8 @@ fun example2(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width = 800
-        height = 450
+        width = 1600
+        height = 900
         title = "Visualizing interleavings"
     }
     program {
@@ -220,7 +228,7 @@ fun main() = application {
         gui.add(visualization.tes, "Tree embedding")
         gui.add(visualization.ds, "Drawing")
         gui.add(visualization.globalcs, "Global Color Settings")
-        gui.add(visualization.tcs, "Two Color Settings")
+        gui.add(visualization.tcs, "Three Color Settings")
         gui.add(visualization.gcs, "Gradient Color Settings")
 
         gui.add(viewSettings, "View")
@@ -230,7 +238,7 @@ fun main() = application {
             // name is the name of the variable that changed
             when (name) {
                 "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
-                "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t2c1", "t2c2"-> {
+                "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
                 }
             }
@@ -339,10 +347,27 @@ fun main() = application {
             return deepest
         }
 
-        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, Int>, gradientInterval: Double) {
+        fun highestNodeInBlob(blob: Pair<MutableList<EmbeddedMergeTree>, Int>): EmbeddedMergeTree? {
+            var highest:EmbeddedMergeTree? = null
+
+            for (node in blob.first){
+                if (highest == null){
+                    highest = node
+                    continue
+                }
+                if (node.height < highest.height){
+                    highest = node
+                }
+            }
+            return highest
+        }
+
+        fun drawBlob(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, Int>, gradientInterval: Double, numberOfBlobs: Int) {
             val tree1 = (tree == visualization.tree1E)
             val deepestNodeInBlob = deepestNodeInBlob(blob);
+            val highestNodeInBlob = highestNodeInBlob(blob)
             val deepestPos = deepestNodeInBlob!!.pos
+            val highestBlobPos = if(highestNodeInBlob!!.parent != null) highestNodeInBlob.parent!!.pos else highestNodeInBlob.pos
 
             drawer.apply {
                 strokeWeight = visualization.ds.markRadius / 3
@@ -358,7 +383,7 @@ fun main() = application {
                     stroke = if (visualization.globalcs.enableGradient)
                         visualization.colorGradiantValue(tree1, gradientInterval)
                     else
-                        ColorRGBa.BLACK
+                        visualization.colorThreeValues(tree1, numberOfBlobs)[blob.second]
 
                     fill = null
                     strokeWeight = visualization.ds.blobRadius * 2
@@ -370,7 +395,7 @@ fun main() = application {
 
                         strokeWeight = width + (visualization.ds.blobRadius * 2)
 
-                        val blobContour = LineSegment(Vector2(midX, deepestPos.y), Vector2(midX, 0.0)).contour
+                        val blobContour = LineSegment(Vector2(midX, deepestPos.y), Vector2(midX, highestBlobPos.y)).contour
 
                         if (tree1)
                             contour(visualization.fromTree1Local(blobContour))
@@ -406,7 +431,7 @@ fun main() = application {
 
                                     strokeWeight = width + (visualization.ds.blobRadius * 2)
 
-                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, 0.0)).contour
+                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, highestBlobPos.y)).contour
                                     if (tree1)
                                         contour(visualization.fromTree1Local(contour))
                                     else contour(visualization.fromTree2Local(contour))
@@ -460,7 +485,7 @@ fun main() = application {
 
             var count: Int = 0;
             for (blob in visualization.tree1BlobsTest.reversed()) {
-                drawBlob(visualization.tree1E, blob, values[count])
+                drawBlob(visualization.tree1E, blob, values[count], visualization.tree1BlobsTest.size)
                 count+=1
             }
 
@@ -468,12 +493,12 @@ fun main() = application {
             count = 0
             //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
             for (blob in visualization.tree2BlobsTest.reversed()) {
-                drawBlob(visualization.tree2E, blob, values[count])
+                drawBlob(visualization.tree2E, blob, values[count], visualization.tree2BlobsTest.size)
                 count+=1
             }
         }
 
-        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, Int>, gradientInterval: Double) {
+        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Pair<MutableList<EmbeddedMergeTree>, Int>, gradientInterval: Double, numberOfBlobs: Int) {
             val tree1 = (tree == visualization.tree1E)
 
             drawer.apply {
@@ -483,7 +508,7 @@ fun main() = application {
                 stroke = if (visualization.globalcs.enableGradient)
                     visualization.colorGradiantValue(tree1, gradientInterval)
                 else
-                    ColorRGBa.BLACK
+                    visualization.colorThreeValues(tree1, numberOfBlobs)[blob.second]
 
                 //fill = blob.second
 
@@ -516,13 +541,13 @@ fun main() = application {
             }
         }
 
-        fun drawPathSquares(t1: Boolean, path: MutableList<EmbeddedMergeTree>, gradientInterval: Double) {
+        fun drawPathSquares(t1: Boolean, path: MutableList<EmbeddedMergeTree>, gradientInterval: Double, color: ColorRGBa) {
             drawer.apply {
 
                 fill = if (visualization.globalcs.enableGradient)
                     visualization.colorGradiantValue(!t1, gradientInterval)
                 else
-                    ColorRGBa.BLACK
+                    color
 
                 strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.patchStrokeScale
                 stroke = visualization.globalcs.edgeColor
@@ -550,16 +575,16 @@ fun main() = application {
 
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
-                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t2values[blob.second])
-                drawBlobPath(visualization.tree1E, blob, t1values[blob.second])
+                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t2values[blob.second], visualization.colorThreeValues(true, visualization.tree1BlobsTest.size)[blob.second])
+                drawBlobPath(visualization.tree1E, blob, t1values[blob.second], visualization.tree1BlobsTest.size)
                 count += 1
             }
 
             count = 0
             //Draw mapping of blob in the second tree onto the second tree
             for (blob in visualization.tree2BlobsTest) {
-                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t1values[blob.second])
-                drawBlobPath(visualization.tree2E, blob, t2values[blob.second])
+                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t1values[blob.second], visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
+                drawBlobPath(visualization.tree2E, blob, t2values[blob.second], visualization.tree2BlobsTest.size)
                 count+=1
             }
 
@@ -572,7 +597,7 @@ fun main() = application {
                 //Set path Color
                 val pathID1 = visualization.tree1BlobsTest.first().second
                 stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values[pathID1]) // t2values[visualization.tree2Blobs.size-1])
-                else visualization.tree2E.blobColor
+                else visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[pathID1]
 
                 //Draw Contour
                 val pos1  = visualization.tree1E.pos
@@ -582,7 +607,7 @@ fun main() = application {
                 //Set path Color
                 val pathID2 = visualization.tree2BlobsTest.first().second
                 stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values[pathID2])// t1values[visualization.tree1Blobs.size-1])
-                else visualization.tree1E.blobColor
+                else visualization.colorThreeValues(true, visualization.tree1BlobsTest.size)[pathID2]
 
                 //Draw Contour
                 val pos2  = visualization.tree2E.pos

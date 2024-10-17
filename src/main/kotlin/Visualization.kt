@@ -1,12 +1,10 @@
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
-import org.openrndr.extra.shadestyles.linearGradient
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
 import kotlin.math.max
 import kotlin.math.min
-import org.openrndr.math.mix
 
 class Visualization(val tree1: MergeTree,
                     val tree2: MergeTree,
@@ -14,7 +12,7 @@ class Visualization(val tree1: MergeTree,
                     val tes: TreeEmbedSettings = TreeEmbedSettings(),
                     val ds: DrawSettings = DrawSettings(),
                     val globalcs: GlobalColorSettings = GlobalColorSettings(),
-                    val tcs: TwoColorSettings = TwoColorSettings(),
+                    val tcs: ThreeColorSettings = ThreeColorSettings(),
                     val gcs: GradientColorSettings = GradientColorSettings(),
                     val createInterleaving: (EmbeddedMergeTree, EmbeddedMergeTree) -> Interleaving<EmbeddedMergeTree>
 ) {
@@ -164,7 +162,15 @@ class Visualization(val tree1: MergeTree,
                 return hsvStartColor.mix(hsvEndColor, t).toRGBa();
             }
         }
+    }
 
+    fun colorThreeValues(t1: Boolean, size: Int): List<ColorRGBa> {
+        val c1 = if (t1) tcs.t1c1 else tcs.t2c1;
+        val c2 = if (t1) tcs.t1c2 else tcs.t2c2;
+        val c3 = if (t1) tcs.t1c3 else tcs.t2c3;
+
+        val values = if (t1) listOf(c3, c3, c1, c3, c2, c3) else listOf(c1, c2, c3, c2, c3, c1)
+        return List(size) { index -> values[index % values.size] }
 
     }
 
