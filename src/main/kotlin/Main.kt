@@ -169,11 +169,26 @@ fun example4(pos: Vector2): Visualization {
             "(25(35)(40(50)(55(70)(65)(60)(70))(50)))" +
             "(5(15(25)(20))(10)(30(40)(35)))" +
             "(10(15)(30(50)(55))(25))" +
-            "(15(35)(50(55)(60)(65))(20))" +
+            "(15(35)(50(55)(60)(66))(20))" +
             "(5(30)(35(45(65)(55)(60))(40)(40))(15))" +
             "(5(15)(25(35)(30)))" +
             "(35(55)(40)(45(60(65)(65)(70))(55)(65)))" +
             "(20(35)(30)(35)(40(55)(50)(45))(30(35)(35)))" +
+            ")"
+    )
+
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
+fun example5(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0" +
+            "(35)(40(50)(55(70)(65)(60)(75))(50))" +
+            ")"
+    )
+    val tree2 = parseTree("(0" +
+            "(35)(40(50)(55(70)(65)(60)(70))(50))" +
             ")"
     )
 
@@ -193,7 +208,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = example4(drawer.bounds.center)
+        val visualization = example1(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
