@@ -184,6 +184,35 @@ fun example4(pos: Vector2): Visualization {
 
 fun example5(pos: Vector2): Visualization {
     val tree1 = parseTree("(0" +
+            "(25(35)(40(50)(55(70)(65)(60)(70))(50)))" +
+            "(5(15(25)(20))(10)(30(40)(35)))" +
+            "(10(15)(30(50)(55)))" +
+            "(15(35)(50(55)(60)(65))(20)(25))" +
+            "(5(35(45(65)(55)(60))(40)(40)))" +
+            "(5(15)(25(35)(30)))" +
+            "(35(55)(40)(45(60(65)(65)(70))(55)))" +
+            "(20(40(55)(50)(45))(30(35)(35)))" +
+            ")"
+    )
+    val tree2 = parseTree("(0" +
+            "(25(35)(40(50)(55(70)(65)(60)(70))(50)))" +
+            "(5(15(25)(20))(10)(30(40)(35)))" +
+            "(10(15)(30(50)(55)))" +
+            "(15(35)(50(55)(60)(65))(20)(25))" +
+            "(5(35(45(65)(55)(60))(40)(40)))" +
+            "(5(15)(25(35)(30)))" +
+            "(35(55)(40)(45(60(65)(65)(70))(55)))" +
+            "(20(40(55)(50)(45))(30(35)(35)))" +
+            ")"
+    )
+
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
+fun example6(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0" +
             "(35)(40(50)(55(70)(65)(60)(75))(50))" +
             ")"
     )
@@ -199,7 +228,7 @@ fun example5(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width = 1600
+        width = 3500
         height = 900
         title = "Visualizing interleavings"
     }
