@@ -134,7 +134,6 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         }
         else if (node.children.isNotEmpty()) {
             if (getIdOfPriorityPath(node) != -1) {
-                println(getIdOfPriorityPath(node))
                 pathDecomposition[getIdOfPriorityPath(node)].add(node)
             }
         }

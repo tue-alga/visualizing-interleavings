@@ -3,6 +3,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
+import java.awt.Color
 import kotlin.math.max
 import kotlin.math.min
 
@@ -24,9 +25,10 @@ class Visualization(val tree1: MergeTree,
     //Blobs sorted from the deepest path to the highest path.
     var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
-    var tree1BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, Int>> = mutableListOf();
-    var tree2BlobsTest: MutableList<Pair<MutableList<EmbeddedMergeTree>, Int>> = mutableListOf();
-
+    var tree1BlobsTest: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>> = mutableListOf();
+    var tree2BlobsTest: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>> = mutableListOf();
+    var tree1Colors: MutableList<ColorRGBa> = mutableListOf();
+    var tree2Colors: MutableList<ColorRGBa> = mutableListOf();
     //TODO: Find path decomposition and use that to create blobs
     //Path decompositions: List of paths. Path is defined by a leaf and the highest node <leaf, highestnode>
     var tree1PathDecomposition: MutableList<MutableList<EmbeddedMergeTree>> = mutableListOf();
@@ -55,6 +57,14 @@ class Visualization(val tree1: MergeTree,
         if (interleaving.f.inverseNodeEpsilonMap.keys.first().parent == null){
             interleaving.f.inverseNodeEpsilonMap.keys.first().setID(0)
         }
+        tree1Colors.clear()
+        tree2Colors.clear()
+        tree1Colors.add(tcs.t1c1)
+        tree1Colors.add(tcs.t1c2)
+        tree1Colors.add(tcs.t1c3)
+        tree2Colors.add(tcs.t2c1)
+        tree2Colors.add(tcs.t2c2)
+        tree2Colors.add(tcs.t2c3)
 
         pathDecomposition(true)
         pathDecomposition(false)
@@ -63,6 +73,7 @@ class Visualization(val tree1: MergeTree,
         repositionNodes(false, tree2E)
 
         treePairComposition()
+
 
         val blue = ColorRGBa.fromHex("#8EBBD9")
         val red = ColorRGBa.fromHex("#F08C8D")
@@ -78,6 +89,10 @@ class Visualization(val tree1: MergeTree,
         blobCompositionTest(true, tcs.t1c1, tcs.t1c2)
         blobCompositionTest(false, tcs.t1c1, tcs.t1c2)
 
+        setBlobColors(true,true, 0, tcs.t1c1)
+        setBlobColors(true,false, 0, tcs.t2c1)
+
+       // getBlobOfNode(true, tree1E)
     }
 
     private fun pathDecomposition(t1: Boolean){
@@ -136,6 +151,110 @@ class Visualization(val tree1: MergeTree,
         return null
     }
 
+    private fun highestNodeInBlobs(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): EmbeddedMergeTree{
+        var highest = blobs[blobID].first.first()
+
+        for (node in blobs[blobID].first) {
+            if (node.height > highest.height) {
+                highest = node
+            }
+        }
+        return highest
+    }
+
+    private fun getBlobOfNode(blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): Int {
+        //val blobs = if (t1) tree1BlobsTest else tree2BlobsTest;
+
+        for (i in blobs.indices) {
+            if (blobs[i].first.contains(node)){
+                return i
+            }
+        }
+        return -1
+    }
+
+    private fun getParentBlob(blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
+        //val blobs = if (t1) tree1BlobsTest else tree2BlobsTest;
+
+        val parentNode = highestNodeInBlobs(blobs, blobID).parent ?: return -1 //returns null if parent = null -> means that blob contains the root node
+
+        return getBlobOfNode(blobs, parentNode)
+        //return tree.first()
+    }
+
+    private fun getChildBlobs(blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): MutableList<Int>{
+        val children: MutableList<Int> = mutableListOf()
+
+        for (node in blobs[blobID].first) {
+            for (child in node.children) {
+                if (blobs[blobID].first.contains(child)) continue
+
+                children.add(getBlobOfNode(blobs, child))
+            }
+        }
+
+        return children.distinct().toMutableList()
+    }
+
+    private fun getRemainingColors(usedColor: ColorRGBa, colors: MutableList<ColorRGBa>): MutableList<ColorRGBa>{
+        var index = -1
+        val remainingColors: MutableList<ColorRGBa> = mutableListOf()
+
+        for (i in colors.indices){
+            if (usedColor != colors[i]){
+                remainingColors.add(colors[i])
+            }
+        }
+        //val colors =
+
+        //colors.removeAt(index)
+
+        return remainingColors
+    }
+
+    private fun setBlobColors(yes: Boolean, t1: Boolean, blobID: Int, color: ColorRGBa){
+        val blobs = if(t1) tree1BlobsTest else tree2BlobsTest
+        val colors = if(t1) tree1Colors else tree2Colors
+
+        blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
+
+        //val parentBlobID = getParentBlob(blobs, blobID)
+        //if (parentBlobID == -1) { blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, colors.first()) } //TODO: Make mutableTriple so that we can change the color, or use other datatype
+
+        //val thisColor = blobs[blobID].third
+        val childColors = getRemainingColors(color, colors)
+        println(childColors.size)
+        val childBlobIDs = getChildBlobs(blobs, blobID)
+        println(childBlobIDs)
+        println(" ")
+        println(blobs.size)
+
+        if(!yes) return
+
+//        var childColor = childColors.first()
+//        setBlobColors(false, t1, childBlobIDs[0], childColor)
+//        childColor = childColors.last()
+//        setBlobColors(false, t1, childBlobIDs[1], childColor)
+//        println(childColors.size)
+//        childColor = childColors.first()
+//        setBlobColors(false, t1, childBlobIDs[2], childColor)
+
+        for (i in childBlobIDs.indices){
+            val childColor = childColors[i % childColors.size]
+            setBlobColors(true, t1, childBlobIDs[i], childColor)
+        }
+
+        //Prob need colors as input.
+
+        //prob set their children as we can use the two remaining colors to interchange them.
+
+        //if ownColor = c1
+        //for child -> setcolor(c2, c1, c2, c1)
+
+        //getBlobOfNode(blobs, tree1E.leaves.first())?.let { print(getParentBlob(true, it)) }
+
+    }
+
     fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {
         for (i in paths.indices) {
             for (node in paths[i]) {
@@ -169,7 +288,9 @@ class Visualization(val tree1: MergeTree,
         val c2 = if (t1) tcs.t1c2 else tcs.t2c2;
         val c3 = if (t1) tcs.t1c3 else tcs.t2c3;
 
-        val values = if (t1) listOf(c3, c3, c1, c3, c2, c3) else listOf(c1, c2, c3, c2, c3, c2)
+        //val values = if (t1) listOf(c3, c3, c1, c3, c2, c3) else listOf(c1, c2, c3, c2, c3, c2)
+        val values = if (t1) listOf(c1, c2, c3) else listOf(c1, c2, c3)
+
         return List(size) { index -> values[index % values.size] }
 
     }
@@ -219,7 +340,7 @@ class Visualization(val tree1: MergeTree,
         if (t1) {
             tree1BlobsTest.clear()
             for (i in tree2PathDecomposition.indices) {
-                tree1BlobsTest.add(Pair(mutableListOf(), i))
+                tree1BlobsTest.add(Triple(mutableListOf(), i, ColorRGBa.BLACK))
             }
             for (node in tree1E.nodes()){
                 val other = tree.nodeMap[node];
@@ -233,7 +354,7 @@ class Visualization(val tree1: MergeTree,
         else {
             tree2BlobsTest.clear()
             for (i in tree1PathDecomposition.indices) {
-                tree2BlobsTest.add(Pair(mutableListOf(), i))
+                tree2BlobsTest.add(Triple(mutableListOf(), i, ColorRGBa.BLACK))
             }
             for (node in tree2E.nodes()){
                 val other = tree.nodeMap[node]
