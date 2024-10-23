@@ -385,19 +385,19 @@ class Visualization(val tree1: MergeTree,
             val lowestTouching = tree.leaves[id - 1]
             val lowestBlob = getBlobOfNode(blobs, lowestTouching)
 
-            var parent = getParentBlob(blobs, lowestBlob)
-            touchingBlobs.add(parent)
 
             if (lowBlobsTouch(t1, blobs, lowestBlob, blobID)) {
                 touchingBlobs.add(lowestBlob)
 
-                TODO, HERE WE WANT TO EARLY OUT IF OTHER BLOB IS HIGHER THAN CURRENT BLOB SINCE WE DO NOT TOUCH PARENTS IN THAT CASE
+                //TODO, HERE WE WANT TO EARLY OUT IF OTHER BLOB IS HIGHER THAN CURRENT BLOB SINCE WE DO NOT TOUCH PARENTS IN THAT CASE
                 if (highestPointInBlob(t1, blobs, blobID).y >= highestPointInBlob(t1, blobs, lowestBlob).y) {
                     return touchingBlobs
                 }
 
             }
 
+            var parent = getParentBlob(blobs, lowestBlob)
+            touchingBlobs.add(parent)
 
             parent = getParentBlob(blobs, parent)
 
@@ -431,17 +431,16 @@ class Visualization(val tree1: MergeTree,
             println("left: " + id + " " + blobID)
             println("right: " + id + 1 + " " + lowestBlob)
 
-            var parent = getParentBlob(blobs, lowestBlob)
-            touchingBlobs.add(parent)
-
             if (lowBlobsTouch(t1, blobs, blobID, lowestBlob)) {
                 touchingBlobs.add(lowestBlob)
 
-                TODO, HERE WE WANT TO EARLY OUT IF OTHER BLOB IS HIGHER THAN CURRENT BLOB SINCE WE DO NOT TOUCH PARENTS IN THAT CASE
+                //TODO, HERE WE WANT TO EARLY OUT IF OTHER BLOB IS HIGHER THAN CURRENT BLOB SINCE WE DO NOT TOUCH PARENTS IN THAT CASE
                 if (highestPointInBlob(t1, blobs, blobID).y >= highestPointInBlob(t1, blobs, lowestBlob).y) {
                     return touchingBlobs
                 }
             }
+            var parent = getParentBlob(blobs, lowestBlob)
+            touchingBlobs.add(parent)
 
             parent = getParentBlob(blobs, parent)
 
@@ -581,6 +580,7 @@ class Visualization(val tree1: MergeTree,
             }
 
             //TODO: Probably sort based on highest childs -> we want to color higher blobs first
+            leftChildBlobIDs.sortBy { index -> highestNodeInBlob(blobs, index).height }
             for (i in leftChildBlobIDs.indices){
                 val childColor = leftColorOrder[i % leftColorOrder.size]
                 val rightID = if (i+1 <= leftChildBlobIDs.size) i+1 else -1;
@@ -611,6 +611,7 @@ class Visualization(val tree1: MergeTree,
                 blobs[rightChildBlobIDs[i]] = Triple(blobs[rightChildBlobIDs[i]].first, blobs[rightChildBlobIDs[i]].second, childColor)
             }
 
+            rightChildBlobIDs.sortBy { index -> highestNodeInBlob(blobs, index).height }
             for (i in rightChildBlobIDs.indices.reversed()){
                 val childColor = rightColorOrder[(i) % rightColorOrder.size]
                 val rightID = if (i+1 <= rightChildBlobIDs.size) i+1 else -1;
