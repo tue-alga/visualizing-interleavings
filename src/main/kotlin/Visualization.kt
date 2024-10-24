@@ -100,8 +100,8 @@ class Visualization(val tree1: MergeTree,
         nodes2ToColor.sortBy { it.height }
 
 
-        setBlobColors(true,true, 0, -1, -1, tcs.t1c1)
-        setBlobColors(true,false, 0, -1, -1, tcs.t2c1)
+        setBlobColors(true, 0, -1, -1, tcs.t1c1)
+        setBlobColors(false, 0, -1, -1, tcs.t2c1)
 
         //val rightblobs = rightMostBlobsInSubtree(tree2BlobsTest, highestNodeInBlob(tree2BlobsTest, 0))
 
@@ -244,28 +244,14 @@ class Visualization(val tree1: MergeTree,
         val childrenNotInBlob: MutableList<Int> = mutableListOf()
 
         val blobID = getBlobOfNode(blobs, node)
-
+        println("blob")
+        println(blobs[blobID])
         for (child in node.children) {
             if (blobs[blobID].first.contains(child)) continue
 
             childrenNotInBlob.add(getBlobOfNode(blobs, child))
         }
         return childrenNotInBlob
-
-//        val children: MutableList<Int> = mutableListOf()
-//        val highestNode = highestNodeInBlob(blobs, blobID)
-//
-//        println(highestNode)
-//
-//        println("highest: " + highestNode.children.size)
-//
-//        for (child in highestNode.children) {
-//            if (blobs[blobID].first.contains(child)) continue
-//
-//            children.add(getBlobOfNode(blobs, child))
-//        }
-//
-//        return children
     }
 
     private fun getRemainingColors(usedColor: ColorRGBa, colors: MutableList<ColorRGBa>): MutableList<ColorRGBa>{
@@ -484,22 +470,31 @@ class Visualization(val tree1: MergeTree,
     }
 
     //return neighbouring colors that are not a child of this blob
-    private fun getTouchingColors(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int, rightBlobID: Int, leftMost: Boolean=false, rightMost: Boolean=false)
+    private fun getTouchingColors(yes: Boolean, t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int, rightBlobID: Int, leftMost: Boolean=false, rightMost: Boolean=false)
     : MutableList<ColorRGBa>{
         val touchingColors = mutableListOf<ColorRGBa>()
+
         //return empty list if blob is root, since all other blobs are children
         val parentBlobID = getParentBlob(blobs, blobID)
-        val parentIsRoot = parentBlobID == -1
-        if (parentIsRoot) return touchingColors
+        println("parentID: " + parentBlobID)
+//        val parentIsRoot = parentBlobID == -1
+//        if (parentIsRoot) return touchingColors
 
         //You always touch your parent blob
         val parentColor = blobs[parentBlobID].third
         println("parentColor: " + parentColor)
         touchingColors.add(parentColor)
 
-        if (leftMost){
+        if (leftMost && leftBlobID != -1){
             //val touchingBlobIDs = rightMostBlobsInSubtree(blobs, highestNodeInBlob(blobs, leftBlobID))
+            println("blobID: " + blobID)
+            println("leftBlobID: " + leftBlobID)
+
             val touchingBlobIDs = getBlobsTouchingLeft(t1, blobs, blobID, leftBlobID)
+
+            //if (!yes) return touchingColors
+
+
             println("touchingBlobIDs: " + touchingBlobIDs)
             for (id in touchingBlobIDs){
 
@@ -614,7 +609,7 @@ class Visualization(val tree1: MergeTree,
         return Pair(leftID, rightID)
     }
 
-    private fun setBlobColors(yes: Boolean, t1: Boolean, blobID: Int, leftBlobID: Int=-1, rightBlobID: Int=-1, color: ColorRGBa, rightOfRoot: Boolean=false){
+    private fun setBlobColors(t1: Boolean, blobID: Int, leftBlobID: Int=-1, rightBlobID: Int=-1, color: ColorRGBa, rightOfRoot: Boolean=false){
         val blobs = if(t1) tree1BlobsTest else tree2BlobsTest
         val colors = if(t1) tree1Colors else tree2Colors
 
@@ -624,7 +619,10 @@ class Visualization(val tree1: MergeTree,
         //if (parentBlobID == -1) { blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, colors.first()) } //TODO: Make mutableTriple so that we can change the color, or use other datatype
         if (parentBlobID == -1) blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
 
+        var index = 0
         while (if(t1) nodes1ToColor.isNotEmpty() else nodes2ToColor.isNotEmpty()) {
+            //if (index > 6) break
+
             //val thisColor = blobs[blobID].third
 
             val currentNode = if (t1) nodes1ToColor.first() else nodes2ToColor.first()
@@ -635,20 +633,28 @@ class Visualization(val tree1: MergeTree,
                 print("thisONE")
             }
 
-            //val childColors = getRemainingColors(currentColor, colors)
-            //println(childColors.size)
-            val childBlobIDs = getChildBlobs(blobs, blobID)
-
-            //val test = getLeftRightParentBlobID(blobs, currentNode)
-            //val parentNeighbours = Pair(-1, -1)// getLeftRightParentBlobID(blobs, currentNode)
-
             //For all highest children in blob
             val highestChildBlobIDs = getHighestChildBlobs(blobs, currentNode)
+
+//            if (highestChildBlobIDs.size == 0)  {
+//                var onlyLeaveChilds = true
+//
+//                for (child in currentNode.children) {
+//                    if (child.children.isNotEmpty())
+//                        onlyLeaveChilds = false
+//                }
+//
+//                if (onlyLeaveChilds) {
+//                    if (t1) nodes1ToColor.remove(currentNode) else nodes2ToColor.remove(currentNode)
+//                    continue
+//                }
+//            }
 
             println("highestchildthingSize: " + highestChildBlobIDs.size)
 
             //leaveXpos
             val leaves = getLeavesInBlob(blobs, currentBlob)
+
             println(leaves.size)
             val leaveXpos = leaves.first().pos.x
             println("leavePos: " + leaveXpos)
@@ -665,17 +671,31 @@ class Visualization(val tree1: MergeTree,
             }
             //if(!yes) return
 
+
             println(leftChildBlobIDs)
+            println("currentNode: " + currentNode)
+
             if (leftChildBlobIDs.isNotEmpty()) {
                 val parentNeighbours = getLeftRightParentBlobID(t1, blobs, getLeavesInBlob(blobs, leftChildBlobIDs.first()).first())
+
+                println("break")
+                println(getLeavesInBlob(blobs, leftChildBlobIDs.first()).first().pos)
+                println("leftChildBlobID: " + leftChildBlobIDs.first())
+                println("parentNeighbours: " + parentNeighbours)
+
+
+                //if(index == 6) break
+                val go = index != 6
                 val leftTouchingColors =
-                    getTouchingColors(t1, blobs, leftChildBlobIDs.first(), parentNeighbours.first, parentNeighbours.second, leftMost = true)
+                    getTouchingColors(go, t1, blobs, leftChildBlobIDs.first(), parentNeighbours.first, parentNeighbours.second, leftMost = true)
                 //leftTouchingColors.add(currentColor)
                 //leftTouchingColors.add(currentColor)
 //            println("LeavePOS")
 //            println(getLeavesInBlob(blobs, leftChildBlobIDs.first()).first().pos )
 //            println(tree2E.leaves.indexOf(getLeavesInBlob(blobs, leftChildBlobIDs.first()).first()))
-//            println("leftTouchingColors: " + leftTouchingColors.size)
+                println("leftTouchingColors: " + leftTouchingColors)
+                //if(index == 6) break
+
                 println("checkPos: " + leaves.first().pos)
               println("lefttouchingColors: " + leftTouchingColors)
                 var leftColor = ColorRGBa.BLACK
@@ -698,6 +718,8 @@ class Visualization(val tree1: MergeTree,
 
                     println("childPos = " + getLeavesInBlob(blobs, blobs[leftChildBlobIDs[i]].second))
                 }
+                if(index == 6) break
+
 
                 //TODO: Probably sort based on highest childs -> we want to color higher blobs first
 //                leftChildBlobIDs.sortBy { index -> highestNodeInBlob(blobs, index).height }
@@ -716,7 +738,7 @@ class Visualization(val tree1: MergeTree,
                 //val node = getBlobOfNode(blobs, blobID)
                 val parentNeighbours = getLeftRightParentBlobID(t1, blobs, getLeavesInBlob(blobs, rightChildBlobIDs.first()).first())
                 val rightTouchingColors =
-                    getTouchingColors(t1, blobs, rightChildBlobIDs.last(), parentNeighbours.first, parentNeighbours.second, rightMost = true)
+                    getTouchingColors(true, t1, blobs, rightChildBlobIDs.last(), parentNeighbours.first, parentNeighbours.second, rightMost = true)
                 //rightTouchingColors.add(currentColor)
                 println("LeavePOS")
                 println("actualparentCol: " + currentColor)
@@ -750,71 +772,10 @@ class Visualization(val tree1: MergeTree,
 //                }
             }
 
+
             if (t1) nodes1ToColor.remove(currentNode) else nodes2ToColor.remove(currentNode)
+            index += 1
         }
-        //val leftTouchingColors = getTouchingColors(t1, blobs, leftChildBlobIDs.first())
-//        val rightTouchingColors = getTouchingColors(t1, blobs, leftChildBlobIDs.last())
-
-//        var leftColor = ColorRGBa.BLACK
-//        for (c in colors){
-//            if (!leftTouchingColors.contains(c)) {
-//                leftColor = c
-//                break
-//            }
-//        }
-//        var rightColor = ColorRGBa.BLACK
-//        for (c in colors){
-//            if (!rightTouchingColors.contains(c)) {
-//                rightColor = c
-//                break
-//            }
-//        }
-//        val leftColorOrder = getColorOrder(leftColor, color)
-//        val rightColorOrder = getColorOrder(rightColor, color)
-
-
-
-//        for (i in leftChildBlobIDs.indices){
-//            val childColor = leftColorOrder[i % leftColorOrder.size]
-//            setBlobColors(false, t1, leftChildBlobIDs[i], childColor)
-//        }
-//
-//        for (i in rightChildBlobIDs.indices.reversed()){
-//            val childColor = rightColorOrder[(i) % rightColorOrder.size]
-//            setBlobColors(false, t1, rightChildBlobIDs[i], childColor)
-//        }
-
-
-
-//        var childColor = childColors.first()
-//        setBlobColors(false, t1, childBlobIDs[0], childColor)
-//        childColor = childColors.last()
-//        setBlobColors(false, t1, childBlobIDs[1], childColor)
-//        println(childColors.size)
-//        childColor = childColors.first()
-//        setBlobColors(false, t1, childBlobIDs[2], childColor)
-
-        //if (rightOfRoot && !parentIsRoot) childColors.reverse()
-
-//        for (i in leftChildBlobIDs.indices){
-//            val childColor = childColors[i % childColors.size]
-//            setBlobColors(true, t1, leftChildBlobIDs[i], childColor)
-//        }
-//
-//        for (i in rightChildBlobIDs.indices.reversed()){
-//            val childColor = childColors[(i) % childColors.size]
-//            setBlobColors(true, t1, rightChildBlobIDs[i], childColor)
-//        }
-
-        //Prob need colors as input.
-
-        //prob set their children as we can use the two remaining colors to interchange them.
-
-        //if ownColor = c1
-        //for child -> setcolor(c2, c1, c2, c1)
-
-        //getBlobOfNode(blobs, tree1E.leaves.first())?.let { print(getParentBlob(true, it)) }
-
     }
 
     fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {

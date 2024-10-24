@@ -123,7 +123,7 @@ fun example1(pos: Vector2): Visualization {
     )
     val tree2 = parseTree(
         "(0" +
-                "(10(40)(30(35)(38(51)(51))))" +
+                "(10(40)(30(35)(38(45)(51))))" + //"(10(40)(30(35)(38(51)(51))))" +
                 "(20)" +
                 "(11(15)(20))" +
                 "(15(31)(32(45)(50)))" +
@@ -247,8 +247,8 @@ fun example6(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width = 3500
-        height = 900
+        width =  3500//1600 //3500
+        height = 800
         title = "Visualizing interleavings"
     }
     program {
@@ -256,7 +256,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = example4(drawer.bounds.center)
+        val visualization = example1(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
