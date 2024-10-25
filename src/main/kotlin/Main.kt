@@ -247,7 +247,7 @@ fun example6(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width =  3500//1600 //3500
+        width =  1600 //3500
         height = 800
         title = "Visualizing interleavings"
     }
