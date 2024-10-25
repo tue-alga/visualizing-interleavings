@@ -256,7 +256,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = example1(drawer.bounds.center)
+        val visualization = example4(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")

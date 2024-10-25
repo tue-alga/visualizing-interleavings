@@ -383,11 +383,8 @@ class Visualization(val tree1: MergeTree,
         val touchingBlobs = mutableListOf<Int>()
 
         val tree = if(t1) tree1E else tree2E
-
         val leftMostLeave = getLeavesInBlob(blobs, blobID).first()
-
         val id = tree.leaves.indexOf(leftMostLeave)
-        println("leaveID: " + id)
 
         if (id != 0) {
             val lowestTouching = tree.leaves[id - 1]
@@ -535,12 +532,24 @@ class Visualization(val tree1: MergeTree,
 
         print("idd: " + id)
 
-        if (id != tree.leaves.size -1)
-            rightID = getParentBlob(blobs, getBlobOfNode(blobs, tree.leaves[id+1]))
+        if (id != tree.leaves.size -1) {
+            val rightLeave = getBlobOfNode(blobs, tree.leaves[id + 1])
+            rightID = getParentBlob(blobs, rightLeave)
 
-        if (id != 0)
-            leftID = getParentBlob(blobs, getBlobOfNode(blobs, tree.leaves[id-1]))
+            if (rightID == -1)
+                rightID = rightLeave
+        }
 
+        if (id != 0) {
+            val leftLeave = getBlobOfNode(blobs, tree.leaves[id - 1])
+            leftID = getParentBlob(blobs, leftLeave)
+
+            if (leftID == -1)
+                leftID = leftLeave
+        }
+
+        print("currentBlob: " + currentBlob)
+        print("leftID: " + leftID)
         if (leftID == currentBlob) leftID = -1
         if (rightID == currentBlob) rightID = -1
 
