@@ -22,14 +22,14 @@ class Visualization(val tree1: MergeTree,
     lateinit var composition: Composition
     lateinit var nodeComposition: Composition
     //Blobs sorted from the deepest path to the highest path.
-    var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
-    var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+    private var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
+    private var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     var tree1BlobsTest: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>> = mutableListOf();
     var tree2BlobsTest: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>> = mutableListOf();
-    var tree1Colors: MutableList<ColorRGBa> = mutableListOf();
-    var tree2Colors: MutableList<ColorRGBa> = mutableListOf();
-    var nodes1ToColor: MutableList<EmbeddedMergeTree> = mutableListOf();
-    var nodes2ToColor: MutableList<EmbeddedMergeTree> = mutableListOf();
+    private var tree1Colors: MutableList<ColorRGBa> = mutableListOf();
+    private var tree2Colors: MutableList<ColorRGBa> = mutableListOf();
+    private var nodes1ToColor: MutableList<EmbeddedMergeTree> = mutableListOf();
+    private var nodes2ToColor: MutableList<EmbeddedMergeTree> = mutableListOf();
 
     //TODO: Find path decomposition and use that to create blobs
     //Path decompositions: List of paths. Path is defined by a leaf and the highest node <leaf, highestnode>
@@ -38,7 +38,7 @@ class Visualization(val tree1: MergeTree,
 
     private lateinit var tree1EMatrix: Matrix44
     private lateinit var tree2EMatrix: Matrix44
-    val compBounds: Rectangle get() = composition.findShapes().map { it.effectiveShape.bounds }.bounds
+    private val compBounds: Rectangle get() = composition.findShapes().map { it.effectiveShape.bounds }.bounds
     val bbox: Rectangle get() = compBounds.offsetEdges(min(compBounds.width, compBounds.height) * 0.1)
 
     init {
@@ -261,9 +261,9 @@ class Visualization(val tree1: MergeTree,
             }
 
             var parent = getParentBlob(blobs, lowestBlob)
-            touchingBlobs.add(parent)
-
-            parent = getParentBlob(blobs, parent)
+//            touchingBlobs.add(parent)
+//
+//            parent = getParentBlob(blobs, parent)
 
             while(parent != -1){
                 if (highBlobsTouch(blobs, blobID, parent, leftBlobID,false))
@@ -295,9 +295,9 @@ class Visualization(val tree1: MergeTree,
                 }
             }
             var parent = getParentBlob(blobs, lowestBlob)
-            touchingBlobs.add(parent)
-
-            parent = getParentBlob(blobs, parent)
+//            touchingBlobs.add(parent)
+//
+//            parent = getParentBlob(blobs, parent)
 
             while(parent != -1){
                 if (highBlobsTouch(blobs, blobID, parent, rightBlobID, true))
