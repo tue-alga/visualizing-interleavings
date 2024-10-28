@@ -123,7 +123,7 @@ fun example1(pos: Vector2): Visualization {
     )
     val tree2 = parseTree(
         "(0" +
-                "(10(40)(30(35)(38(45)(51))))" + //"(10(40)(30(35)(38(51)(51))))" +
+                "(10(40)(30(35)(38(50)(65))))" + //"(10(40)(30(35)(38(51)(51))))" +  //
                 "(20)" +
                 "(11(15)(20))" +
                 "(15(31)(32(45)(50)))" +
@@ -372,31 +372,31 @@ fun main() = application {
                         }
                         //return;
                     }
-//                    if (treeMapping.pathCharges.contains(node)) {
-//                        if (treeMapping.pathCharges[node]!! > 1) {
-//
-//                            val pos = if(t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
-//                            strokeWeight = visualization.ds.markRadius / 3
-//                            stroke = null
-//                            fill = ColorRGBa.BLUE
-//                            circle(pos, 2.0)
-//                        }
-//
-//                    }
-                }
-
-                for (path in treeMapping.pathDecomposition) {
-                    for (node in treeMapping.pathDecomposition[2]) {
-                            val pos =
-                                if (t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(
-                                    node.pos
-                                )
+                    if (treeMapping.pathCharges.contains(node)) {
+                        if (treeMapping.pathCharges[node]!! > 2) {
+                            //println(treeMapping.inverseNodeEpsilonMap[node])
+                            val pos = if(t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(node.pos)
                             strokeWeight = visualization.ds.markRadius / 3
                             stroke = null
                             fill = ColorRGBa.BLUE
                             circle(pos, 2.0)
+                        }
+
                     }
                 }
+
+//                for (path in treeMapping.pathDecomposition) {
+//                    for (node in treeMapping.pathDecomposition[2]) {
+//                            val pos =
+//                                if (t1ToT2) visualization.fromTree1Local(node.pos) else visualization.fromTree2Local(
+//                                    node.pos
+//                                )
+//                            strokeWeight = visualization.ds.markRadius / 3
+//                            stroke = null
+//                            fill = ColorRGBa.BLUE
+//                            circle(pos, 2.0)
+//                    }
+//                }
             }
         }
 
@@ -463,16 +463,22 @@ fun main() = application {
 
                         strokeWeight = width + (visualization.ds.blobRadius * 2)
 
-                        val blobContour = LineSegment(Vector2(midX, deepestPos.y), Vector2(midX, highestBlobPos.y)).contour
+                        val isLeaf = node.children.isEmpty()
+
+                        val startY = if (isLeaf) deepestPos.y else pos.y
+                        val blobContour = LineSegment(Vector2(midX, startY), Vector2(midX, highestBlobPos.y)).contour
 
                         if (tree1)
                             contour(visualization.fromTree1Local(blobContour))
                         else contour(visualization.fromTree2Local(blobContour))
                     }
 
+                    val blobs = if(tree1) visualization.tree1BlobsTest else visualization.tree2BlobsTest
                     //Draw blob around sub path
                     for (child in node.children) {
-                        if (child.blobColor != node.blobColor) {
+                        val childBlobID = visualization.getBlobOfNode(blobs, child)
+
+                        if (blobs[childBlobID].third != blob.third) {
                             val lowestPathPoint =
                                 if (tree1) visualization.interleaving.f.nodeMap[child] else visualization.interleaving.g.nodeMap[child]
                             if (lowestPathPoint != null) {

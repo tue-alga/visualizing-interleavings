@@ -76,8 +76,8 @@ class Visualization(val tree1: MergeTree,
 
         treePairComposition()
 
-        blobComposition(true, tcs.t1c1, tcs.t1c2)
-        blobComposition(false, tcs.t2c1, tcs.t2c2)
+        //blobComposition(true, tcs.t1c1, tcs.t1c2)
+        //blobComposition(false, tcs.t2c1, tcs.t2c2)
 
         blobCompositionTest(true)
         blobCompositionTest(false)
@@ -180,7 +180,7 @@ class Visualization(val tree1: MergeTree,
         return leavesInBlob
     }
 
-    private fun getBlobOfNode(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): Int {
+    fun getBlobOfNode(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): Int {
         for (i in blobs.indices) {
             if (blobs[i].first.contains(node)){
                 return i

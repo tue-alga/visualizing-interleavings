@@ -82,7 +82,11 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                         if (!inverseNodeEpsilonMap.contains(current)) {
                             inverseNodeEpsilonMap[current] = mutableListOf()
                         }
-                        inverseNodeEpsilonMap[current]!!.add(treePoint)
+
+                        val checkIfAlreadyInMap = inverseNodeEpsilonMap[current]!!.any { it.firstDown == treePoint.firstUp }
+
+                        if (!checkIfAlreadyInMap)
+                            inverseNodeEpsilonMap[current]!!.add(treePoint)
                     }
                     thisEdgeMap.add(Pair(thisHeight, current))
                     current = current.parent
@@ -110,6 +114,7 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
 
                 val treePos = nodeMap[inverseNodeEpsilonMap[n]!![i].firstDown]
                 val pathNode = treePos!!.firstDown;
+
 
                 if (!pathCharges.contains(pathNode)) {
                     pathCharges[pathNode] = 0;
