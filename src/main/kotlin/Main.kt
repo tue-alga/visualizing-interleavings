@@ -1,6 +1,7 @@
 import org.openrndr.KEY_SPACEBAR
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
+import org.openrndr.color.rgb
 import org.openrndr.draw.isolated
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.parameters.*
@@ -68,23 +69,29 @@ data class ThreeColorSettings(
 
     //Tree 1
     @ColorParameter("Tree1 color1 hexcode")
+    //var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
     var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
 
     @ColorParameter("Tree1 color2 hexcode")
-    var t1c2: ColorRGBa = ColorRGBa.fromHex("#E96222"), //orange
+    //var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
+    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
 
     @ColorParameter("Tree1 color3 hexcode")
-    var t1c3: ColorRGBa = ColorRGBa.fromHex("#FCC60E"), //yellow
+    //var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
+    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
 
     //Tree2
     @ColorParameter("Tree2 color1 hexcode")
-    var t2c1: ColorRGBa = ColorRGBa.fromHex("#454F96"), //dark-blue
+    //var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
+    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
 
     @ColorParameter("Tree2 color2 hexcode")
-    var t2c2: ColorRGBa = ColorRGBa.fromHex("#0695BA"), //light-blue
+    //var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
+    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#0695BA"), //light-blue
 
     @ColorParameter("Tree2 color3 hexcode")
-    var t2c3: ColorRGBa = ColorRGBa.fromHex("#8DBB25") //green
+    //var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
+    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
 
 )
 //val blue = ColorRGBa.fromHex("#8EBBD9")
@@ -277,7 +284,7 @@ fun main() = application {
         var blobsEnabled = true
 
         val visualization = realExample1(drawer.bounds.center)
-        //val visualization = example4(drawer.bounds.center)
+        //val visualization = example6(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
@@ -461,6 +468,9 @@ fun main() = application {
 
             val highestBlobPos = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highestNodeInBlob))
 
+            if (blob.third == visualization.tcs.t1c3) {
+                println("BLOB SIZE: " + blob.first.size)
+            }
             drawer.apply {
                 //strokeWeight = visualization.ds.markRadius / 3
                 stroke = null
@@ -477,8 +487,11 @@ fun main() = application {
 
                 fill = blob.third
 
-                val leftLeaf = highestNodeInBlob.leaves.first()
-                val rightLeaf = highestNodeInBlob.leaves.last()
+                //val leftLeaf = highestNodeInBlob.leaves.first()
+                //val rightLeaf = highestNodeInBlob.leaves.last()
+
+                val leftLeaf =  tree.leaves.first()
+                val rightLeaf = tree.leaves.last()
 
                 val startY = deepestPos.y
                 val midX = (leftLeaf.pos.x + rightLeaf.pos.x) / 2
@@ -512,13 +525,20 @@ fun main() = application {
                 val leavesLeftOfDeepest = mutableListOf<EmbeddedMergeTree>();
                 val leavesRightOfDeepest = mutableListOf<EmbeddedMergeTree>();
 
-                for (leaf in highestNodeInBlob.leaves) {
+                var highestCheck = if (highestNodeInBlob.parent == null) highestNodeInBlob else highestNodeInBlob.parent!!
+
+//                while (highestCheck.parent != null) {
+//                    highestCheck = highestCheck.parent!!
+//                }
+
+                for (leaf in tree.leaves) {
                     if (leaf.pos.x < deepestNodeInBlob.pos.x) {
                         leavesLeftOfDeepest.add(leaf)
                     }
                     else
                         leavesRightOfDeepest.add(leaf)
                 }
+
 
                 var currentMaskLeaf: EmbeddedMergeTree? = null
                 var currentMaskHighY = tree.getDeepestLeave().pos.y + 1
