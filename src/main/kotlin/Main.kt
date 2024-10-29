@@ -69,29 +69,29 @@ data class ThreeColorSettings(
 
     //Tree 1
     @ColorParameter("Tree1 color1 hexcode")
-    //var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
+    var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
+    //var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
 
     @ColorParameter("Tree1 color2 hexcode")
-    //var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
-    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
+    var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
+    //var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
 
     @ColorParameter("Tree1 color3 hexcode")
-    //var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
-    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
+    var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
+    //var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
 
     //Tree2
     @ColorParameter("Tree2 color1 hexcode")
-    //var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
-    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
+    var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
+    //var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
 
     @ColorParameter("Tree2 color2 hexcode")
-    //var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
-    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#0695BA"), //light-blue
+    var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
+    //var t2c2: ColorRGBa =  ColorRGBa.fromHex("#0695BA"), //light-blue
 
     @ColorParameter("Tree2 color3 hexcode")
-    //var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
-    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
+    var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
+    //var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
 
 )
 //val blue = ColorRGBa.fromHex("#8EBBD9")
@@ -257,10 +257,10 @@ fun realExample1(pos: Vector2): Visualization {
     }
 }
 fun realExample2(pos: Vector2): Visualization {
-    val tree1 = parseTree("(0.001(185.5(774.2099999999999)(220.22(289.54(455.62(502.16(940.98)(632.28(819.9100000000001)(810.31)))(593.16))(413.07(996.29)(550.33)))(221.17999999999998(1000.0)(291.19(455.62(550.06(942.49)(627.48(822.25)(809.76)))(593.3000000000001))(402.5(994.9200000000001)(550.33)))))))")
-    val tree2 = parseTree("(0.001(168.17(193.52(563.5799999999999)(193.73000000000002(733.6899999999999(1000.0)(996.4399999999999))(563.29)))(343.62(530.61)(343.98(644.89)(529.83)))))")
+    //val tree1 = parseTree("(0.001(100)(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
+    val tree1 = parseTree("(0.001(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
 
-    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+    return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
     }
 }
@@ -284,7 +284,6 @@ fun main() = application {
         var blobsEnabled = true
 
         val visualization = realExample1(drawer.bounds.center)
-        //val visualization = example6(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
@@ -545,6 +544,11 @@ fun main() = application {
                         //get the highest parent blob that is nog part of this blob
                         var highest = leaf
                         while (highest.parent != null && !blob.first.contains(highest.parent)) {
+
+                            if (highest.parent!!.nodes().contains(highestNodeInBlob)) {
+                                break
+                            }
+
                             highest = highest.parent!!
                         }
 
@@ -586,6 +590,10 @@ fun main() = application {
                         //get the highest parent blob that is nog part of this blob
                         var highest = leaf
                         while (highest.parent != null && !blob.first.contains(highest.parent)) {
+                            if (highest.parent!!.nodes().contains(highestNodeInBlob)) {
+                                break
+                            }
+
                             highest = highest.parent!!
                         }
 
