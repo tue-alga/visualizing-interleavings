@@ -236,7 +236,7 @@ fun example6(pos: Vector2): Visualization {
 
     val tree2 = parseTree("(1e-06(0.16119(0.68726)(0.16453(0.1937(0.24872(0.3994(0.52643)(0.4488(0.47666(0.89687)(0.50018(0.74173)(0.63489)))(0.51578)))(0.35743(0.80995)(0.38392(0.4613)(0.44174))))(0.19375(1.0)(0.26358(0.3994(0.5263)(0.41339(0.4488(0.896)(0.51578))(0.41661(0.49857(0.74111)(0.63464))(0.43741(0.50612)(0.49114)))))(0.35706(0.81045)(0.39061(0.46069)(0.44162))))))(0.22173))))")
 
-    return Visualization(test, test, pos) { tree1E, tree2E ->
+    return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
     }
 }
@@ -275,7 +275,8 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = example1(drawer.bounds.center)
+        //val visualization = realExample1(drawer.bounds.center)
+        val visualization = example6(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
@@ -518,7 +519,7 @@ fun main() = application {
                     val maskHeight = abs(highY - lowY)
 
                     if (maskHeight > 0) {
-                        val mask = Rectangle(xPos, highY, visualization.ds.blobRadius*2, height).shape
+                        val mask = Rectangle(xPos, highY, visualization.ds.blobRadius*2, maskHeight).shape
                         drawRectangle = difference(drawRectangle, mask)
                     }
                 }
