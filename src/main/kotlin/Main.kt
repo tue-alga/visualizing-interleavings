@@ -468,9 +468,6 @@ fun main() = application {
 
             val highestBlobPos = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highestNodeInBlob))
 
-            if (blob.third == visualization.tcs.t1c3) {
-                println("BLOB SIZE: " + blob.first.size)
-            }
             drawer.apply {
                 //strokeWeight = visualization.ds.markRadius / 3
                 stroke = null
@@ -532,28 +529,35 @@ fun main() = application {
 //                }
 
                 for (leaf in tree.leaves) {
-                    if (leaf.pos.x < deepestNodeInBlob.pos.x) {
+                    if (leaf.pos.x <= deepestNodeInBlob.pos.x) {
                         leavesLeftOfDeepest.add(leaf)
                     }
                     else
                         leavesRightOfDeepest.add(leaf)
                 }
 
-
                 var currentMaskLeaf: EmbeddedMergeTree? = null
                 var currentMaskHighY = tree.getDeepestLeave().pos.y + 1
 
                 for (leaf in leavesLeftOfDeepest.reversed()){
                     if (!blob.first.contains(leaf)) { //Leaf is from another blob
-                        val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y
+
+                        //get the highest parent blob that is nog part of this blob
+                        var highest = leaf
+                        while (highest.parent != null && !blob.first.contains(highest.parent)) {
+                            highest = highest.parent!!
+                        }
+
+
+                        val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highest)).y
 
                         if (currentMaskLeaf == null) {
-                            currentMaskLeaf = leaf
+                            currentMaskLeaf = highest
                             currentMaskHighY = highestOfCurrent
                         }
                         else {
                             if (highestOfCurrent < currentMaskHighY) {
-                                currentMaskLeaf = leaf
+                                currentMaskLeaf = highest
                                 currentMaskHighY = highestOfCurrent
                             }
                         }
@@ -576,8 +580,15 @@ fun main() = application {
                 currentMaskHighY = tree.getDeepestLeave().pos.y + 1
 
                 for (leaf in leavesRightOfDeepest) {
-
                     if (!blob.first.contains(leaf)) { //Leaf is from another blob
+
+                        //TODO: GET MORE SOLID SOLUTION
+                        //get the highest parent blob that is nog part of this blob
+                        var highest = leaf
+                        while (highest.parent != null && !blob.first.contains(highest.parent)) {
+                            highest = highest.parent!!
+                        }
+
                         val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y
 
                         if (currentMaskLeaf == null) {
@@ -600,7 +611,7 @@ fun main() = application {
                     val maskWidth = visualization.ds.blobRadius*2
 
                     if (maskHeight > 0) {
-                        val mask = Rectangle(xPos, highY, maskWidth, maskHeight).shape
+                        val mask = Rectangle(xPos, highY, maskWidth, maskHeight + 1).shape
                         drawRectangle = difference(drawRectangle, mask)
                     }
                 }

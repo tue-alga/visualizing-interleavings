@@ -357,9 +357,6 @@ class Visualization(val tree1: MergeTree,
 
         val id = tree.leaves.indexOf(rightMostLeave)
 
-        println("leaveID: " + id)
-        println("otherID: " + tree.leaves.indexOf(getLeavesInBlob(blobs, blobID).last()))
-
         if (id != tree.leaves.size -1) {
             val lowestTouching = tree.leaves[id + 1]
             val lowestBlob = getBlobOfNode(blobs, lowestTouching)
