@@ -160,12 +160,13 @@ class Visualization(val tree1: MergeTree,
         return highest
     }
 
-    fun highestPointInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Vector2 {
+    fun highestPointInBlob(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Vector2 {
         val highestNode = highestNodeInBlob(blobs, blobID)
-        val parent = highestNode.parent
+        val parent = if (t1) interleaving.f[TreePosition(highestNode, 0.0)].firstUp else interleaving.g[TreePosition(highestNode, 0.0)].firstUp
 
-        return if (parent != null)
-            Vector2 (highestNode.pos.x, parent.pos.y + interleaving.delta)
+        return if (parent != null) {
+            Vector2(highestNode.pos.x, parent.pos.y + interleaving.delta)
+        }
         else Vector2(highestNode.pos.x, highestNode.pos.y - interleaving.delta)
     }
 
@@ -219,12 +220,12 @@ class Visualization(val tree1: MergeTree,
         return outPutColors
     }
 
-    private fun lowBlobsTouch(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, leftBlobID: Int, rightBlobID: Int): Boolean {
+    private fun lowBlobsTouch(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, leftBlobID: Int, rightBlobID: Int): Boolean {
         val leftLeave = getLeavesInBlob(blobs, leftBlobID).first()
-        val leftHighestPos = highestPointInBlob(blobs, leftBlobID)
+        val leftHighestPos = highestPointInBlob(t1, blobs, leftBlobID)
 
         val rightLeave = getLeavesInBlob(blobs, rightBlobID).last()
-        val rightHighestPos = highestPointInBlob(blobs, rightBlobID)
+        val rightHighestPos = highestPointInBlob(t1, blobs, rightBlobID)
 
         return leftHighestPos.y < rightLeave.pos.y && rightHighestPos.y < leftLeave.pos.y
     }
@@ -252,10 +253,10 @@ class Visualization(val tree1: MergeTree,
             val lowestTouching = tree.leaves[id - 1]
             val lowestBlob = getBlobOfNode(blobs, lowestTouching)
 
-            if (lowBlobsTouch(blobs, lowestBlob, blobID)) {
+            if (lowBlobsTouch(t1, blobs, lowestBlob, blobID)) {
                 touchingBlobs.add(lowestBlob)
 
-                if (highestPointInBlob(blobs, blobID).y >= highestPointInBlob(blobs, lowestBlob).y) {
+                if (highestPointInBlob(t1, blobs, blobID).y >= highestPointInBlob(t1, blobs, lowestBlob).y) {
                     return touchingBlobs
                 }
             }
@@ -288,9 +289,9 @@ class Visualization(val tree1: MergeTree,
             val lowestTouching = tree.leaves[id + 1]
             val lowestBlob = getBlobOfNode(blobs, lowestTouching)
 
-            if (lowBlobsTouch(blobs, blobID, lowestBlob)) {
+            if (lowBlobsTouch(t1, blobs, blobID, lowestBlob)) {
                 touchingBlobs.add(lowestBlob)
-                if (highestPointInBlob(blobs, blobID).y >= highestPointInBlob(blobs, lowestBlob).y) {
+                if (highestPointInBlob(t1, blobs, blobID).y >= highestPointInBlob(t1, blobs, lowestBlob).y) {
                     return touchingBlobs
                 }
             }
@@ -627,6 +628,14 @@ class Visualization(val tree1: MergeTree,
     /** Transforms a contour in 'world space' to the 'model space' of tree1 */
     fun fromTree1Local(contour: ShapeContour): ShapeContour {
         return contour.transform(tree1EMatrix);
+    }
+
+    fun fromTree1Local(shape: Shape): Shape {
+        return shape.transform(tree1EMatrix);
+    }
+
+    fun fromTree2Local(shape: Shape): Shape {
+        return shape.transform(tree2EMatrix);
     }
 
     /** Transforms a point in 'world space' to the 'model space' of tree2 */
