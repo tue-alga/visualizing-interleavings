@@ -160,7 +160,7 @@ class Visualization(val tree1: MergeTree,
         return highest
     }
 
-    private fun highestPointInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Vector2 {
+    fun highestPointInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Vector2 {
         val highestNode = highestNodeInBlob(blobs, blobID)
         val parent = highestNode.parent
 

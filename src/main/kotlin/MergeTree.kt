@@ -99,6 +99,18 @@ open class EmbeddedMergeTree(var pos: Vector2,
         return nextID
     }
 
+    fun getDeepestLeave(): EmbeddedMergeTree {
+        var deepest = leaves.first()
+
+        for (leave in leaves) {
+            if (leave.pos.y > deepest.pos.y){
+                deepest = leave
+            }
+        }
+
+        return deepest
+    }
+
     //Color of the root node from the blob decomposition. BLACK = not assigned.
     var blobColor = ColorRGBa.BLACK;
 

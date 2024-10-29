@@ -231,16 +231,35 @@ fun example5(pos: Vector2): Visualization {
 }
 
 fun example6(pos: Vector2): Visualization {
-    val tree1 = parseTree("(0" +
-            "(35)(40(50)(55(70)(65)(60)(75))(50))" +
-            ")"
-    )
-    val tree2 = parseTree("(0" +
-            "(35)(40(50)(55(70)(65)(60)(70))(50))" +
-            ")"
-    )
+    val tree1 = parseTree("(0.001(100)(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
+    val test = parseTree("(0.001(100)(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995))))))))) ") //(476.65999999999997(896.8699999999999))))))))) ")//(500.17999999999995(741.73)(634.89)))(515.78)))") //(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
 
-    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+    val tree2 = parseTree("(1e-06(0.16119(0.68726)(0.16453(0.1937(0.24872(0.3994(0.52643)(0.4488(0.47666(0.89687)(0.50018(0.74173)(0.63489)))(0.51578)))(0.35743(0.80995)(0.38392(0.4613)(0.44174))))(0.19375(1.0)(0.26358(0.3994(0.5263)(0.41339(0.4488(0.896)(0.51578))(0.41661(0.49857(0.74111)(0.63464))(0.43741(0.50612)(0.49114)))))(0.35706(0.81045)(0.39061(0.46069)(0.44162))))))(0.22173))))")
+
+    return Visualization(test, test, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
+fun realExample1(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0.001(161.19(687.26)(193.75(248.72(399.4(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(526.43))(357.43(809.9499999999999)(461.3)))(195.09(1000.0)(263.58(399.4(413.39(896.0)(498.57(741.11)(634.64)))(526.3))(357.06(810.45)(460.69)))))))")
+    val tree2 = parseTree("(0.001(185.5(774.2099999999999)(220.22(289.54(455.62(502.16(940.98)(632.28(819.9100000000001)(810.31)))(593.16))(413.07(996.29)(550.33)))(221.17999999999998(1000.0)(291.19(455.62(550.06(942.49)(627.48(822.25)(809.76)))(593.3000000000001))(402.5(994.9200000000001)(550.33)))))))")
+
+    return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+fun realExample2(pos: Vector2): Visualization {
+    val tree1 = parseTree("")
+
+    return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+fun realExample3(pos: Vector2): Visualization {
+    val tree1 = parseTree("")
+
+    return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
     }
 }
@@ -256,7 +275,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = example4(drawer.bounds.center)
+        val visualization = example6(drawer.bounds.center)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
@@ -435,7 +454,10 @@ fun main() = application {
             val deepestNodeInBlob = deepestNodeInBlob(blob);
             val highestNodeInBlob = highestNodeInBlob(blob)
             val deepestPos = deepestNodeInBlob!!.pos
-            val highestBlobPos = if(highestNodeInBlob!!.parent != null) highestNodeInBlob.parent!!.pos else highestNodeInBlob.pos
+            val highestBlobPos1 = if(highestNodeInBlob!!.parent != null) highestNodeInBlob.parent!!.pos else highestNodeInBlob.pos
+            val blobs = if(tree1) visualization.tree1BlobsTest else visualization.tree2BlobsTest
+
+            val highestBlobPos = visualization.highestPointInBlob(blobs, visualization.getBlobOfNode(blobs, highestNodeInBlob))
 
             drawer.apply {
                 strokeWeight = visualization.ds.markRadius / 3
@@ -446,89 +468,145 @@ fun main() = application {
                 else
                     fill = blob.third
 
+                stroke = if (visualization.globalcs.enableGradient)
+                    visualization.colorGradiantValue(tree1, gradientInterval)
+                else
+                    blob.third
+
+                fill = null
+
+                val leftLeaf = highestNodeInBlob.leaves.first()
+                val rightLeaf = highestNodeInBlob.leaves.last()
+
+                val midX = (leftLeaf.pos.x + rightLeaf.pos.x) / 2
+                val width = abs(rightLeaf.pos.x - leftLeaf.pos.x)
+
+                strokeWeight = width + (visualization.ds.blobRadius * 2)
+                //val pos = highestNodeInBlob.edgeContour!!.position(1.0)
+                val isLeaf = highestNodeInBlob.children.isEmpty()
+
+                val startY = deepestPos.y //if (isLeaf) deepestPos.y else pos.y
+                val blobContour = LineSegment(Vector2(midX, startY), Vector2(midX, highestBlobPos.y)).contour
+                if (tree1)
+                    contour(visualization.fromTree1Local(blobContour))
+                else contour(visualization.fromTree2Local(blobContour))
+
+
                 for (node in blob.first) {
-                    //Draw blob along edge
-                    stroke = if (visualization.globalcs.enableGradient)
-                        visualization.colorGradiantValue(tree1, gradientInterval)
-                    else
-                        blob.third //visualization.colorThreeValues(tree1, numberOfBlobs)[blob.second]
-
-                    fill = null
-                    strokeWeight = visualization.ds.blobRadius * 2
-                    if (node.edgeContour != null) {
-                        val pos = node.edgeContour!!.position(1.0)
-
-                        val midX = (pos.x + deepestPos.x)/2
-                        val width = abs(pos.x - deepestPos.x)
-
-                        strokeWeight = width + (visualization.ds.blobRadius * 2)
-
-                        val isLeaf = node.children.isEmpty()
-
-                        val startY = if (isLeaf) deepestPos.y else pos.y
-                        val blobContour = LineSegment(Vector2(midX, startY), Vector2(midX, highestBlobPos.y)).contour
-
-                        if (tree1)
-                            contour(visualization.fromTree1Local(blobContour))
-                        else contour(visualization.fromTree2Local(blobContour))
-                    }
-
-                    val blobs = if(tree1) visualization.tree1BlobsTest else visualization.tree2BlobsTest
-                    //Draw blob around sub path
-                    for (child in node.children) {
-                        val childBlobID = visualization.getBlobOfNode(blobs, child)
-
-                        if (blobs[childBlobID].third != blob.third) {
-                            val lowestPathPoint =
-                                if (tree1) visualization.interleaving.f.nodeMap[child] else visualization.interleaving.g.nodeMap[child]
-                            if (lowestPathPoint != null) {
-                                val delta = child.height - lowestPathPoint.height
-
-                                var heightDelta = 0.0;
-                                //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
-                                if (lowestPathPoint.firstUp != null) {
-                                    heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
-                                }
-
-                                val treePos = TreePosition(child, heightDelta)
-                                val edge = child.edgeContour;
-                                val point = treePositionToPoint(treePos);
-
-                                //if point is null, mapping path no part of the path to the child should be in the blob.
-                                if (point != null) {
-                                    val curveOffset = edge!!.on(point, 0.2);
-                                    val subContour = edge.sub(0.0, curveOffset!!)
-                                    val pos = subContour.position(1.0)
-
-                                    val midX = (pos.x + deepestPos.x)/2
-                                    val width = abs(pos.x - deepestPos.x)
-
-                                    strokeWeight = width + (visualization.ds.blobRadius * 2)
-
-                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, highestBlobPos.y)).contour
-                                    if (tree1)
-                                        contour(visualization.fromTree1Local(contour))
-                                    else contour(visualization.fromTree2Local(contour))
-                                }
-                            }
-                        }
-                    }
-
+                    //Draw hedge from root to root+delta
                     if (node.parent == null){
                         val delta = visualization.interleaving.delta
                         val leftLeave = if (tree1) visualization.tree1E.leaves.first() else visualization.tree2E.leaves.first()
                         val rightLeave = if (tree1) visualization.tree1E.leaves.last() else visualization.tree2E.leaves.last()
-                        val width = abs(leftLeave.pos.x - rightLeave.pos.x)
-                        strokeWeight = width + (visualization.ds.blobRadius * 2)
+                        val rootWidth = abs(leftLeave.pos.x - rightLeave.pos.x)
+                        strokeWeight = rootWidth + (visualization.ds.blobRadius * 2)
 
-                        val  midX = (leftLeave.pos.x + rightLeave.pos.x) / 2
-                        val contour = LineSegment(Vector2(midX, node.pos.y - visualization.ds.blobRadius), Vector2(midX, node.pos.y + delta)).contour
+                        val  rootMidX = (leftLeave.pos.x + rightLeave.pos.x) / 2
+                        val contour = LineSegment(Vector2(rootMidX, node.pos.y - visualization.ds.blobRadius), Vector2(rootMidX, node.pos.y + delta)).contour
                         if (tree1)
                             contour(visualization.fromTree1Local(contour))
                         else contour(visualization.fromTree2Local(contour))
                     }
 
+                    stroke = ColorRGBa.WHITE
+                    strokeWeight = visualization.ds.blobRadius * 2 + .1
+
+                    //Mask hedges below leaves
+                    if (node.children.isEmpty()) { //Node is a leaf
+                        val xPos = node.pos.x
+                        val highY = deepestNodeInBlob.pos.y
+                        val lowY = tree.getDeepestLeave().pos.y
+
+                        val maskContour = LineSegment(Vector2(xPos, lowY + 1), Vector2(xPos, highY)).contour
+
+                        if (tree1)
+                            contour(visualization.fromTree1Local(maskContour))
+                        else contour(visualization.fromTree2Local(maskContour))
+                    }
                 }
+
+//                for (node in blob.first) {
+//                    //Draw blob along edge
+//                    stroke = if (visualization.globalcs.enableGradient)
+//                        visualization.colorGradiantValue(tree1, gradientInterval)
+//                    else
+//                        blob.third //visualization.colorThreeValues(tree1, numberOfBlobs)[blob.second]
+//
+//                    fill = null
+//                    strokeWeight = visualization.ds.blobRadius * 2
+//                    if (node.edgeContour != null) {
+//                        val pos = node.edgeContour!!.position(1.0)
+//
+//                        val midX = (pos.x + deepestPos.x)/2
+//                        val width = abs(pos.x - deepestPos.x)
+//
+//                        strokeWeight = width + (visualization.ds.blobRadius * 2)
+//
+//                        val isLeaf = node.children.isEmpty()
+//
+//                        val startY = if (isLeaf) deepestPos.y else pos.y
+//                        val blobContour = LineSegment(Vector2(midX, startY), Vector2(midX, highestBlobPos.y)).contour
+//
+//                        if (tree1)
+//                            contour(visualization.fromTree1Local(blobContour))
+//                        else contour(visualization.fromTree2Local(blobContour))
+//                    }
+
+                    //Draw blob around sub path
+//                    for (child in node.children) {
+//                        val childBlobID = visualization.getBlobOfNode(blobs, child)
+//
+//                        if (blobs[childBlobID].third != blob.third) {
+//                            val lowestPathPoint =
+//                                if (tree1) visualization.interleaving.f.nodeMap[child] else visualization.interleaving.g.nodeMap[child]
+//                            if (lowestPathPoint != null) {
+//                                val delta = child.height - lowestPathPoint.height
+//
+//                                var heightDelta = 0.0;
+//                                //If lowestPathPoint.firstUp is null, it's > the root node, meaning the entire path should be part of the blob.
+//                                if (lowestPathPoint.firstUp != null) {
+//                                    heightDelta = child.height - (lowestPathPoint.firstUp!!.height + delta)
+//                                }
+//
+//                                val treePos = TreePosition(child, heightDelta)
+//                                val edge = child.edgeContour;
+//                                val point = treePositionToPoint(treePos);
+//
+//                                //if point is null, mapping path no part of the path to the child should be in the blob.
+//                                if (point != null) {
+//                                    val curveOffset = edge!!.on(point, 0.2);
+//                                    val subContour = edge.sub(0.0, curveOffset!!)
+//                                    val pos = subContour.position(1.0)
+//
+//                                    val midX = (pos.x + deepestPos.x)/2
+//                                    val width = abs(pos.x - deepestPos.x)
+//
+//                                    strokeWeight = width + (visualization.ds.blobRadius * 2)
+//
+//                                    val contour = LineSegment(Vector2(midX, pos.y), Vector2(midX, highestBlobPos.y)).contour
+//                                    if (tree1)
+//                                        contour(visualization.fromTree1Local(contour))
+//                                    else contour(visualization.fromTree2Local(contour))
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if (node.parent == null){
+//                        val delta = visualization.interleaving.delta
+//                        val leftLeave = if (tree1) visualization.tree1E.leaves.first() else visualization.tree2E.leaves.first()
+//                        val rightLeave = if (tree1) visualization.tree1E.leaves.last() else visualization.tree2E.leaves.last()
+//                        val width = abs(leftLeave.pos.x - rightLeave.pos.x)
+//                        strokeWeight = width + (visualization.ds.blobRadius * 2)
+//
+//                        val  midX = (leftLeave.pos.x + rightLeave.pos.x) / 2
+//                        val contour = LineSegment(Vector2(midX, node.pos.y - visualization.ds.blobRadius), Vector2(midX, node.pos.y + delta)).contour
+//                        if (tree1)
+//                            contour(visualization.fromTree1Local(contour))
+//                        else contour(visualization.fromTree2Local(contour))
+//                    }
+//
+//                }
             }
         }
 
@@ -555,10 +633,10 @@ fun main() = application {
             if (!blobsEnabled) return;
 
             //Everything with blobs is drawn in reversed order so that higher up blobs will be drawn on top of lower blobs
-            var values = alternatingSpacedValues(visualization.tree1BlobsTest.size).reversed()
+            var values = alternatingSpacedValues(visualization.tree1BlobsTest.size)
 
             var count: Int = 0;
-            for (blob in visualization.tree1BlobsTest.reversed()) {
+            for (blob in visualization.tree1BlobsTest) {
                 drawBlob(visualization.tree1E, blob, values[count], visualization.tree1BlobsTest.size)
                 count+=1
             }
@@ -566,7 +644,7 @@ fun main() = application {
             values = alternatingSpacedValues(visualization.tree2BlobsTest.size).reversed()
             count = 0
             //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
-            for (blob in visualization.tree2BlobsTest.reversed()) {
+            for (blob in visualization.tree2BlobsTest) {
                 drawBlob(visualization.tree2E, blob, values[count], visualization.tree2BlobsTest.size)
                 count+=1
             }
@@ -706,7 +784,6 @@ fun main() = application {
         extend {
             drawer.apply {
                 clear(ColorRGBa.WHITE)
-
 
                 drawBlobs();
 
