@@ -198,7 +198,7 @@ class Visualization(val tree1: MergeTree,
 
             return Vector2(highestNode.pos.x, parent.pos.y + interleaving.delta)
         }
-        else return Vector2(highestNode.pos.x, highestNode.pos.y - interleaving.delta)
+        else return Vector2(highestNode.pos.x, highestNode.pos.y)
     }
 
     private fun getLeavesInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobsID: Int): MutableList<EmbeddedMergeTree> {
@@ -364,7 +364,6 @@ class Visualization(val tree1: MergeTree,
             var parent = getParentBlob(blobs, lowestBlob)
 
             if (parent == -1) {
-                println("LowestBlob: " + lowestBlob)
                 touchingBlobs.add(lowestBlob)
             }
 
