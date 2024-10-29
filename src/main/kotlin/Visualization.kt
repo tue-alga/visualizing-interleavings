@@ -108,6 +108,15 @@ class Visualization(val tree1: MergeTree,
         }
     }
 
+    fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {
+        for (i in paths.indices) {
+            for (node in paths[i]) {
+                if (node.id == t.id) return i
+            }
+        }
+        return -1
+    }
+
     private fun repositionNodes(t1: Boolean, t: EmbeddedMergeTree){
         if (t.children.isEmpty()) return //Don't reposition leaves
 
@@ -162,12 +171,34 @@ class Visualization(val tree1: MergeTree,
 
     fun highestPointInBlob(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Vector2 {
         val highestNode = highestNodeInBlob(blobs, blobID)
-        val parent = if (t1) interleaving.f[TreePosition(highestNode, 0.0)].firstUp else interleaving.g[TreePosition(highestNode, 0.0)].firstUp
 
-        return if (parent != null) {
-            Vector2(highestNode.pos.x, parent.pos.y + interleaving.delta)
+        val treePos = if (t1) interleaving.f[TreePosition(highestNode, 0.0)] else interleaving.g[TreePosition(highestNode, 0.0)]
+        var parent = treePos.firstUp
+        val child = treePos.firstDown
+
+        if (parent != null &&  parent.pos.x == child.pos.x) {
+            while (parent?.parent != null) {
+                if (parent.pos.x != parent.parent!!.pos.x) {
+                    parent = parent.parent!!
+                    break
+                }
+
+                parent = parent.parent
+
+            }
         }
-        else Vector2(highestNode.pos.x, highestNode.pos.y - interleaving.delta)
+
+        if (parent != null) {
+            //val paths = if (t1) tree2PathDecomposition else tree1PathDecomposition
+            //val pathID = getPathID(parent, paths)
+
+            //val highestInPath = paths[pathID].last()
+
+            //parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta - visualization.ds.blobRadius)
+
+            return Vector2(highestNode.pos.x, parent.pos.y + interleaving.delta)
+        }
+        else return Vector2(highestNode.pos.x, highestNode.pos.y - interleaving.delta)
     }
 
     private fun getLeavesInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobsID: Int): MutableList<EmbeddedMergeTree> {
@@ -507,15 +538,6 @@ class Visualization(val tree1: MergeTree,
             if (t1) nodes1ToColor.remove(currentNode) else nodes2ToColor.remove(currentNode)
             index += 1
         }
-    }
-
-    fun getPathID(t:  EmbeddedMergeTree, paths: MutableList<MutableList<EmbeddedMergeTree>>): Int {
-        for (i in paths.indices) {
-            for (node in paths[i]) {
-                if (node.id == t.id) return i
-            }
-        }
-        return -1
     }
 
     fun colorGradiantValue(t1: Boolean, t: Double): ColorRGBa {
