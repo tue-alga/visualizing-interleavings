@@ -53,6 +53,11 @@ data class DrawSettings(
     @DoubleParameter("Blob radius", 0.1, 10.0)
     var blobRadius: Double = 4.0,
 
+    @DoubleParameter("Whiten", 0.0, 1.0)
+    var whiten: Double = 0.5,
+
+    @ColorParameter("Background color")
+    var bgColor: ColorRGBa = ColorRGBa.WHITE,
     )
 
 data class GlobalColorSettings(
@@ -69,29 +74,40 @@ data class ThreeColorSettings(
 
     //Tree 1
     @ColorParameter("Tree1 color1 hexcode")
-    var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
-    //var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
+//    var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
+//    var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
+//    var t1c1: ColorRGBa = ColorRGBa.fromHex("#66c2a5"), //purple
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
 
     @ColorParameter("Tree1 color2 hexcode")
-    var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
-    //var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
+//    var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
+//    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
+//    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#a6d854"), //light-blue
+    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
 
     @ColorParameter("Tree1 color3 hexcode")
-    var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
-    //var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
+//    var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
+//    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
+//    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#8da0cb"), //yellow
+    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
 
     //Tree2
     @ColorParameter("Tree2 color1 hexcode")
-    var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
-    //var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
+//    var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
+//    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
+//    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e78ac3"), //dark-blue
+    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
 
     @ColorParameter("Tree2 color2 hexcode")
-    var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
-    //var t2c2: ColorRGBa =  ColorRGBa.fromHex("#0695BA"), //light-blue
+//    var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
+//    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e78ac3"), //light-blue
+//    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#fc8d62"), //orange
+    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
 
     @ColorParameter("Tree2 color3 hexcode")
-    var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
-    //var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
+//    var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
+//    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
+    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
 
 )
 //val blue = ColorRGBa.fromHex("#8EBBD9")
@@ -277,6 +293,7 @@ fun main() = application {
         width =  1600 //3500
         height = 800
         title = "Visualizing interleavings"
+        windowResizable = true
     }
     program {
         val camera = Camera()
@@ -479,9 +496,6 @@ fun main() = application {
                 //stroke = if (visualization.globalcs.enableGradient)
                 //    visualization.colorGradiantValue(tree1, gradientInterval)
                 //else
-                //    blob.third
-
-                fill = blob.third
 
                 //val leftLeaf = highestNodeInBlob.leaves.first()
                 //val rightLeaf = highestNodeInBlob.leaves.last()
@@ -624,7 +638,7 @@ fun main() = application {
                     }
                 }
 
-                fill = blob.third
+                fill = blob.third.mix(ColorRGBa.WHITE, visualization.ds.whiten)
                 if (tree1)
                     shape(visualization.fromTree1Local(drawRectangle))
                 else shape(visualization.fromTree2Local(drawRectangle))
@@ -746,6 +760,29 @@ fun main() = application {
 
             var count: Int = 0;
 
+            //Draw Rays from root
+            drawer.apply {
+                fill = null
+
+                //Draw Contour
+                val pos1  = visualization.tree1E.pos
+                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
+
+                // Draw white casing
+                stroke = visualization.globalcs.edgeColor
+                strokeWeight = visualization.ds.verticalEdgeWidth
+                contour(visualization.fromTree1Local(contour1))
+
+                //Draw Contour
+                val pos2  = visualization.tree2E.pos
+                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
+
+                // Draw white casing
+                stroke = visualization.globalcs.edgeColor
+                strokeWeight = visualization.ds.verticalEdgeWidth
+                contour(visualization.fromTree2Local(contour2))
+            }
+
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
                 drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
@@ -767,24 +804,25 @@ fun main() = application {
                 fill = null
                 strokeWeight = visualization.ds.verticalEdgeWidth*0.4
 
+                //Draw Contour
+                val pos1  = visualization.tree1E.pos
+                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
+
                 //Set path Color
                 val pathID1 = visualization.tree1BlobsTest.first().second
                 stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(false, t2values[pathID1]) // t2values[visualization.tree2Blobs.size-1])
                 else visualization.tree2BlobsTest[0].third// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[pathID1]
+                contour(visualization.fromTree1Local(contour1))
 
                 //Draw Contour
-                val pos1  = visualization.tree1E.pos
-                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
-                contour(visualization.fromTree1Local(contour1))
+                val pos2  = visualization.tree2E.pos
+                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
 
                 //Set path Color
                 val pathID2 = visualization.tree2BlobsTest.first().second
                 stroke = if (visualization.globalcs.enableGradient) visualization.colorGradiantValue(true, t1values[pathID2])// t1values[visualization.tree1Blobs.size-1])
                 else visualization.tree1BlobsTest[0].third//visualization.colorThreeValues(true, visualization.tree1BlobsTest.size)[pathID2]
 
-                //Draw Contour
-                val pos2  = visualization.tree2E.pos
-                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - visualization.interleaving.delta - visualization.ds.blobRadius)).contour
                 contour(visualization.fromTree2Local(contour2))
 
                 //Draw nodes of the trees on top of the path decomposition
@@ -804,17 +842,17 @@ fun main() = application {
         }
         extend {
             drawer.apply {
-                clear(ColorRGBa.WHITE)
+                clear(visualization.ds.bgColor)
 
                 drawBlobs();
 
                 // Draw ray upward from roots
-                stroke = visualization.globalcs.edgeColor
-                val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
-                strokeWeight = visualization.ds.verticalEdgeWidth
-                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
-                val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
-                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
+//                stroke = visualization.globalcs.edgeColor
+//                val rootT1 = visualization.fromTree1Local(visualization.tree1E.pos)
+//                strokeWeight = visualization.ds.verticalEdgeWidth
+//                lineSegment(rootT1, Vector2(rootT1.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
+//                val rootT2 = visualization.fromTree2Local(visualization.tree2E.pos)
+//                lineSegment(rootT2, Vector2(rootT2.x, (camera.view.inversed * Vector2(0.0, 0.01)).y))
 
                 //Draw tree
                 composition(visualization.composition)
