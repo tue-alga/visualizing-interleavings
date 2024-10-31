@@ -33,13 +33,13 @@ fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
 }
 
 data class DrawSettings(
-    @DoubleParameter("Mark radius", 0.1, 10.0)
+    @DoubleParameter("Mark radius", 0.1, 10.0, order = 0)
     var markRadius: Double = 1.0,
 
-    @BooleanParameter("Draw Nodes")
+    @BooleanParameter("Draw Nodes", order = 10)
     var drawNodes: Boolean = false,
 
-    @DoubleParameter("Vertical Edge Width", 0.1, 5.0)
+    @DoubleParameter("Vertical Edge Width", 0.1, 5.0, order = 20)
     var verticalEdgeWidth: Double = 2.5,
 
     @DoubleParameter("Horizontal Edge Width", 0.1, 5.0)
@@ -274,18 +274,28 @@ fun realExample1(pos: Vector2): Visualization { //Time step 25 vs 26
     }
 }
 fun realExample2(pos: Vector2): Visualization {
-    val tree1 = parseTree("(0.001(100)(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
+    val tree1 = parseTree("(0.001(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
     val tree2 = parseTree("(0.001(185.5(774.2099999999999)(220.22(289.54(455.62(502.16(940.98)(632.28(819.9100000000001)(810.31)))(593.16))(413.07(996.29)(550.33)))(221.17999999999998(1000.0)(291.19(455.62(550.06(942.49)(627.48(822.25)(809.76)))(593.3000000000001))(402.5(994.9200000000001)(550.33)))))))")
+    //val tree3 = parseTree("(0.001(161.19(687.26)(193.75(248.72(399.4(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(526.43))(357.43(809.9499999999999)(461.3)))(195.09(1000.0)(263.58(399.4(413.39(896.0)(498.57(741.11)(634.64)))(526.3))(357.06(810.45)(460.69)))))))")
 
     //val tree2 = parseTree("(0.001(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
 
-    return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
     }
 }
 fun realExample3(pos: Vector2): Visualization { //Time step 26 vs 75
     val tree1 = parseTree("(0.001(185.5(774.2099999999999)(220.22(289.54(455.62(502.16(940.98)(632.28(819.9100000000001)(810.31)))(593.16))(413.07(996.29)(550.33)))(221.17999999999998(1000.0)(291.19(455.62(550.06(942.49)(627.48(822.25)(809.76)))(593.3000000000001))(402.5(994.9200000000001)(550.33)))))))")
     val tree2 = parseTree("(0.001(168.17(193.52(563.5799999999999)(193.73000000000002(733.6899999999999(1000.0)(996.4399999999999))(563.29)))(343.62(530.61)(343.98(644.89)(529.83)))))")
+
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
+fun largeExample1(pos: Vector2): Visualization { //timestep 0025
+    val tree1 = parseTree("(1e-06(0.084303(0.16119(0.44434(0.68726)(0.4826))(0.16453(0.19375(0.24872(0.26234(0.35743(0.80995)(0.38392(0.4613)(0.39507(0.44174)(0.40794))))(0.27844))(0.26742(0.38999(0.3994(0.4488(0.51578)(0.47666(0.50018(0.63489)(0.50786(0.74173)(0.52643)))(0.4826(0.53126(0.54525(0.71821(0.89687)(0.73344))(0.57013))(0.54859))(0.50699))))(0.48025(0.52643)(0.50637)))(0.40249))(0.27819)))(0.19385(0.26358(0.3994(0.48037(0.5263)(0.50637))(0.41339(0.4488(0.51578)(0.47851(0.54549(0.896)(0.57013))(0.50711)))(0.41661(0.49857(0.57261(0.63464)(0.58276))(0.51343(0.74111)(0.52593)))(0.43741(0.50612)(0.44335(0.49114)(0.47629))))))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.25207(0.311(0.33267(0.34517(0.39073(1.0)(0.40138))(0.37092))(0.35186))(0.32734))(0.27088))(0.23312))))(0.22173)))(0.089764(0.11142)(0.10713))))")
+    val tree2 = parseTree("(1e-06(0.092946(0.1855(0.22022(0.28954(0.30738(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))(0.33538))(0.30587(0.45562(0.54141(0.59316)(0.56859))(0.50216(0.50545(0.59714(0.8589(0.94098)(0.92643))(0.63063))(0.57641))(0.51945(0.63228(0.81031)(0.69418(0.81991)(0.75074)))(0.5211(0.57147)(0.53757(0.55953)(0.55102))))))(0.31946)))(0.22118(0.29119(0.4025(0.99492)(0.43092(0.49296(0.51025(0.55033)(0.54855))(0.50751))(0.45686)))(0.29709(0.43147(0.45562(0.50312(0.55006(0.597(0.87894(0.94249)(0.92684))(0.63063))(0.55143(0.62748(0.82225)(0.68073(0.80976)(0.69707)))(0.59714)))(0.57641))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))))(0.19195(0.47786(0.77421)(0.55184))(0.25701)))(0.099749(0.12359)(0.11917))))\n")
 
     return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
@@ -305,6 +315,9 @@ fun main() = application {
         var blobsEnabled = true
 
         val visualization = realExample3(drawer.bounds.center)
+
+        println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
+        println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
@@ -488,6 +501,18 @@ fun main() = application {
 
             val highestBlobPos = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highestNodeInBlob))
 
+
+            //Lowest Hedge pos might not always be a leave
+            val pathPos = if (tree1) visualization.interleaving.f[TreePosition(highestNodeInBlob, 0.0)] else visualization.interleaving.g[TreePosition(highestNodeInBlob, 0.0)]
+            val pathNode = pathPos.firstDown
+
+            val pathID = if (tree1) visualization.getPathID(pathNode, visualization.tree2PathDecomposition) else visualization.getPathID(pathNode, visualization.tree1PathDecomposition)
+            val lowestPathNode = if (tree1) visualization.tree2PathDecomposition[pathID].first() else visualization.tree1PathDecomposition[pathID].first()
+            val lowestHedgePos = lowestPathNode.pos.y + visualization.interleaving.delta
+
+            //val deepestPos = if (deepestNodeInBlob.leaves.isEmpty()) {
+
+
             drawer.apply {
                 //strokeWeight = visualization.ds.markRadius / 3
                 stroke = null
@@ -550,7 +575,7 @@ fun main() = application {
                 var currentMaskHighY = tree.getDeepestLeave().pos.y + 1
 
                 for (leaf in leavesLeftOfDeepest.reversed()){
-                    if (!blob.first.contains(leaf)) { //Leaf is from another blob
+                    if (!blob.first.contains(leaf)){// && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
 
                         //get the highest parent blob that is not part of this blob
                         var highest = leaf
@@ -582,8 +607,8 @@ fun main() = application {
 
                     val isFromSameBlob = blob.first.contains(leaf)
                     //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
-                    val highY = min(leaf.pos.y, currentMaskHighY)// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
-                    val lowY = tree.getDeepestLeave().pos.y
+                    val highY = currentMaskHighY// lowestHedgePos//currentMaskHighY//min(leaf.pos.y, currentMaskHighY)// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
+                    val lowY = tree.getDeepestLeave().pos.y + visualization.interleaving.delta + 10
                     val maskHeight = abs(highY - lowY)
                     val maskWidth = visualization.ds.blobRadius*2
 
@@ -596,19 +621,21 @@ fun main() = application {
                 currentMaskLeaf = null
                 currentMaskHighY = tree.getDeepestLeave().pos.y + 1
 
+
+
                 for (leaf in leavesRightOfDeepest) {
-                    if (!blob.first.contains(leaf)) { //Leaf is from another blob
+                    if (!blob.first.contains(leaf)){//  && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
 
                         //TODO: GET MORE SOLID SOLUTION
                         //get the highest parent blob that is nog part of this blob
                         var highest = leaf
-                        while (highest.parent != null && !blob.first.contains(highest.parent)) {
-                            if (highest.parent!!.nodes().contains(highestNodeInBlob)) {
-                                break
-                            }
-
-                            highest = highest.parent!!
-                        }
+//                        while (highest.parent != null && !blob.first.contains(highest.parent)) {
+//                            if (highest.parent!!.nodes().contains(highestNodeInBlob)) {
+//                                break
+//                            }
+//
+//                            highest = highest.parent!!
+//                        }
 
                         val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y
 
@@ -628,9 +655,9 @@ fun main() = application {
 
                     val isFromSameBlob = blob.first.contains(leaf)
 
-                    val highY = min(leaf.pos.y, currentMaskHighY)
+                    val highY = currentMaskHighY// lowestHedgePos// currentMaskHighY// min(leaf.pos.y, currentMaskHighY)
                     //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
-                    val lowY = tree.getDeepestLeave().pos.y
+                    val lowY = tree.getDeepestLeave().pos.y  + visualization.interleaving.delta + 10
                     val maskHeight = abs(highY - lowY)
                     val maskWidth = visualization.ds.blobRadius*2
 

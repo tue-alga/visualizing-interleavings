@@ -76,7 +76,7 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                 if (thisHeight >= node.parent!!.height){// || (thisHeight > node.parent!!.height && node.parent == null)) {
                     //heightDelta = node.height - (lowestPathPoint.firstUp!!.height + delta)
                     //thisHeight - (node.height - current.height)
-                    val treePoint = TreePosition(node, 0.0)//thisHeight - (node.height))// - current.height))
+                    val treePoint = TreePosition(node, (node.height) - thisHeight)// - current.height))
 
                     if (thisHeight > node.parent!!.height) {
                         if (!inverseNodeEpsilonMap.contains(current)) {

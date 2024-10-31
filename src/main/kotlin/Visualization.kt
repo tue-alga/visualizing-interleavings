@@ -3,6 +3,7 @@ import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
 import org.openrndr.shape.*
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -221,10 +222,35 @@ class Visualization(val tree1: MergeTree,
         return -1
     }
 
-    private fun getParentBlob(blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
+    private fun getParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
         val parentNode = highestNodeInBlob(blobs, blobID).parent ?: return -1 //returns null if parent = null -> means that blob contains the root node
 
         return getBlobOfNode(blobs, parentNode)
+    }
+
+    private fun getAccurateParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
+        val parentNode = highestNodeInBlob(blobs, blobID).parent ?: return -1 //returns null if parent = null -> means that blob contains the root node
+
+        val highestPos = highestPointInBlob(t1, blobs, blobID)
+        val highestNode = highestNodeInBlob(blobs, blobID)
+        val h = highestNode.pos.y - highestPos.y
+
+        val treePos = TreePosition(highestNode, highestPos.y - 0.1)
+
+        val pathNode = if(t1) interleaving.f[treePos] else interleaving.g[treePos]
+
+        val pathID = getPathID(pathNode.firstDown, if(t1) tree2PathDecomposition else tree1PathDecomposition)
+
+        var parentBlob = -1
+
+        for (blob in blobs) {
+            if (pathID == blob.second)
+                parentBlob = getBlobOfNode(blobs, blob.first.first())
+        }
+
+        return parentBlob
+
+        //return getBlobOfNode(blobs, parentNode)
     }
 
     private fun getChildBlobsOfNode(blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): MutableList<Int> {
@@ -333,7 +359,7 @@ class Visualization(val tree1: MergeTree,
                 }
             }
 
-            var parent = getParentBlob(blobs, lowestBlob)
+            var parent = getParentBlob(t1, blobs, lowestBlob)
 //            touchingBlobs.add(parent)
 //
 //            parent = getParentBlob(blobs, parent)
@@ -343,7 +369,7 @@ class Visualization(val tree1: MergeTree,
                     touchingBlobs.add(parent)
                 else break
 
-                parent = getParentBlob(blobs, parent)
+                parent = getParentBlob(t1, blobs, parent)
             }
         }
 
@@ -361,7 +387,7 @@ class Visualization(val tree1: MergeTree,
             val lowestTouching = tree.leaves[id + 1]
             val lowestBlob = getBlobOfNode(blobs, lowestTouching)
 
-            var parent = getParentBlob(blobs, lowestBlob)
+            var parent = getParentBlob(t1, blobs, lowestBlob)
 
             if (parent == -1) {
                 touchingBlobs.add(lowestBlob)
@@ -383,11 +409,12 @@ class Visualization(val tree1: MergeTree,
                     touchingBlobs.add(parent)
                 else break
 
-                parent = getParentBlob(blobs, parent)
+                parent = getParentBlob(t1, blobs, parent)
             }
         }
         return touchingBlobs
     }
+
 
     //return neighbouring colors that are not a child of this blob
     private fun getTouchingColors(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int, rightBlobID: Int, leftMost: Boolean=false, rightMost: Boolean=false)
@@ -395,7 +422,8 @@ class Visualization(val tree1: MergeTree,
         val touchingColors = mutableListOf<ColorRGBa>()
 
         //return empty list if blob is root, since all other blobs are children
-        val parentBlobID = getParentBlob(blobs, blobID)
+        val parentBlobID = getAccurateParentBlob(t1, blobs, blobID)// getAccurateParentBlob(t1, blobs, blobID) //TODO: get hedge parent, not node parent.
+        //val parentID = path
 
         //You always touch your parent blob
         val parentColor = blobs[parentBlobID].third
@@ -438,7 +466,7 @@ class Visualization(val tree1: MergeTree,
 
         if (idRight != tree.leaves.size -1) {
             val rightLeave = getBlobOfNode(blobs, tree.leaves[idRight + 1])
-            rightID = getParentBlob(blobs, rightLeave)
+            rightID = getParentBlob(t1, blobs, rightLeave)
 
             if (rightID == -1)
                 rightID = rightLeave
@@ -446,7 +474,7 @@ class Visualization(val tree1: MergeTree,
 
         if (idLeft != 0) {
             val leftLeave = getBlobOfNode(blobs, tree.leaves[idLeft - 1])
-            leftID = getParentBlob(blobs, leftLeave)
+            leftID = getParentBlob(t1, blobs, leftLeave)
 
             if (leftID == -1)
                 leftID = leftLeave
@@ -462,7 +490,7 @@ class Visualization(val tree1: MergeTree,
         val blobs = if(t1) tree1BlobsTest else tree2BlobsTest
         val colors = if(t1) tree1Colors else tree2Colors
 
-        val parentBlobID = getParentBlob(blobs, blobID)
+        val parentBlobID = getParentBlob(t1, blobs, blobID)
         if (parentBlobID == -1) blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
 
         var index = 0
@@ -553,6 +581,7 @@ class Visualization(val tree1: MergeTree,
         }
     }
 
+
     fun colorThreeValues(t1: Boolean, size: Int): List<ColorRGBa> {
         val c1 = if (t1) tcs.t1c1 else tcs.t2c1;
         val c2 = if (t1) tcs.t1c2 else tcs.t2c2;
@@ -567,7 +596,11 @@ class Visualization(val tree1: MergeTree,
 
     /** Draw tree1E and tree2E side by side */
     private fun treePairComposition() {
-        val tree1C = drawComposition { tree1E.draw(this, ds, globalcs) }
+        val tree1C = drawComposition {
+            //drawBlobs(this)
+            tree1E.draw(this, ds, globalcs)
+
+        }
         val tree2C = drawComposition { tree2E.draw(this, ds, globalcs) }
         val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
         val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
