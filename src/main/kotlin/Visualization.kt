@@ -25,8 +25,8 @@ class Visualization(val tree1: MergeTree,
     //Blobs sorted from the deepest path to the highest path.
     private var tree1Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
     private var tree2Blobs: MutableList<Pair<MutableList<EmbeddedMergeTree>, ColorRGBa>> = mutableListOf();
-    var tree1BlobsTest: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>> = mutableListOf();
-    var tree2BlobsTest: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>> = mutableListOf();
+    var tree1BlobsTest: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>> = mutableListOf();
+    var tree2BlobsTest: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>> = mutableListOf();
     private var tree1Colors: MutableList<ColorRGBa> = mutableListOf();
     private var tree2Colors: MutableList<ColorRGBa> = mutableListOf();
     private var nodes1ToColor: MutableList<EmbeddedMergeTree> = mutableListOf();
@@ -159,7 +159,7 @@ class Visualization(val tree1: MergeTree,
         return null
     }
 
-    private fun highestNodeInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): EmbeddedMergeTree{
+    private fun highestNodeInBlob(blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): TreePosition<EmbeddedMergeTree> {
         var highest = blobs[blobID].first.first()
 
         for (node in blobs[blobID].first) {
@@ -170,10 +170,10 @@ class Visualization(val tree1: MergeTree,
         return highest
     }
 
-    fun highestPointInBlob(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Vector2 {
+    fun highestPointInBlob(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): Vector2 {
         val highestNode = highestNodeInBlob(blobs, blobID)
 
-        val treePos = if (t1) interleaving.f[TreePosition(highestNode, 0.0)] else interleaving.g[TreePosition(highestNode, 0.0)]
+        val treePos = if (t1) interleaving.f[highestNode!!] else interleaving.g[highestNode!!]
         var parent = treePos.firstUp
         val child = treePos.firstDown
 
@@ -197,23 +197,23 @@ class Visualization(val tree1: MergeTree,
 
             //parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta - visualization.ds.blobRadius)
 
-            return Vector2(highestNode.pos.x, parent.pos.y + interleaving.delta)
+            return Vector2(highestNode.firstDown.pos.x, parent.pos.y + interleaving.delta)
         }
-        else return Vector2(highestNode.pos.x, highestNode.pos.y)
+        else return Vector2(highestNode.firstDown.pos.x, highestNode.firstDown.pos.y)
     }
 
-    private fun getLeavesInBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobsID: Int): MutableList<EmbeddedMergeTree> {
-        val leavesInBlob = mutableListOf<EmbeddedMergeTree>()
+    private fun getLeavesInBlob(blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobsID: Int): MutableList<TreePosition<EmbeddedMergeTree>> {
+        val leavesInBlob = mutableListOf<TreePosition<EmbeddedMergeTree>>()
 
         for (node in blobs[blobsID].first) {
-            if (node.children.isEmpty()){
+            if (node.firstDown.children.isEmpty()){
                 leavesInBlob.add(node)
             }
         }
         return leavesInBlob
     }
 
-    fun getBlobOfNode(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): Int {
+    fun getBlobOfNode(blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, node: TreePosition<EmbeddedMergeTree>): Int {
         for (i in blobs.indices) {
             if (blobs[i].first.contains(node)){
                 return i
@@ -222,20 +222,20 @@ class Visualization(val tree1: MergeTree,
         return -1
     }
 
-    private fun getParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
-        val parentNode = highestNodeInBlob(blobs, blobID).parent ?: return -1 //returns null if parent = null -> means that blob contains the root node
+    private fun getParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): Int {
+        val parentNode = highestNodeInBlob(blobs, blobID)!!.firstUp ?: return -1 //returns null if parent = null -> means that blob contains the root node
 
-        return getBlobOfNode(blobs, parentNode)
+        return getBlobOfNode(blobs, TreePosition(parentNode, 0.0))
     }
 
-    private fun getAccurateParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
-        val parentNode = highestNodeInBlob(blobs, blobID).parent ?: return -1 //returns null if parent = null -> means that blob contains the root node
+    private fun getAccurateParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): Int {
+        val parentNode = highestNodeInBlob(blobs, blobID)!!.firstUp ?: return -1 //returns null if parent = null -> means that blob contains the root node
 
         val highestPos = highestPointInBlob(t1, blobs, blobID)
         val highestNode = highestNodeInBlob(blobs, blobID)
-        val h = highestNode.pos.y - highestPos.y
+        val h = highestNode!!.firstDown.pos.y - highestPos.y
 
-        val treePos = TreePosition(highestNode, highestPos.y - 0.1)
+        val treePos = TreePosition(highestNode!!.firstDown, highestPos.y - 0.1)
 
         val pathNode = if(t1) interleaving.f[treePos] else interleaving.g[treePos]
 
@@ -253,28 +253,29 @@ class Visualization(val tree1: MergeTree,
         //return getBlobOfNode(blobs, parentNode)
     }
 
-    private fun getChildBlobsOfNode(blobs:  MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): MutableList<Int> {
+    //TODO: use same logic as 'getAccurateParentBlob'
+    private fun getChildBlobsOfNode(blobs:  MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, node: TreePosition<EmbeddedMergeTree>): MutableList<Int> {
         val childrenNotInBlob: MutableList<Int> = mutableListOf()
         val blobID = getBlobOfNode(blobs, node)
 
-        for (child in node.children) {
-            if (blobs[blobID].first.contains(child)) continue
+        for (child in node.firstDown.children) {
+            if (blobs[blobID].first.contains(TreePosition(child, 0.0))) continue
 
-            childrenNotInBlob.add(getBlobOfNode(blobs, child))
+            childrenNotInBlob.add(getBlobOfNode(blobs, TreePosition(child, 0.0)))
         }
         return childrenNotInBlob
     }
 
-    private fun getHighestLeftChildBlob(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int): Int {
+    private fun getHighestLeftChildBlob(blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): Int {
         //val childBlobs = getChildBlobsOfNode(blobs, highestNodeInBlob(blobs, blobID))
         val blobsCopy = blobs[blobID].first
         blobsCopy.sortBy { it.height }
         for (node in blobsCopy) {
-            for (child in node.children) {
-                if (child.pos.x >= node.pos.x) continue
+            for (child in node.firstDown.children) {
+                if (child.pos.x >= node.firstDown.pos.x) continue
 
-                if (!blobsCopy.contains(child)) {
-                    return getBlobOfNode(blobs, child)
+                if (!blobsCopy.contains(TreePosition(child, 0.0))) {
+                    return getBlobOfNode(blobs, TreePosition(child, 0.0))
                 }
             }
         }
@@ -294,48 +295,48 @@ class Visualization(val tree1: MergeTree,
         return outPutColors
     }
 
-    private fun lowBlobsTouch(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, leftBlobID: Int, rightBlobID: Int): Boolean {
+    private fun lowBlobsTouch(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, leftBlobID: Int, rightBlobID: Int): Boolean {
         val leftLeave = getLeavesInBlob(blobs, leftBlobID).first()// highestNodeInBlob(blobs, leftBlobID).leaves.first()// getLeavesInBlob(blobs, leftBlobID).first()
         val leftHighestPos = highestPointInBlob(t1, blobs, leftBlobID)
 
         val rightLeave = getLeavesInBlob(blobs, rightBlobID).last()// highestNodeInBlob(blobs, rightBlobID).leaves.last()// getLeavesInBlob(blobs, rightBlobID).last()
         val rightHighestPos = highestPointInBlob(t1, blobs, rightBlobID)
 
-        return leftHighestPos.y < rightLeave.pos.y && rightHighestPos.y < leftLeave.pos.y
+        return leftHighestPos.y < rightLeave.firstDown.pos.y && rightHighestPos.y < leftLeave.firstDown.pos.y
     }
 
-    private fun touchLowBlobLeft(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, currentBounds: Pair<Double, Double>, leftBlobID: Int): Boolean{
-        val rightLeave = highestNodeInBlob(blobs, leftBlobID).leaves.last()// getLeavesInBlob(blobs, rightBlobID).last()
+    private fun touchLowBlobLeft(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, currentBounds: Pair<Double, Double>, leftBlobID: Int): Boolean{
+        val rightLeave = highestNodeInBlob(blobs, leftBlobID)!!.firstDown.leaves.last()// getLeavesInBlob(blobs, rightBlobID).last()
         val rightHighestPos = highestPointInBlob(t1, blobs, leftBlobID)
 
         return currentBounds.second > rightLeave.pos.y && currentBounds.first < rightHighestPos.y
     }
 
-    private fun highBlobsTouch(blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, lowNodeID: Int, highNodeID: Int, highSideID: Int, highRight: Boolean): Boolean {
+    private fun highBlobsTouch(blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, lowNodeID: Int, highNodeID: Int, highSideID: Int, highRight: Boolean): Boolean {
         //lowNodeID = current
         //HighNodeID = parent of current
         //HighSideID = first parent to the right parent of highNode
         val lowNodeIDTop = highestNodeInBlob(blobs, lowNodeID)
         val highNodeIDTop = highestNodeInBlob(blobs, highNodeID)
 
-        if (highRight && lowNodeIDTop.pos.x > highNodeIDTop.pos.x) return false
-        if (!highRight && lowNodeIDTop.pos.x < highNodeIDTop.pos.x) return false
+        if (highRight && lowNodeIDTop!!.firstDown.pos.x > highNodeIDTop!!.firstDown.pos.x) return false
+        if (!highRight && lowNodeIDTop!!.firstDown.pos.x < highNodeIDTop!!.firstDown.pos.x) return false
 
         if (highNodeID != highSideID) return false
 
         return true
     }
 
-    private fun getBlobsTouchingLeft(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int): MutableList<Int> {
+    private fun getBlobsTouchingLeft(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int): MutableList<Int> {
         val touchingBlobs = mutableListOf<Int>()
 
         val tree = if(t1) tree1E else tree2E
-        val leftMostLeave = highestNodeInBlob(blobs, blobID).leaves.first()// getLeavesInBlob(blobs, blobID).first()
+        val leftMostLeave = highestNodeInBlob(blobs, blobID)!!.firstDown.leaves.first()// getLeavesInBlob(blobs, blobID).first()
         val id = tree.leaves.indexOf(leftMostLeave)
 
         var bounds = Pair(0.0, 0.0)
 
-        if (blobs[blobID].first.contains(leftMostLeave)) {
+        if (blobs[blobID].first.contains(TreePosition(leftMostLeave, 0.0))) {
             bounds = Pair(leftMostLeave.pos.y, highestPointInBlob(t1, blobs, blobID).y)
         }
         else {
@@ -349,7 +350,7 @@ class Visualization(val tree1: MergeTree,
 
         if (id != 0) {
             val lowestTouching = tree.leaves[id - 1]
-            val lowestBlob = getBlobOfNode(blobs, lowestTouching)
+            val lowestBlob = getBlobOfNode(blobs, TreePosition(lowestTouching, 0.0))
 
             if (lowBlobsTouch(t1, blobs, lowestBlob, blobID)) {//  (touchLowBlobLeft(t1, blobs, bounds, lowestBlob)) { //    (lowBlobsTouch(t1, blobs, lowestBlob, blobID)) {
                 touchingBlobs.add(lowestBlob)
@@ -376,16 +377,16 @@ class Visualization(val tree1: MergeTree,
         return touchingBlobs
     }
 
-    private fun getBlobsTouchingRight(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int, rightBlobID: Int): MutableList<Int> {
+    private fun getBlobsTouchingRight(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int, rightBlobID: Int): MutableList<Int> {
         val touchingBlobs = mutableListOf<Int>()
         val tree = if(t1) tree1E else tree2E
-        val rightMostLeave = highestNodeInBlob(blobs, blobID).leaves.last() //getLeavesInBlob(blobs, blobID).last()
+        val rightMostLeave = highestNodeInBlob(blobs, blobID)!!.firstDown.leaves.last() //getLeavesInBlob(blobs, blobID).last()
 
         val id = tree.leaves.indexOf(rightMostLeave)
 
         if (id != tree.leaves.size -1) {
             val lowestTouching = tree.leaves[id + 1]
-            val lowestBlob = getBlobOfNode(blobs, lowestTouching)
+            val lowestBlob = getBlobOfNode(blobs, TreePosition(lowestTouching, 0.0))
 
             var parent = getParentBlob(t1, blobs, lowestBlob)
 
@@ -417,7 +418,7 @@ class Visualization(val tree1: MergeTree,
 
 
     //return neighbouring colors that are not a child of this blob
-    private fun getTouchingColors(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int, rightBlobID: Int, leftMost: Boolean=false, rightMost: Boolean=false)
+    private fun getTouchingColors(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int, leftBlobID: Int, rightBlobID: Int, leftMost: Boolean=false, rightMost: Boolean=false)
     : MutableList<ColorRGBa>{
         val touchingColors = mutableListOf<ColorRGBa>()
 
@@ -450,22 +451,22 @@ class Visualization(val tree1: MergeTree,
         return touchingColors
     }
 
-    private fun getLeftRightParentBlobID(t1: Boolean, blobs: MutableList<Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>>, node: EmbeddedMergeTree): Pair<Int, Int> {
-        var parent = node.parent
+    private fun getLeftRightParentBlobID(t1: Boolean, blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, node: TreePosition<EmbeddedMergeTree>): Pair<Int, Int> {
+        var parent = node.firstUp
         if (parent == null) return Pair(-1, -1) //No neighboring parent to the root node
 
         var leftID = -1
         var rightID = -1
 
         val currentBlob = getBlobOfNode(blobs, node)
-        val leaves = highestNodeInBlob(blobs, currentBlob).leaves()// getLeavesInBlob(blobs, currentBlob)
+        val leaves = highestNodeInBlob(blobs, currentBlob)!!.firstDown.leaves()// getLeavesInBlob(blobs, currentBlob)
 
         val tree = if(t1) tree1E else tree2E
         val idLeft = tree.leaves.indexOf(leaves.first())
         val idRight = tree.leaves.indexOf(leaves.last())
 
         if (idRight != tree.leaves.size -1) {
-            val rightLeave = getBlobOfNode(blobs, tree.leaves[idRight + 1])
+            val rightLeave = getBlobOfNode(blobs, TreePosition(tree.leaves[idRight + 1], 0.0))
             rightID = getParentBlob(t1, blobs, rightLeave)
 
             if (rightID == -1)
@@ -473,7 +474,7 @@ class Visualization(val tree1: MergeTree,
         }
 
         if (idLeft != 0) {
-            val leftLeave = getBlobOfNode(blobs, tree.leaves[idLeft - 1])
+            val leftLeave = getBlobOfNode(blobs, TreePosition(tree.leaves[idLeft - 1], 0.0))
             leftID = getParentBlob(t1, blobs, leftLeave)
 
             if (leftID == -1)
@@ -496,20 +497,20 @@ class Visualization(val tree1: MergeTree,
         var index = 0
         while (if(t1) nodes1ToColor.isNotEmpty() else nodes2ToColor.isNotEmpty()) {
             val currentNode = if (t1) nodes1ToColor.first() else nodes2ToColor.first()
-            val currentBlob = getBlobOfNode(blobs, currentNode)
+            val currentBlob = getBlobOfNode(blobs, TreePosition(currentNode, 0.0))
             val currentColor = blobs[currentBlob].third
 
             //For all highest children in blob
-            val highestChildBlobIDs = getChildBlobsOfNode(blobs, currentNode)
+            val highestChildBlobIDs = getChildBlobsOfNode(blobs, TreePosition(currentNode, 0.0))
 
             val leaves = getLeavesInBlob(blobs, currentBlob)
-            val leaveXpos = leaves.first().pos.x
+            val leaveXpos = leaves.first()!!.firstDown.pos.x
 
             val leftChildBlobIDs = mutableListOf<Int>()
             val rightChildBlobIDs = mutableListOf<Int>()
 
             for (childID in highestChildBlobIDs) {
-                val childLeaveXpos = getLeavesInBlob(blobs, childID).first().pos.x
+                val childLeaveXpos = getLeavesInBlob(blobs, childID).first()!!.firstDown.pos.x
                 if (childLeaveXpos < leaveXpos) {
                     leftChildBlobIDs.add(childID)
                 } else rightChildBlobIDs.add(childID)
@@ -649,7 +650,7 @@ class Visualization(val tree1: MergeTree,
                 val other = tree.nodeMap[node];
                 val otherPathID = getPathID(other!!.firstDown, tree2PathDecomposition)
 
-                tree1BlobsTest[otherPathID].first.add(node)
+                tree1BlobsTest[otherPathID].first.add(TreePosition(node, 0.0))
             }
 
             tree1BlobsTest.sortBy { it.first.first().height }
@@ -663,7 +664,7 @@ class Visualization(val tree1: MergeTree,
                 val other = tree.nodeMap[node]
                 val otherPathID = getPathID(other!!.firstDown, tree1PathDecomposition)
 
-                tree2BlobsTest[otherPathID].first.add(node)
+                tree2BlobsTest[otherPathID].first.add(TreePosition(node, 0.0))
             }
 
             tree2BlobsTest.sortBy { it.first.first().height }

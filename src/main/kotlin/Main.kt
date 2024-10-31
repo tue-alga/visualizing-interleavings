@@ -314,7 +314,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = realExample3(drawer.bounds.center)
+        val visualization = realExample2(drawer.bounds.center)
 
         println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
         println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
@@ -461,8 +461,8 @@ fun main() = application {
             }
         }
 
-        fun deepestNodeInBlob(blob: Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>): EmbeddedMergeTree? {
-            var deepest:EmbeddedMergeTree? = null
+        fun deepestNodeInBlob(blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>): TreePosition<EmbeddedMergeTree>? {
+            var deepest:TreePosition<EmbeddedMergeTree>? = null
 
             for (node in blob.first){
                 if (deepest == null){
@@ -476,8 +476,8 @@ fun main() = application {
             return deepest
         }
 
-        fun highestNodeInBlob(blob: Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>): EmbeddedMergeTree? {
-            var highest:EmbeddedMergeTree? = null
+        fun highestNodeInBlob(blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>): TreePosition<EmbeddedMergeTree>? {
+            var highest:TreePosition<EmbeddedMergeTree>? = null
 
             for (node in blob.first){
                 if (highest == null){
@@ -491,19 +491,19 @@ fun main() = application {
             return highest
         }
 
-        fun drawBlob(tree: EmbeddedMergeTree, blob: Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>, gradientInterval: Double, numberOfBlobs: Int) {
+        fun drawBlob(tree: EmbeddedMergeTree, blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>, gradientInterval: Double, numberOfBlobs: Int) {
             val tree1 = (tree == visualization.tree1E)
             val deepestNodeInBlob = deepestNodeInBlob(blob);
             val highestNodeInBlob = highestNodeInBlob(blob)
-            val deepestPos = deepestNodeInBlob!!.pos
-            val highestBlobPos1 = if(highestNodeInBlob!!.parent != null) highestNodeInBlob.parent!!.pos else highestNodeInBlob.pos
+            val deepestPos = deepestNodeInBlob
+            //val highestBlobPos1 = if(highestNodeInBlob!!.parent != null) highestNodeInBlob.parent!!.pos else highestNodeInBlob.pos
             val blobs = if(tree1) visualization.tree1BlobsTest else visualization.tree2BlobsTest
 
-            val highestBlobPos = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highestNodeInBlob))
+            val highestBlobPos = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highestNodeInBlob!!))
 
 
             //Lowest Hedge pos might not always be a leave
-            val pathPos = if (tree1) visualization.interleaving.f[TreePosition(highestNodeInBlob, 0.0)] else visualization.interleaving.g[TreePosition(highestNodeInBlob, 0.0)]
+            val pathPos = if (tree1) visualization.interleaving.f[highestNodeInBlob!!] else visualization.interleaving.g[highestNodeInBlob!!]
             val pathNode = pathPos.firstDown
 
             val pathID = if (tree1) visualization.getPathID(pathNode, visualization.tree2PathDecomposition) else visualization.getPathID(pathNode, visualization.tree1PathDecomposition)
@@ -525,14 +525,14 @@ fun main() = application {
                 val leftLeaf = tree.leaves.first()
                 val rightLeaf = tree.leaves.last()
 
-                val startY = deepestPos.y
+                val startY = deepestPos!!.height
                 val midX = (leftLeaf.pos.x + rightLeaf.pos.x) / 2
                 val width = abs(rightLeaf.pos.x - leftLeaf.pos.x) + (visualization.ds.blobRadius * 2)
-                val height = abs(deepestPos.y - highestBlobPos.y)
+                val height = abs(deepestPos.height - highestBlobPos.y)
 
                 //strokeWeight = width + (visualization.ds.blobRadius * 2)
                 //val pos = highestNodeInBlob.edgeContour!!.position(1.0)
-                val isLeaf = highestNodeInBlob.children.isEmpty()
+                val isLeaf = highestNodeInBlob.firstDown.children.isEmpty()
 
                  //if (isLeaf) deepestPos.y else pos.y
                 val leftX = leftLeaf.pos.x - visualization.ds.blobRadius
@@ -540,7 +540,7 @@ fun main() = application {
                 var drawRectangle = Rectangle(leftX, highestBlobPos.y,  width, height).shape
 
                 //Draw hedge from root to root+delta
-                if (highestNodeInBlob.parent == null){
+                if (highestNodeInBlob.firstUp == null){
                     val delta = visualization.interleaving.delta
                     val leftLeave = if (tree1) visualization.tree1E.leaves.first() else visualization.tree2E.leaves.first()
                     val rightLeave = if (tree1) visualization.tree1E.leaves.last() else visualization.tree2E.leaves.last()
@@ -548,7 +548,7 @@ fun main() = application {
                     strokeWeight = rootWidth + (visualization.ds.blobRadius * 2)
                     val  rootMidX = (leftLeave.pos.x + rightLeave.pos.x) / 2
 
-                    val topRect = Rectangle(leftLeave.pos.x - visualization.ds.blobRadius, highestNodeInBlob.pos.y - visualization.ds.blobRadius, rootWidth, visualization.ds.blobRadius).shape
+                    val topRect = Rectangle(leftLeave.pos.x - visualization.ds.blobRadius, highestNodeInBlob.height - visualization.ds.blobRadius, rootWidth, visualization.ds.blobRadius).shape
 
                     drawRectangle = union(drawRectangle, topRect)
                 }
@@ -557,14 +557,14 @@ fun main() = application {
                 val leavesLeftOfDeepest = mutableListOf<EmbeddedMergeTree>();
                 val leavesRightOfDeepest = mutableListOf<EmbeddedMergeTree>();
 
-                var highestCheck = if (highestNodeInBlob.parent == null) highestNodeInBlob else highestNodeInBlob.parent!!
+                var highestCheck = if (highestNodeInBlob.firstUp == null) highestNodeInBlob else highestNodeInBlob.firstUp!!
 
 //                while (highestCheck.parent != null) {
 //                    highestCheck = highestCheck.parent!!
 //                }
 
                 for (leaf in tree.leaves) {
-                    if (leaf.pos.x <= deepestNodeInBlob.pos.x) {
+                    if (leaf.pos.x <= deepestNodeInBlob.firstDown.pos.x) {
                         leavesLeftOfDeepest.add(leaf)
                     }
                     else
@@ -575,13 +575,13 @@ fun main() = application {
                 var currentMaskHighY = tree.getDeepestLeave().pos.y + 1
 
                 for (leaf in leavesLeftOfDeepest.reversed()){
-                    if (!blob.first.contains(leaf)){// && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
+                    if (!blob.first.contains(TreePosition(leaf, 0.0))){// && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
 
                         //get the highest parent blob that is not part of this blob
                         var highest = leaf
-                        while (highest.parent != null && !blob.first.contains(highest.parent)) {
+                        while (highest.parent != null && !blob.first.contains(TreePosition(highest.parent!!, 0.0))) {
 
-                            if (highest.parent!!.nodes().contains(highestNodeInBlob)) {
+                            if (highest.parent!!.nodes().contains(highestNodeInBlob.firstDown)) {
                                 break
                             }
 
@@ -589,7 +589,7 @@ fun main() = application {
                         }
 
 
-                        val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, highest)).y
+                        val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, TreePosition(highest, 0.0))).y
 
                         if (currentMaskLeaf == null) {
                             currentMaskLeaf = highest
@@ -605,7 +605,7 @@ fun main() = application {
 
                     val xPos = leaf.pos.x - visualization.ds.blobRadius
 
-                    val isFromSameBlob = blob.first.contains(leaf)
+                    //val isFromSameBlob = blob.first.contains(leaf)
                     //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
                     val highY = currentMaskHighY// lowestHedgePos//currentMaskHighY//min(leaf.pos.y, currentMaskHighY)// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
                     val lowY = tree.getDeepestLeave().pos.y + visualization.interleaving.delta + 10
@@ -624,7 +624,7 @@ fun main() = application {
 
 
                 for (leaf in leavesRightOfDeepest) {
-                    if (!blob.first.contains(leaf)){//  && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
+                    if (!blob.first.contains(TreePosition(leaf, 0.0))){//  && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
 
                         //TODO: GET MORE SOLID SOLUTION
                         //get the highest parent blob that is nog part of this blob
@@ -637,7 +637,7 @@ fun main() = application {
 //                            highest = highest.parent!!
 //                        }
 
-                        val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y
+                        val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, TreePosition(leaf, 0.0))).y
 
                         if (currentMaskLeaf == null) {
                             currentMaskLeaf = leaf
@@ -653,7 +653,7 @@ fun main() = application {
 
                     val xPos = leaf.pos.x - visualization.ds.blobRadius
 
-                    val isFromSameBlob = blob.first.contains(leaf)
+                    val isFromSameBlob = blob.first.contains(TreePosition(leaf, 0.0))
 
                     val highY = currentMaskHighY// lowestHedgePos// currentMaskHighY// min(leaf.pos.y, currentMaskHighY)
                     //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
@@ -714,7 +714,7 @@ fun main() = application {
             }
         }
 
-        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Triple<MutableList<EmbeddedMergeTree>, Int, ColorRGBa>, gradientInterval: Double, numberOfBlobs: Int) {
+        fun drawBlobPath(tree: EmbeddedMergeTree, blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>, gradientInterval: Double, numberOfBlobs: Int) {
             val tree1 = (tree == visualization.tree1E)
 
             drawer.apply {
@@ -731,7 +731,7 @@ fun main() = application {
                 val currentNode =
                     blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
                 val lowestPathPoint =
-                    if (tree1) visualization.interleaving.f.nodeMap[currentNode] else visualization.interleaving.g.nodeMap[currentNode]
+                    if (tree1) visualization.interleaving.f.nodeMap[currentNode!!.firstDown] else visualization.interleaving.g.nodeMap[currentNode!!.firstDown]
 
                 if (lowestPathPoint == null) return //return if we don't hit the other tree.
 
