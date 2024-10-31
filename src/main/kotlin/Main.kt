@@ -12,6 +12,7 @@ import org.openrndr.svg.saveToFile
 import java.io.File
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sqrt
 
 fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
@@ -579,7 +580,9 @@ fun main() = application {
 
                     val xPos = leaf.pos.x - visualization.ds.blobRadius
 
-                    val highY = currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
+                    val isFromSameBlob = blob.first.contains(leaf)
+                    //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
+                    val highY = min(leaf.pos.y, currentMaskHighY)// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
                     val lowY = tree.getDeepestLeave().pos.y
                     val maskHeight = abs(highY - lowY)
                     val maskWidth = visualization.ds.blobRadius*2
@@ -623,7 +626,10 @@ fun main() = application {
 
                     val xPos = leaf.pos.x - visualization.ds.blobRadius
 
-                    val highY = currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
+                    val isFromSameBlob = blob.first.contains(leaf)
+
+                    val highY = min(leaf.pos.y, currentMaskHighY)
+                    //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
                     val lowY = tree.getDeepestLeave().pos.y
                     val maskHeight = abs(highY - lowY)
                     val maskWidth = visualization.ds.blobRadius*2
