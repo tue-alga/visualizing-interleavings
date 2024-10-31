@@ -273,8 +273,8 @@ fun realExample1(pos: Vector2): Visualization {
     }
 }
 fun realExample2(pos: Vector2): Visualization {
-    //val tree1 = parseTree("(0.001(100)(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
-    val tree1 = parseTree("(0.001(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
+    val tree1 = parseTree("(0.001(100)(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
+    //val tree1 = parseTree("(0.001(161.19(687.26)(164.53(193.7(248.72(399.4(526.43)(448.79999999999995(476.65999999999997(896.8699999999999)(500.17999999999995(741.73)(634.89)))(515.78)))(357.43(809.9499999999999)(383.91999999999996(461.3)(441.74))))(193.75(1000.0)(263.58(399.4(526.3)(413.39(448.79999999999995(896.0)(515.78))(416.60999999999996(498.57(741.11)(634.64))(437.41(506.12)(491.14000000000004)))))(357.06(810.45)(390.61(460.69)(441.62))))))(221.73000000000002))))")
 
     return Visualization(tree1, tree1, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
@@ -493,14 +493,7 @@ fun main() = application {
                 else
                     fill = blob.third
 
-                //stroke = if (visualization.globalcs.enableGradient)
-                //    visualization.colorGradiantValue(tree1, gradientInterval)
-                //else
-
-                //val leftLeaf = highestNodeInBlob.leaves.first()
-                //val rightLeaf = highestNodeInBlob.leaves.last()
-
-                val leftLeaf =  tree.leaves.first()
+                val leftLeaf = tree.leaves.first()
                 val rightLeaf = tree.leaves.last()
 
                 val startY = deepestPos.y
@@ -555,7 +548,7 @@ fun main() = application {
                 for (leaf in leavesLeftOfDeepest.reversed()){
                     if (!blob.first.contains(leaf)) { //Leaf is from another blob
 
-                        //get the highest parent blob that is nog part of this blob
+                        //get the highest parent blob that is not part of this blob
                         var highest = leaf
                         while (highest.parent != null && !blob.first.contains(highest.parent)) {
 
@@ -671,7 +664,7 @@ fun main() = application {
             var values = alternatingSpacedValues(visualization.tree1BlobsTest.size)
 
             var count: Int = 0;
-            for (blob in visualization.tree1BlobsTest) {
+            for (blob in visualization.tree1BlobsTest.reversed()) {
                 drawBlob(visualization.tree1E, blob, values[count], visualization.tree1BlobsTest.size)
                 count+=1
             }
@@ -679,7 +672,7 @@ fun main() = application {
             values = alternatingSpacedValues(visualization.tree2BlobsTest.size).reversed()
             count = 0
             //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
-            for (blob in visualization.tree2BlobsTest) {
+            for (blob in visualization.tree2BlobsTest.reversed()) {
                 drawBlob(visualization.tree2E, blob, values[count], visualization.tree2BlobsTest.size)
                 count+=1
             }
