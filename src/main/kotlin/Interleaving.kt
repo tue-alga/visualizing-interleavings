@@ -187,6 +187,12 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                 }
             }
         }
+
+        if (highestCharge == 0){
+            if (node.children.isEmpty()) return -1
+            return getPathID(node.children.first())
+        }
+
         if (chargeList[highestCharge]!!.count() == 1) {
             getPathID(chargeList[highestCharge]!!.first())//id of chargeList[highestCharge].first()
         }
