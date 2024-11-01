@@ -314,7 +314,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = realExample2(drawer.bounds.center)
+        val visualization = realExample3(drawer.bounds.center)
 
         println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
         println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
@@ -503,12 +503,12 @@ fun main() = application {
 
 
             //Lowest Hedge pos might not always be a leave
-            val pathPos = if (tree1) visualization.interleaving.f[highestNodeInBlob!!] else visualization.interleaving.g[highestNodeInBlob!!]
-            val pathNode = pathPos.firstDown
+            //val pathPos = if (tree1) visualization.interleaving.f[highestNodeInBlob!!] else visualization.interleaving.g[highestNodeInBlob!!]
+            //val pathNode = pathPos.firstDown
 
-            val pathID = if (tree1) visualization.getPathID(pathNode, visualization.tree2PathDecomposition) else visualization.getPathID(pathNode, visualization.tree1PathDecomposition)
-            val lowestPathNode = if (tree1) visualization.tree2PathDecomposition[pathID].first() else visualization.tree1PathDecomposition[pathID].first()
-            val lowestHedgePos = lowestPathNode.pos.y + visualization.interleaving.delta
+            //val pathID = if (tree1) visualization.getPathID(pathNode, visualization.tree2PathDecomposition) else visualization.getPathID(pathNode, visualization.tree1PathDecomposition)
+            //val lowestPathNode = if (tree1) visualization.tree2PathDecomposition[pathID].first() else visualization.tree1PathDecomposition[pathID].first()
+            //val lowestHedgePos = lowestPathNode.pos.y + visualization.interleaving.delta
 
             //val deepestPos = if (deepestNodeInBlob.leaves.isEmpty()) {
 
@@ -730,13 +730,20 @@ fun main() = application {
 
                 val currentNode =
                     blob.first.maxByOrNull { it.height } //This is the deepest node in the blob (path is defined by that node.
-                val lowestPathPoint =
-                    if (tree1) visualization.interleaving.f.nodeMap[currentNode!!.firstDown] else visualization.interleaving.g.nodeMap[currentNode!!.firstDown]
+                val pathNodes = if (tree1) visualization.tree2PathDecomposition[blob.second] else visualization.tree1PathDecomposition[blob.second]
+                //if (lowestPathNode == null) return //return if we don't hit the other tree.
+                if (pathNodes.isEmpty()) return
+                val lowestPathPoint = TreePosition(pathNodes.first(), pathNodes.first().height -(currentNode!!.height - visualization.interleaving.delta) )
 
-                if (lowestPathPoint == null) return //return if we don't hit the other tree.
+                //if (treePositionToPoint(pathNodes.first() == null) return
+
+                //val lowestPathPoint =
+                //    if (tree1) visualization.interleaving.f.nodeMap[currentNode!!.firstDown] else visualization.interleaving.g.nodeMap[currentNode!!.firstDown]
+
 
                 //Draw the lowest sub edge delta up from the leaf of the path
                 val edge = lowestPathPoint.firstDown.edgeContour;
+                if (edge == null) return
                 val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
                 val subContour = edge.sub(0.0, curveOffset!!)
                 if (tree1)
@@ -889,7 +896,7 @@ fun main() = application {
                 drawBlobPaths();
 
                 //drawInverseMatching(visualization.tree2E, false)
-                //drawInverseMatching(visualization.tree1E, true)
+                drawInverseMatching(visualization.tree1E, true)
 
                 mouseTree1Position?.let {
                     drawMatching(it, true)
