@@ -208,9 +208,7 @@ class Visualization(val tree1: MergeTree,
         if (parent != null) {
             //val paths = if (t1) tree2PathDecomposition else tree1PathDecomposition
             //val pathID = getPathID(parent, paths)
-
             //val highestInPath = paths[pathID].last()
-
             //parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta - visualization.ds.blobRadius)
 
             return Vector2(highestNode.firstDown.pos.x, parent.pos.y + interleaving.delta)
@@ -249,7 +247,7 @@ class Visualization(val tree1: MergeTree,
         return getBlobOfNode(blobs, TreePosition(parentNode, 0.0))
     }
 
-    private fun getAccurateParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): Int {
+    fun getAccurateParentBlob(t1: Boolean, blobs:  MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): Int {
         val parentNode = highestNodeInBlob(blobs, blobID).firstUp  //returns null if parent = null -> means that blob contains the root node
 
         if (parentNode == null) {
@@ -292,6 +290,12 @@ class Visualization(val tree1: MergeTree,
         return parentBlob
 
         //return getBlobOfNode(blobs, parentNode)
+    }
+
+    fun treePositionIsInBlob(t1: Boolean, blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>, treePos: TreePosition<EmbeddedMergeTree>): Boolean {
+        val pathID = if (t1) interleaving.f.getPathID(interleaving.f[treePos].firstDown) else interleaving.g.getPathID(interleaving.g[treePos].firstDown)
+
+        return pathID == blob.second
     }
 
     //TODO: use same logic as 'getAccurateParentBlob'

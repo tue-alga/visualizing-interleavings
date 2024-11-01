@@ -526,7 +526,7 @@ fun main() = application {
                 val rightLeaf = tree.leaves.last()
 
                 val startY = deepestPos!!.height
-                val midX = (leftLeaf.pos.x + rightLeaf.pos.x) / 2
+                //val midX = (leftLeaf.pos.x + rightLeaf.pos.x) / 2
                 val width = abs(rightLeaf.pos.x - leftLeaf.pos.x) + (visualization.ds.blobRadius * 2)
                 val height = abs(deepestPos.height - highestBlobPos.y)
 
@@ -537,7 +537,27 @@ fun main() = application {
                  //if (isLeaf) deepestPos.y else pos.y
                 val leftX = leftLeaf.pos.x - visualization.ds.blobRadius
 
-                var drawRectangle = Rectangle(leftX, highestBlobPos.y,  width, height).shape
+                var drawRectangles: MutableList<Shape> = mutableListOf()
+                for (treePos in blob.first) {
+                    var leftTopY = highestBlobPos.y
+                    var leftTopX = min(deepestNodeInBlob.firstDown.pos.x, treePos.firstDown.pos.x) - visualization.ds.blobRadius
+
+                    var rectWidth = abs(deepestNodeInBlob.firstDown.pos.x - treePos.firstDown.pos.x) + (visualization.ds.blobRadius * 2)
+                    var rectHeight = treePos.height - highestBlobPos.y
+                    //println("rectWidth: " + rectWidth)
+                    //println("rectHeight: " + rectHeight)
+
+                    if (rectHeight > 0){
+                        drawRectangles.add(Rectangle(leftTopX, leftTopY, rectWidth, rectHeight).shape)
+                    }
+                }
+                var drawRectangle = drawRectangles.first()
+
+                for (rect in drawRectangles){
+                    drawRectangle = drawRectangle.union(rect)
+                }
+                //var drawRectangle = union(drawRectangles, drawRectangles.first())
+                //var drawRectangle = Rectangle(leftX, highestBlobPos.y,  width, height).shape
 
                 //Draw hedge from root to root+delta
                 if (highestNodeInBlob.firstUp == null){
@@ -576,18 +596,29 @@ fun main() = application {
 
                 for (leaf in leavesLeftOfDeepest.reversed()){
                     if (!blob.first.contains(TreePosition(leaf, 0.0))){// && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
+                        //if (leaf.pos.y <= highestBlobPos.y) continue
 
                         //get the highest parent blob that is not part of this blob
                         var highest = leaf
+
+                        var parentBlob = visualization.getAccurateParentBlob(tree1, blobs, visualization.getBlobOfNode(blobs, TreePosition(highest, 0.0)))
+
+//                        while (parentBlob != -1 && blobs[parentBlob] != blob){ //!visualization.treePositionIsInBlob(tree1, blob, parentBlob))
+////                            if (highest.parent!!.nodes().contains(highestNodeInBlob.firstDown)) {
+////                                break
+////                            }
+//                            highest = highest.parent!! // if (tree1) visualization.tree1BlobsTest[parentBlob] else visualization.tree2BlobsTest[parentBlob]
+//                            parentBlob = visualization.getAccurateParentBlob(tree1, blobs, visualization.getBlobOfNode(blobs, TreePosition(highest, 0.0)))
+//
+//                        }
+
                         while (highest.parent != null && !blob.first.contains(TreePosition(highest.parent!!, 0.0))) {
 
                             if (highest.parent!!.nodes().contains(highestNodeInBlob.firstDown)) {
                                 break
                             }
-
                             highest = highest.parent!!
                         }
-
 
                         val highestOfCurrent = visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, TreePosition(highest, 0.0))).y
 
@@ -614,7 +645,7 @@ fun main() = application {
 
                     if (maskHeight > 0) {
                         val mask = Rectangle(xPos, highY, maskWidth, maskHeight).shape
-                        drawRectangle = difference(drawRectangle, mask)
+                        //drawRectangle = difference(drawRectangle, mask)
                     }
 
                 }
@@ -663,7 +694,7 @@ fun main() = application {
 
                     if (maskHeight > 0) {
                         val mask = Rectangle(xPos, highY, maskWidth, maskHeight + 1).shape
-                        drawRectangle = difference(drawRectangle, mask)
+                        //drawRectangle = difference(drawRectangle, mask)
                     }
                 }
 
@@ -896,7 +927,7 @@ fun main() = application {
                 drawBlobPaths();
 
                 //drawInverseMatching(visualization.tree2E, false)
-                drawInverseMatching(visualization.tree1E, true)
+                //drawInverseMatching(visualization.tree1E, true)
 
                 mouseTree1Position?.let {
                     drawMatching(it, true)
