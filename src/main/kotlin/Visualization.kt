@@ -88,7 +88,7 @@ class Visualization(val tree1: MergeTree,
         nodes2ToColor = tree2E.nodes().toMutableList()
         nodes1ToColor.removeAll { it.children.isEmpty() }
         nodes2ToColor.removeAll { it.children.isEmpty() }
-        nodes1ToColor.sortBy { it.height }
+        nodes1ToColor.sortBy { it.height } //TODO: NEEDS CHANGE. SINCE BLOBS OF LOWER PARENT NODE CAN BE ABOVE OTHERS...
         nodes2ToColor.sortBy { it.height }
 
         setBlobColors(true, 0, tcs.t1c1)
@@ -126,10 +126,10 @@ class Visualization(val tree1: MergeTree,
             repositionNodes(t1, c)
         }
 
-        val pc = getChildInSamePath(t1, t)
+        val childInPath = getChildInSamePath(t1, t)
 
-        if (pc != null && t.id != pc.id) {
-            t.pos = Vector2(pc.pos.x, t.pos.y)
+        if (childInPath != null && t.id != childInPath.id) {
+            t.pos = Vector2(childInPath.pos.x, t.pos.y)
         }
 
         for (c in t.children) {
@@ -157,7 +157,10 @@ class Visualization(val tree1: MergeTree,
                 return c
             }
         }
-        return null
+
+        return   t.children[t.children.size /2]
+
+        //return null
     }
 
     private fun highestNodeInBlob(blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>, blobID: Int): TreePosition<EmbeddedMergeTree> {
@@ -271,10 +274,12 @@ class Visualization(val tree1: MergeTree,
 //        }
 
         val highestPos = highestPointInBlob(t1, blobs, blobID)
+        //println("=================")
+        //println("highestPos: " + highestPos)
         val highestNode = highestNodeInBlob(blobs, blobID)
         val h = highestNode!!.firstDown.pos.y - highestPos.y
 
-        val treePos = TreePosition(highestNode!!.firstDown, highestPos.y - 0.1)
+        val treePos = TreePosition(highestNode!!.firstDown, h - 0.1)
 
         val pathNode = if(t1) interleaving.f[treePos] else interleaving.g[treePos]
 
@@ -473,7 +478,25 @@ class Visualization(val tree1: MergeTree,
         //val parentID = path
 
         //You always touch your parent blob
+
+//        if (blobs[parentBlobID].third == ColorRGBa.BLACK) {
+//            setBlobColors(t1, parentBlobID, ColorRGBa.GREEN)
+//        }
+
         val parentColor = blobs[parentBlobID].third
+
+
+        if (!t1) {
+            println("----------------------------------------")
+            println("blob colors")
+            println("blobID: $blobID")
+            println("highest blob pos: " + highestPointInBlob(t1, blobs, blobID))
+            println("blobColor: ${blobs[blobID].third}")
+            println("parentID: $parentBlobID")
+            println("highest parent pos " + highestPointInBlob(t1, blobs, parentBlobID))
+            println("parentColor: $parentColor")
+        }
+
         touchingColors.add(parentColor)
 
         if (leftMost && leftBlobID != -1){
