@@ -279,7 +279,7 @@ class Visualization(val tree1: MergeTree,
         val highestNode = highestNodeInBlob(blobs, blobID)
         val h = highestNode!!.firstDown.pos.y - highestPos.y
 
-        val treePos = TreePosition(highestNode!!.firstDown, h - 0.1)
+        val treePos = TreePosition(highestNode!!.firstDown, highestPos.y - .1)
 
         val pathNode = if(t1) interleaving.f[treePos] else interleaving.g[treePos]
 
@@ -482,6 +482,12 @@ class Visualization(val tree1: MergeTree,
 //        if (blobs[parentBlobID].third == ColorRGBa.BLACK) {
 //            setBlobColors(t1, parentBlobID, ColorRGBa.GREEN)
 //        }
+
+        if (parentBlobID!= -1 && blobs[parentBlobID].third == ColorRGBa.BLACK) {
+
+            val c = if (t1) listOf(tcs.t1c1, tcs.t1c2, tcs.t1c3) else listOf(tcs.t2c1, tcs.t2c2, tcs.t2c3)
+            touchingColors.add(c.random())
+        }
 
         val parentColor = blobs[parentBlobID].third
 

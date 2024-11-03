@@ -316,7 +316,7 @@ fun largeExample1(pos: Vector2): Visualization {
 
 fun main() = application {
     configure {
-        width =  1600 //3500
+        width =  2000//3500
         height = 800
         title = "Visualizing interleavings"
         windowResizable = true
@@ -864,7 +864,7 @@ fun main() = application {
 
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
-                //drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
+                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
                 drawBlobPath(visualization.tree1E, blob, t1values[blob.second], visualization.tree1BlobsTest.size)
                 count += 1
             }
@@ -872,7 +872,7 @@ fun main() = application {
 //            count = 0
 //            //Draw mapping of blob in the second tree onto the second tree
             for (blob in visualization.tree2BlobsTest) {
-                //drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], blob.third)// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
+                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], blob.third)// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
                 drawBlobPath(visualization.tree2E, blob, t2values[blob.second], visualization.tree2BlobsTest.size)
                 count+=1
             }
