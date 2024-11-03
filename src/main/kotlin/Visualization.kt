@@ -254,32 +254,16 @@ class Visualization(val tree1: MergeTree,
         val parentNode = highestNodeInBlob(blobs, blobID).firstUp  //returns null if parent = null -> means that blob contains the root node
 
         if (parentNode == null) {
-//            println("ACCURE PARENT ROOT")
-//            println("BlobID: " + blobID)
-//            for (treepos in blobs[blobID].first) {
-//                println(treepos)
-//            }
-//            println("last of root")
             return -1
         }
-
-//        if (t1) {
-//            println("BlobID: " + blobID)
-//            for (treepos in blobs[blobID].first) {
-//                println(treepos)
-//            }
-
-//            println("getting accurate parent blob")
-//            println(parentNode)
-//        }
 
         val highestPos = highestPointInBlob(t1, blobs, blobID)
         //println("=================")
         //println("highestPos: " + highestPos)
         val highestNode = highestNodeInBlob(blobs, blobID)
-        val h = highestNode!!.firstDown.pos.y - highestPos.y
+        //val h = highestNode!!.firstDown.pos.y - highestPos.y
 
-        val treePos = TreePosition(highestNode!!.firstDown, highestPos.y - .1)
+        val treePos = TreePosition(highestNode!!.firstDown, highestPos.y - 50)
 
         val pathNode = if(t1) interleaving.f[treePos] else interleaving.g[treePos]
 
@@ -486,6 +470,7 @@ class Visualization(val tree1: MergeTree,
         if (parentBlobID!= -1 && blobs[parentBlobID].third == ColorRGBa.BLACK) {
 
             val c = if (t1) listOf(tcs.t1c1, tcs.t1c2, tcs.t1c3) else listOf(tcs.t2c1, tcs.t2c2, tcs.t2c3)
+            //println("RANDOM")
             touchingColors.add(c.random())
         }
 

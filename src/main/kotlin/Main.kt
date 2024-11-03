@@ -54,6 +54,9 @@ data class DrawSettings(
     @DoubleParameter("Blob radius", 0.1, 10.0)
     var blobRadius: Double = 4.0,
 
+    @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
+    var nonMappedRadius: Double = 0.5,
+
     @DoubleParameter("Whiten", 0.0, 1.0)
     var whiten: Double = 0.5,
 
@@ -378,7 +381,7 @@ fun main() = application {
         gui.onChange { name, value ->
             // name is the name of the variable that changed
             when (name) {
-                "drawNodes", "nodeWidth", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
+                "drawNodes", "nodeWidth", "nonMappedRadius", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
                 "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
                 }
