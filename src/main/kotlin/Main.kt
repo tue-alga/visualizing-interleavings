@@ -39,6 +39,12 @@ data class DrawSettings(
     @BooleanParameter("Draw Nodes", order = 10)
     var drawNodes: Boolean = false,
 
+    @BooleanParameter("Carve Inwards")
+    var carveInwards: Boolean = true,
+
+    @DoubleParameter("Connector radius, ", 0.0, 3.0)
+    var connectorRadius: Double = 1.0,
+
     @DoubleParameter("Vertical Edge Width", 0.1, 5.0, order = 20)
     var verticalEdgeWidth: Double = 2.5,
 
@@ -46,7 +52,7 @@ data class DrawSettings(
     var horizontalEdgeWidth: Double = verticalEdgeWidth / 9,
 
     @DoubleParameter("Path Area Scale", 0.0, 3.0)
-    var pathAreaPatchScale: Double = 1.5,
+    var pathAreaPatchScale: Double = 2.0,
 
     @DoubleParameter("Patch Area Stroke Scale", 0.0, 0.5)
     var patchStrokeScale: Double = 0.15,
@@ -61,7 +67,7 @@ data class DrawSettings(
     var whiten: Double = 0.5,
 
     @ColorParameter("Background color")
-    var bgColor: ColorRGBa = ColorRGBa.WHITE,
+    var bgColor: ColorRGBa = ColorRGBa.fromHex("#B2BEB5")
     )
 
 data class GlobalColorSettings(
@@ -306,7 +312,7 @@ fun largeExample2(pos: Vector2): Visualization { //timestep 0025
     val tree1 = parseTree("(1e-06(0.084303(0.16119(0.44434(0.68726)(0.4826))(0.16453(0.19375(0.24872(0.26234(0.35743(0.80995)(0.38392(0.4613)(0.39507(0.44174)(0.40794))))(0.27844))(0.26742(0.38999(0.3994(0.4488(0.51578)(0.47666(0.50018(0.63489)(0.50786(0.74173)(0.52643)))(0.4826(0.53126(0.54525(0.71821(0.89687)(0.73344))(0.57013))(0.54859))(0.50699))))(0.48025(0.52643)(0.50637)))(0.40249))(0.27819)))(0.19385(0.26358(0.3994(0.48037(0.5263)(0.50637))(0.41339(0.4488(0.51578)(0.47851(0.54549(0.896)(0.57013))(0.50711)))(0.41661(0.49857(0.57261(0.63464)(0.58276))(0.51343(0.74111)(0.52593)))(0.43741(0.50612)(0.44335(0.49114)(0.47629))))))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.25207(0.311(0.33267(0.34517(0.39073(1.0)(0.40138))(0.37092))(0.35186))(0.32734))(0.27088))(0.23312))))(0.22173)))(0.089764(0.11142)(0.10713))))")
     val tree1Adjusted = parseTree("(1e-06(0.084303(0.16119(0.44434(0.68726)(0.4826))(0.17453(0.19375(0.24872(0.26234(0.35743(0.80995)(0.38392(0.4613)(0.39507(0.44174)(0.40794))))(0.27844))(0.26742(0.38999(0.44(0.63489)(0.50786(0.74173)(0.52643))(0.50(0.53126(0.54525(0.71821(0.89687)(0.73344))(0.57013))(0.54859))(0.50699)))(0.48025(0.52643)(0.50637))))(0.27819)))(0.19385(0.26358(0.3994(0.4288(0.51578)(0.47851(0.54549(0.896))(0.50711))(0.49857(0.57261(0.63464)(0.58276))(0.51343(0.74111)(0.52593)))(0.44335(0.50612)(0.49114)(0.47629))))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.34517(0.39073(1.0)(0.40138))(0.37092)))(0.27088))(0.23312))(0.22173)))(0.089764(0.11142)(0.10713))))")
     val tree2 = parseTree("(1e-06(0.092946(0.1855(0.22022(0.28954(0.30738(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))(0.33538))(0.30587(0.45562(0.54141(0.59316)(0.56859))(0.50216(0.50545(0.59714(0.8589(0.94098)(0.92643))(0.63063))(0.57641))(0.51945(0.63228(0.81031)(0.69418(0.81991)(0.75074)))(0.5211(0.57147)(0.53757(0.55953)(0.55102))))))(0.31946)))(0.22118(0.29119(0.4025(0.99492)(0.43092(0.49296(0.51025(0.55033)(0.54855))(0.50751))(0.45686)))(0.29709(0.43147(0.45562(0.50312(0.55006(0.597(0.87894(0.94249)(0.92684))(0.63063))(0.55143(0.62748(0.82225)(0.68073(0.80976)(0.69707)))(0.59714)))(0.57641))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))))(0.19195(0.47786(0.77421)(0.55184))(0.25701)))(0.099749(0.12359)(0.11917))))\n")
-    val tree2Adjusted = parseTree("(1e-06(0.092946(0.1855(0.22022(0.24954(0.30738(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))(0.33538))(0.30587(0.45562(0.54141(0.59316)(0.56859))(0.50216(0.50545(0.59714(0.8589(0.94098)(0.92643))(0.63063))(0.57641))(0.51945(0.63228(0.81031)(0.69418(0.81991)(0.75074)))(0.5211(0.57147)(0.53757(0.55953)(0.55102))))))(0.31946)))(0.22118(0.29119(0.4025(0.99492)(0.43092(0.49296(0.51025(0.55033)(0.54855))(0.50751))(0.45686)))(0.29709(0.43147(0.55143(0.597(0.87894(0.94249)(0.92684))(0.63063))(0.62748(0.82225)(0.68073(0.80976)(0.69707))(0.59714)))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))))(0.19195(0.47786(0.77421)(0.55184))(0.25701)))(0.099749(0.12359)(0.11917))))\n")
+    val tree2Adjusted = parseTree("(1e-06(0.092946(0.1855(0.22022(0.24954(0.30738(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))(0.33538))(0.30587(0.45562(0.54141(0.59316)(0.56859))(0.50216(0.50545(0.59714(0.8589(0.94098)(0.92643))(0.63063))(0.57641))(0.51945(0.63228(0.81031)(0.69418(0.81991)(0.75074)))(0.5211(0.57147)(0.53757(0.55953)(0.55102))))))(0.31946)))(0.22118(0.29119(0.4025(0.99492)(0.43092(0.49296(0.51025(0.55033)(0.54855))(0.50751))(0.45686)))(0.29709(0.43147(0.55143(0.597(0.87894(0.94249)(0.92684))(0.63063))(0.62748(0.82225)(0.68073(0.80976)(0.69707))(0.64714)))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))))(0.19195(0.47786(0.77421)(0.55184))(0.25701)))(0.099749(0.12359)(0.11917))))\n")
 
 
     return Visualization(tree1Adjusted, tree2Adjusted, pos) { tree1E, tree2E ->
@@ -387,7 +393,7 @@ fun main() = application {
         gui.onChange { name, value ->
             // name is the name of the variable that changed
             when (name) {
-                "drawNodes", "nodeWidth", "nonMappedRadius", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
+                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
                 "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
                 }
@@ -593,6 +599,97 @@ fun main() = application {
 
                     drawRectangle = union(drawRectangle, topRect)
                 }
+
+                val lowestTreePositions: MutableList<TreePosition<EmbeddedMergeTree>> = mutableListOf()
+
+                for (leave in tree.leaves){
+                    if (false) {
+                        if (!blob.first.contains(TreePosition(leave, 0.0)))
+                            continue
+                    }
+
+                    val currentMaskHighY = tree.getDeepestLeave().pos.y + 1
+                    val carveHeight = abs(leave.pos.y - currentMaskHighY)
+                    val carveRect = Rectangle(leave.pos.x - visualization.ds.blobRadius, leave.pos.y- 0.1, visualization.ds.blobRadius* 2, carveHeight).shape
+
+                    drawRectangle = drawRectangle.difference(carveRect)
+
+                    val lowestTreePosInColumn = blob.first.filter { it.firstDown.pos.x == leave.pos.x }
+                        .maxByOrNull { it.height }
+
+                    if (lowestTreePosInColumn != null)
+                        lowestTreePositions.add(lowestTreePosInColumn)
+                }
+
+                if (visualization.ds.carveInwards) {
+                    for (i in lowestTreePositions.indices) {
+                        if (i == lowestTreePositions.size - 1) break
+
+                        val currentTreePos = lowestTreePositions[i]
+                        val nextTreePos = lowestTreePositions[i + 1]
+
+                        if (currentTreePos.height == nextTreePos.height) continue
+
+                        val carveXTop = currentTreePos.firstDown.pos.x + visualization.ds.blobRadius
+                        val carveYTop = min(currentTreePos.height, nextTreePos.height)
+                        val carveWidth =
+                            abs(currentTreePos.firstDown.pos.x - nextTreePos.firstDown.pos.x) - visualization.ds.blobRadius * 2
+                        val carveHeight = abs(currentTreePos.height - nextTreePos.height)
+
+                        if (carveWidth > 0 && carveHeight > 0) {
+                            val carveRect = Rectangle(carveXTop, carveYTop, carveWidth, carveHeight).shape
+                            drawRectangle = drawRectangle.difference(carveRect)
+                        }
+                    }
+                }
+
+                //Connectors
+                val shortestContour = drawRectangle.contours.minBy {it.bounds.height }
+
+                val connectors: MutableList<Shape> = mutableListOf()
+
+                for (contour in drawRectangle.contours) {
+                    if (contour == shortestContour) continue
+
+                    val shortTestIsLeft = shortestContour.bounds.center.x < contour.bounds.center.x
+
+                    var conTopX = 0.0
+                    var conWidth = 0.0
+
+                    var shortestSideSegment: Segment? = null
+                    var contourSideSegment: Segment? = null
+
+                    if (shortTestIsLeft) {
+                        conTopX = shortestContour.bounds.x + shortestContour.bounds.width
+                        conWidth = abs(contour.bounds.x - conTopX)
+
+                        shortestSideSegment = shortestContour.segments.maxBy{ it.bounds.center.x }
+                        contourSideSegment = contour.segments.minBy { it.bounds.center.x }
+
+                    }
+                    else {
+                        conTopX = contour.bounds.x + contour.bounds.width
+                        conWidth = abs(conTopX - shortestContour.bounds.x)
+
+                        shortestSideSegment = shortestContour.segments.minBy{ it.bounds.center.x }
+                        contourSideSegment = contour.segments.maxBy { it.bounds.center.x }
+
+                    }
+
+                    //val conTopY = shortestContour.bounds.center.y - visualization.ds.connectorRadius * 0.5
+                    val conTopY = min(shortestSideSegment.bounds.center.y, contourSideSegment.bounds.center.y) - visualization.ds.connectorRadius * 0.5
+                    val conHeight = visualization.ds.connectorRadius
+
+                    if (conHeight > 0) {
+                        val connector = Rectangle(conTopX, conTopY, conWidth, conHeight).shape
+                        connectors.add(connector)
+                    }
+                }
+
+                for (connector in connectors) {
+                    drawRectangle = drawRectangle.union(connector)
+                }
+
 
 
                 val leavesLeftOfDeepest = mutableListOf<EmbeddedMergeTree>();
