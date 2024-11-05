@@ -80,6 +80,7 @@ fun MergeTree.reverse(): MergeTree {
 open class EmbeddedMergeTree(var pos: Vector2,
                              var edgeContour: ShapeContour?,
                              var horizontalContour: ShapeContour?,
+                             var fullWidth: Boolean = false,
                              override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
                              override val parent: EmbeddedMergeTree? = null,
                              override var id: Int = -1) : MergeTreeLike<EmbeddedMergeTree> {

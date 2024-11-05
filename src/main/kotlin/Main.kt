@@ -43,7 +43,7 @@ data class DrawSettings(
     var verticalEdgeWidth: Double = 2.5,
 
     @DoubleParameter("Horizontal Edge Width", 0.1, 5.0)
-    var horizontalEdgeWidth: Double = verticalEdgeWidth / 3,
+    var horizontalEdgeWidth: Double = verticalEdgeWidth / 9,
 
     @DoubleParameter("Path Area Scale", 0.0, 3.0)
     var pathAreaPatchScale: Double = 1.5,
@@ -55,7 +55,7 @@ data class DrawSettings(
     var blobRadius: Double = 4.0,
 
     @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
-    var nonMappedRadius: Double = 0.5,
+    var nonMappedRadius: Double = 0.2,
 
     @DoubleParameter("Whiten", 0.0, 1.0)
     var whiten: Double = 0.5,
@@ -81,37 +81,43 @@ data class ThreeColorSettings(
 //    var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#66c2a5"), //purple
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
+//    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#E41A1C"),
 
     @ColorParameter("Tree1 color2 hexcode")
 //    var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
 //    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
 //    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#a6d854"), //light-blue
-    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
+//    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
+    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#377EB8"),
 
     @ColorParameter("Tree1 color3 hexcode")
 //    var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
 //    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
 //    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#8da0cb"), //yellow
-    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
+    //var t1c3: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
+    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A"),
 
     //Tree2
     @ColorParameter("Tree2 color1 hexcode")
 //    var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
 //    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
 //    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e78ac3"), //dark-blue
-    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
+ //   var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
+    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#E41A1C"),
 
     @ColorParameter("Tree2 color2 hexcode")
 //    var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
 //    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e78ac3"), //light-blue
 //    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#fc8d62"), //orange
-    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
+//    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
+    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#377EB8"),
 
     @ColorParameter("Tree2 color3 hexcode")
 //    var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
 //    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
-    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
+//    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
+    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A")
 
 )
 //val blue = ColorRGBa.fromHex("#8EBBD9")
