@@ -80,7 +80,7 @@ fun MergeTree.reverse(): MergeTree {
 open class EmbeddedMergeTree(var pos: Vector2,
                              var edgeContour: ShapeContour?,
                              var horizontalContour: ShapeContour?,
-                             var fullWidth: Boolean = false,
+                             var fullWidth: Boolean = true,
                              override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
                              override val parent: EmbeddedMergeTree? = null,
                              override var id: Int = -1) : MergeTreeLike<EmbeddedMergeTree> {
@@ -115,12 +115,14 @@ open class EmbeddedMergeTree(var pos: Vector2,
     //Color of the root node from the blob decomposition. BLACK = not assigned.
     var blobColor = ColorRGBa.BLACK;
 
-    fun draw(drawer: CompositionDrawer, ds: DrawSettings, globalcs: GlobalColorSettings) {
+    fun draw(drawer: CompositionDrawer, t1: Boolean, ds: DrawSettings, globalcs: GlobalColorSettings) {
         drawer.apply {
             for (child in children) {
-                stroke = globalcs.edgeColor
+                stroke = if (t1) globalcs.edgeColor else globalcs.edgeColor2
                 fill = null
-                strokeWeight = ds.verticalEdgeWidth
+
+                val vWidth = if (child.fullWidth) ds.verticalEdgeWidth else ds.nonMappedVerticalEdges
+                strokeWeight = vWidth
                 contour(child.edgeContour!!)
                 strokeWeight = ds.horizontalEdgeWidth
 
@@ -131,17 +133,17 @@ open class EmbeddedMergeTree(var pos: Vector2,
                     val pos2 = hContour.position(1.0)
                     if (pos1.x != pos2.x) {
                         if (pos1.x < pos2.x) {
-                            pos1 = Vector2(pos1.x - ds.verticalEdgeWidth/2, pos1.y)
+                            pos1 = Vector2(pos1.x - vWidth/2, pos1.y)
                         }
                         else {
-                            pos1 = Vector2(pos1.x + ds.verticalEdgeWidth/2, pos1.y)
+                            pos1 = Vector2(pos1.x + vWidth/2, pos1.y)
                         }
                         hContour = LineSegment(pos1, pos2).contour
                     }
                 }
                 contour(hContour!!)
 
-                child.draw(this, ds, globalcs)
+                child.draw(this, t1, ds, globalcs)
             }
             if (ds.drawNodes)
                 node(pos, ds.markRadius)

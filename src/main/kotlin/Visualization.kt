@@ -1,4 +1,3 @@
-import Atze.Tree
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
@@ -83,10 +82,15 @@ class Visualization(
 
         repositionNodes(true, tree1E)
         repositionNodes(false, tree2E)
-        //reduceNonMappedSpacing(true, tree1E)
-        //reduceNonMappedSpacing(false, tree2E)
-        //repositionNodes(true, tree1E)
-        //repositionNodes(false, tree2E)
+
+        if (ds.collapseNonMapped) {
+            setNodeWidths()
+            reduceNonMappedSpacing(true, tree1E)
+            reduceNonMappedSpacing(false, tree2E)
+            repositionNodes(true, tree1E)
+            repositionNodes(false, tree2E)
+        }
+
 
         treePairComposition()
 
@@ -135,14 +139,23 @@ class Visualization(
         return -1
     }
 
-    private fun setHedgeColors(){
+    private fun setHedgeColors() {
         tree1Hedges.sortBy { it.highestPoint.y }
         for (hedge in tree1Hedges) {
             hedge.setColor()
         }
         tree2Hedges.sortBy { it.highestPoint.y }
-        for (hedge in tree2Hedges){
+        for (hedge in tree2Hedges) {
             hedge.setColor()
+        }
+    }
+
+    private fun setNodeWidths() {
+        for (node in tree1E.nodes()) {
+            node.fullWidth = nodeIsInMappedColumn(true, node)
+        }
+        for (node in tree2E.nodes()) {
+            node.fullWidth = nodeIsInMappedColumn(false, node)
         }
     }
 
@@ -173,24 +186,25 @@ class Visualization(
         }
     }
 
-    private fun leaveIsInMappedColumn(t1: Boolean, leave: EmbeddedMergeTree): Boolean {
-        val xPos = leave.pos.x
-        var current = leave
+    private fun nodeIsInMappedColumn(t1: Boolean, node: EmbeddedMergeTree): Boolean {
+        val xPos = node.pos.x
+        var current = node
 
         var isInMappedColumn = false
 
-        if (getPathID(
-                current,
-                if (t1) tree2PathDecomposition else tree1PathDecomposition
-            ) == -1 && current.parent!!.pos.x != xPos
-        ) {
+        if (current.parent == null) return true
+
+        val pathID = getPathID(current, if (t1) tree1PathDecomposition else tree2PathDecomposition)
+        if (pathID != -1) return true
+
+        if (pathID == -1 && current.parent!!.pos.x != xPos) {
             return false
         }
 
-        if (current.parent == null) return true
+        current
 
-        while (current.pos.x == xPos) {
-            if (getPathID(current, if (t1) tree2PathDecomposition else tree1PathDecomposition) != -1) {
+        while (current.pos.x == current.parent!!.pos.x) {
+            if (getPathID(current, if (t1) tree1PathDecomposition else tree2PathDecomposition) != -1) {
                 isInMappedColumn = true
                 break
             }
@@ -201,17 +215,43 @@ class Visualization(
     }
 
     private fun reduceNonMappedSpacing(t1: Boolean, t: EmbeddedMergeTree) {
-        val spaceReduction = abs(tes.nodeWidth * ds.nonMappedRadius - tes.nodeWidth) / 2
+        val spaceReduction = abs(tes.nodeWidth * ds.nonMappedRadius - tes.nodeWidth)// / 2
+
+        //0.25
+        //8
+        // 2  - 8 = 6 / 2 = 3
+
+        // 1 -> 9
+        // 1 -> 9-3 = 6
+
 
         for (i in t.leaves.indices) {
-            if (!leaveIsInMappedColumn(t1, t.leaves[i])) {
-                t.leaves[i].pos = Vector2(t.leaves[i].pos.x - spaceReduction, t.leaves[i].pos.y)
-                for (j in i + 1 until t.leaves.size) {
-                    //if (!leaveIsInMappedColumn(t1, t.leaves[j]))
-                    t.leaves[j].pos = Vector2(t.leaves[j].pos.x - spaceReduction, t.leaves[j].pos.y)
+            var inMappedColumn = t.leaves[i].fullWidth// nodeIsInMappedColumn(t1, t.leaves[i])
 
-                }
+            //t.leaves[i].fullWidth = false
+
+            var rightSpaceReduction = spaceReduction
+
+            if (inMappedColumn) rightSpaceReduction -= spaceReduction / 2
+
+//            if (i == 0)
+//                leftSpaceReduction = 0.0
+//            else
+//                if (t.leaves[i - 1].fullWidth)
+//                    leftSpaceReduction = spaceReduction / 2
+
+
+            if (i < t.leaves.size - 1)
+                if (t.leaves[i + 1].fullWidth)
+                    rightSpaceReduction  -= spaceReduction / 2
+
+            //t.leaves[i].pos = Vector2(t.leaves[i].pos.x - leftSpaceReduction, t.leaves[i].pos.y)
+            for (j in i + 1 until t.leaves.size) {
+                //if (!leaveIsInMappedColumn(t1, t.leaves[j]))
+                t.leaves[j].pos = Vector2(t.leaves[j].pos.x - rightSpaceReduction, t.leaves[j].pos.y)
+
             }
+
         }
     }
 
@@ -326,7 +366,7 @@ class Visualization(
     fun getHedgeOfNode(t1: Boolean, node: TreePosition<EmbeddedMergeTree>): Hedge? {
         val hedges = if (t1) tree1Hedges else tree2Hedges
 
-        for (hedge in hedges){
+        for (hedge in hedges) {
             if (hedge.treePositions.contains(node)) {
                 return hedge
             }
@@ -857,10 +897,10 @@ class Visualization(
     private fun treePairComposition() {
         val tree1C = drawComposition {
             //drawBlobs(this)
-            tree1E.draw(this, ds, globalcs)
+            tree1E.draw(this, true, ds, globalcs)
 
         }
-        val tree2C = drawComposition { tree2E.draw(this, ds, globalcs) }
+        val tree2C = drawComposition { tree2E.draw(this, false, ds, globalcs) }
         val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
         val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
         val bounds1 = tree1C.findShapes().map { it.bounds }.bounds
@@ -868,13 +908,13 @@ class Visualization(
         val halfGap = ds.markRadius * 20
 
         val tree1Hedges = drawComposition {
-            for (hedge in tree1Hedges){
+            for (hedge in tree1Hedges) {
                 hedge.draw(this)
             }
         }
 
         val tree2Hedges = drawComposition {
-            for (hedge in tree2Hedges){
+            for (hedge in tree2Hedges) {
                 hedge.draw(this)
             }
         }
@@ -939,7 +979,7 @@ class Visualization(
             hedges[otherPathID].first.add(TreePosition(node, 0.0))
         }
 
-        for (i in hedges.indices){
+        for (i in hedges.indices) {
             if (t1)
                 tree1Hedges.add(Hedge(this, t1, hedges[i].first, i, hedges[i].second))
             else tree2Hedges.add(Hedge(this, t1, hedges[i].first, i, hedges[i].second))

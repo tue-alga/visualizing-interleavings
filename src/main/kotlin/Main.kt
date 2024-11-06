@@ -34,7 +34,7 @@ fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
 
 data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0, order = 0)
-    var markRadius: Double = 1.0,
+    var markRadius: Double = 1.5,
 
     @BooleanParameter("Draw Nodes", order = 10)
     var drawNodes: Boolean = false,
@@ -48,8 +48,14 @@ data class DrawSettings(
     @DoubleParameter("Vertical Edge Width", 0.1, 5.0, order = 20)
     var verticalEdgeWidth: Double = 2.5,
 
-    @DoubleParameter("Horizontal Edge Width", 0.1, 5.0)
+    @DoubleParameter("Horizontal Edge Width", 0.1, 5.0, order = 21)
     var horizontalEdgeWidth: Double = verticalEdgeWidth / 9,
+
+    @DoubleParameter("Non Mapped Vertical Edge Width", 0.1, 5.0, order = 22)
+    var nonMappedVerticalEdges: Double = verticalEdgeWidth / 9,
+
+    @BooleanParameter("Collapse non mapped", order = 23)
+    var collapseNonMapped: Boolean = true,
 
     @DoubleParameter("Path Area Scale", 0.0, 3.0)
     var pathAreaPatchScale: Double = 2.0,
@@ -61,21 +67,30 @@ data class DrawSettings(
     var blobRadius: Double = 4.0,
 
     @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
-    var nonMappedRadius: Double = 0.2,
+    var nonMappedRadius: Double = 0.5,
 
     @DoubleParameter("Whiten", 0.0, 1.0)
     var whiten: Double = 0.5,
 
     @ColorParameter("Background color")
-    var bgColor: ColorRGBa = ColorRGBa.fromHex("#B2BEB5")
+    var bgColor: ColorRGBa = ColorRGBa.WHITE,// ColorRGBa.fromHex("#D3D3D3"),
+
+    @DoubleParameter("Blacken", 0.0, 1.0)
+    var blacken: Double = 0.1
     )
+
+
+
 
 data class GlobalColorSettings(
     @BooleanParameter("Enable Gradient")
     var enableGradient: Boolean = false,
 
-    @ColorParameter("EdgeColor", order = 0)
-    var edgeColor: ColorRGBa = ColorRGBa.WHITE
+    @ColorParameter("EdgeColor1", order = 0)
+    var edgeColor: ColorRGBa = ColorRGBa.WHITE,
+
+    @ColorParameter("EdgeColor2", order  = 1)
+    var edgeColor2: ColorRGBa = ColorRGBa.BLACK,
 )
 
 data class ThreeColorSettings(
@@ -87,43 +102,43 @@ data class ThreeColorSettings(
 //    var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#66c2a5"), //purple
-//    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#E41A1C"),
+    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
+//    var t1c1: ColorRGBa = ColorRGBa.fromHex("#E41A1C"),
 
     @ColorParameter("Tree1 color2 hexcode")
 //    var t1c2: ColorRGBa = ColorRGBa(85 / 255.0,  164 / 255.0, 189 / 255.0), //
 //    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#E96222"), //orange
 //    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#a6d854"), //light-blue
-//    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
-    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#377EB8"),
+    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
+//    var t1c2: ColorRGBa =  ColorRGBa.fromHex("#377EB8"),
 
     @ColorParameter("Tree1 color3 hexcode")
 //    var t1c3: ColorRGBa = ColorRGBa(133 / 255.0, 120 / 255.0, 220 / 255.0),//
 //    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#FCC60E"), //yellow
 //    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#8da0cb"), //yellow
-    //var t1c3: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
-    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A"),
+    var t1c3: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
+ //   var t1c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A"),
 
     //Tree2
     @ColorParameter("Tree2 color1 hexcode")
 //    var t2c1: ColorRGBa = ColorRGBa(212 / 255.0,  61 / 255.0, 79 / 255.0),//
 //    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#454F96"), //dark-blue
 //    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e78ac3"), //dark-blue
- //   var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
-    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#E41A1C"),
+    var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
+  //  var t2c1: ColorRGBa =  ColorRGBa.fromHex("#E41A1C"),
 
     @ColorParameter("Tree2 color2 hexcode")
 //    var t2c2: ColorRGBa = ColorRGBa(244 / 255.0, 108 / 255.0, 67 / 255.0),//
 //    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e78ac3"), //light-blue
 //    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#fc8d62"), //orange
-//    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
-    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#377EB8"),
+    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
+//    var t2c2: ColorRGBa =  ColorRGBa.fromHex("#377EB8"),
 
     @ColorParameter("Tree2 color3 hexcode")
 //    var t2c3: ColorRGBa = ColorRGBa(250 / 255.0, 155 / 255.0, 26 / 255.0)///
 //    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
-//    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
-    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A")
+    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
+ //   var t2c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A")
 
 )
 //val blue = ColorRGBa.fromHex("#8EBBD9")
@@ -393,8 +408,9 @@ fun main() = application {
         gui.onChange { name, value ->
             // name is the name of the variable that changed
             when (name) {
-                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius", "verticalEdgeWidth", "horizontalEdgeWidth", "pathAreaPatchScale", "areaPatchStrokeScale",
-                "edgeColor", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
+                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius",
+                "verticalEdgeWidth", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
+                "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
                 }
             }
@@ -566,10 +582,13 @@ fun main() = application {
 
                 var drawRectangles: MutableList<Shape> = mutableListOf()
                 for (treePos in blob.first) {
-                    var leftTopY = highestBlobPos.y
-                    var leftTopX = min(deepestNodeInBlob.firstDown.pos.x, treePos.firstDown.pos.x) - visualization.ds.blobRadius
+                    val margin = if(treePos.firstDown.fullWidth) visualization.ds.blobRadius else visualization.ds.nonMappedRadius * visualization.ds.blobRadius
 
-                    var rectWidth = abs(deepestNodeInBlob.firstDown.pos.x - treePos.firstDown.pos.x) + (visualization.ds.blobRadius * 2)
+
+                    var leftTopY = highestBlobPos.y
+                    var leftTopX = min(deepestNodeInBlob.firstDown.pos.x, treePos.firstDown.pos.x) - margin// visualization.ds.blobRadius
+
+                    var rectWidth = abs(deepestNodeInBlob.firstDown.pos.x - treePos.firstDown.pos.x) + (margin * 2)// (visualization.ds.blobRadius * 2)
                     var rectHeight = treePos.height - highestBlobPos.y
                     //println("rectWidth: " + rectWidth)
                     //println("rectHeight: " + rectHeight)
@@ -590,12 +609,14 @@ fun main() = application {
                 if (highestNodeInBlob.firstUp == null){
                     val delta = visualization.interleaving.delta
                     val leftLeave = if (tree1) visualization.tree1E.leaves.first() else visualization.tree2E.leaves.first()
+                    val leftMargin = if(leftLeave.fullWidth) visualization.ds.blobRadius else visualization.ds.nonMappedRadius * visualization.ds.blobRadius
                     val rightLeave = if (tree1) visualization.tree1E.leaves.last() else visualization.tree2E.leaves.last()
-                    val rootWidth = abs(leftLeave.pos.x - rightLeave.pos.x) + (visualization.ds.blobRadius * 2)
+                    val rightMargin = if(rightLeave.fullWidth) visualization.ds.blobRadius else visualization.ds.nonMappedRadius * visualization.ds.blobRadius
+                    val rootWidth = abs(leftLeave.pos.x - rightLeave.pos.x) + (leftMargin + rightMargin)// (visualization.ds.blobRadius * 2)
                     strokeWeight = rootWidth + (visualization.ds.blobRadius * 2)
                     val  rootMidX = (leftLeave.pos.x + rightLeave.pos.x) / 2
 
-                    val topRect = Rectangle(leftLeave.pos.x - visualization.ds.blobRadius, highestNodeInBlob.height - visualization.ds.blobRadius, rootWidth, visualization.ds.blobRadius).shape
+                    val topRect = Rectangle(leftLeave.pos.x - leftMargin, highestNodeInBlob.height - visualization.ds.blobRadius, rootWidth, visualization.ds.blobRadius).shape
 
                     drawRectangle = union(drawRectangle, topRect)
                 }
@@ -610,7 +631,9 @@ fun main() = application {
 
                     val currentMaskHighY = tree.getDeepestLeave().pos.y + 1
                     val carveHeight = abs(leave.pos.y - currentMaskHighY)
-                    val carveRect = Rectangle(leave.pos.x - visualization.ds.blobRadius, leave.pos.y- 0.1, visualization.ds.blobRadius* 2, carveHeight).shape
+                    val carveWidth = visualization.ds.nonMappedRadius * visualization.ds.blobRadius * 2// if (leave.fullWidth || !visualization.ds.collapseNonMapped) visualization.ds.blobRadius else visualization.tes.nodeWidth * visualization.ds.nonMappedRadius
+
+                    val carveRect = Rectangle(leave.pos.x - carveWidth * 0.5, leave.pos.y- 0.01, carveWidth, carveHeight).shape
 
                     drawRectangle = drawRectangle.difference(carveRect)
 
@@ -630,10 +653,13 @@ fun main() = application {
 
                         if (currentTreePos.height == nextTreePos.height) continue
 
-                        val carveXTop = currentTreePos.firstDown.pos.x + visualization.ds.blobRadius
+                        val leftMargin = if(currentTreePos.firstDown.fullWidth) visualization.ds.blobRadius else visualization.ds.nonMappedRadius * visualization.ds.blobRadius
+                        val rightMargin = if(nextTreePos.firstDown.fullWidth) visualization.ds.blobRadius else visualization.ds.nonMappedRadius * visualization.ds.blobRadius
+
+                        val carveXTop = currentTreePos.firstDown.pos.x + leftMargin// visualization.ds.blobRadius
                         val carveYTop = min(currentTreePos.height, nextTreePos.height)
                         val carveWidth =
-                            abs(currentTreePos.firstDown.pos.x - nextTreePos.firstDown.pos.x) - visualization.ds.blobRadius * 2
+                            abs(currentTreePos.firstDown.pos.x - nextTreePos.firstDown.pos.x) - (leftMargin + rightMargin)// visualization.ds.blobRadius * 2
                         val carveHeight = abs(currentTreePos.height - nextTreePos.height)
 
                         if (carveWidth > 0 && carveHeight > 0) {
@@ -922,7 +948,7 @@ fun main() = application {
                     color
 
                 strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.patchStrokeScale
-                stroke = visualization.globalcs.edgeColor
+                stroke = if (t1) visualization.globalcs.edgeColor else visualization.globalcs.edgeColor2
 
                 val parent = path.last().parent
                 val posY = parent?.pos?.y ?: (path.last().pos.y - visualization.interleaving.delta - visualization.ds.blobRadius)
@@ -1028,8 +1054,13 @@ fun main() = application {
         extend {
             drawer.apply {
                 clear(visualization.ds.bgColor)
-
+                visualization.globalcs.edgeColor2 = visualization.globalcs.edgeColor
                 drawBlobs();
+
+                var fillColor = ColorRGBa(0.0, 0.0, 0.0, visualization.ds.blacken)
+                fill = fillColor
+
+                rectangle(bounds)
 
                 // Draw ray upward from roots
 //                stroke = visualization.globalcs.edgeColor
