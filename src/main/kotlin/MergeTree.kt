@@ -121,7 +121,7 @@ open class EmbeddedMergeTree(var pos: Vector2,
                 stroke = if (t1) globalcs.edgeColor else globalcs.edgeColor2
                 fill = null
 
-                val vWidth = if (child.fullWidth) ds.verticalEdgeWidth else ds.nonMappedVerticalEdges
+                val vWidth = if(ds.thinNonMapped) ds.nonMappedVerticalEdges else if (child.fullWidth) ds.verticalEdgeWidth else ds.nonMappedVerticalEdges
                 strokeWeight = vWidth
                 contour(child.edgeContour!!)
                 strokeWeight = ds.horizontalEdgeWidth

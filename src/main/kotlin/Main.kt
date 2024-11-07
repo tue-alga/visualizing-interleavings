@@ -57,6 +57,9 @@ data class DrawSettings(
     @BooleanParameter("Collapse non mapped", order = 23)
     var collapseNonMapped: Boolean = true,
 
+    @BooleanParameter("Thin non-mapped", order = 24)
+    var thinNonMapped: Boolean = true,
+
     @DoubleParameter("Path Area Scale", 0.0, 3.0)
     var pathAreaPatchScale: Double = 2.0,
 
@@ -409,7 +412,7 @@ fun main() = application {
             // name is the name of the variable that changed
             when (name) {
                 "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius",
-                "verticalEdgeWidth", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
+                "verticalEdgeWidth", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
                 "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
                 }
@@ -922,17 +925,80 @@ fun main() = application {
                 val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
                 val subContour = edge.sub(0.0, curveOffset!!)
                 if (tree1)
+                {
+                    if (true) {
+                        //PathBackground
+                        stroke = visualization.globalcs.edgeColor
+                        strokeWeight = visualization.ds.verticalEdgeWidth
+                        contour(visualization.fromTree2Local(subContour))
+                    }
+
+                    //Path
+                    stroke = blob.third
+                    strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
                     contour(visualization.fromTree2Local(subContour))
-                else contour(visualization.fromTree1Local(subContour))
+
+                }
+                else {
+                    if (true) {
+                        //PathBackground
+                        stroke = visualization.globalcs.edgeColor
+                        strokeWeight = visualization.ds.verticalEdgeWidth
+                        contour(visualization.fromTree1Local(subContour))
+                    }
+
+                    //Path
+                    stroke = blob.third
+                    strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+                    contour(visualization.fromTree1Local(subContour))
+                }
 
                 //draw rest of the path till the root node.
                 var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
                 while (pathParent != null && pathNodes.contains(pathParent)) {
 
-                    if (pathParent.edgeContour != null){// && pathParent.pos.x == lowestPathPoint.firstDown.pos.x) {
-                        if (tree1)
+                    if (pathParent.edgeContour != null) {// && pathParent.pos.x == lowestPathPoint.firstDown.pos.x) {
+                        if (tree1) {
+                            if (true) {
+                                //PathBackground
+                                stroke = visualization.globalcs.edgeColor
+                                strokeWeight = visualization.ds.verticalEdgeWidth
+
+//                                if (pathParent.parent == null || !pathNodes.contains(pathParent.parent)) {
+//                                    var cont = pathParent.edgeContour!!
+//                                    var interval = (visualization.ds.pathAreaPatchScale) / cont.bounds.height
+//
+//                                    contour(visualization.fromTree2Local(cont.sub(interval, 1.0)))
+//                                }
+                                contour(visualization.fromTree2Local(pathParent.edgeContour!!))
+                            }
+
+                            //Path
+                            stroke = blob.third
+                            strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
                             contour(visualization.fromTree2Local(pathParent.edgeContour!!))
-                        else contour(visualization.fromTree1Local(pathParent.edgeContour!!))
+
+                        } else {
+                            if (true) {
+                                //PathBackground
+                                stroke = visualization.globalcs.edgeColor
+                                strokeWeight = visualization.ds.verticalEdgeWidth
+
+                                contour(visualization.fromTree1Local(pathParent.edgeContour!!))
+                            }
+
+
+                            //Path
+                            stroke = blob.third
+                            strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+                            contour(visualization.fromTree1Local(pathParent.edgeContour!!))
+                        }
+                        if (pathParent.parent == null || !pathNodes.contains(pathParent.parent)){
+                            if (tree1){
+
+                            }
+
+                        }
                     }
                     pathParent = pathParent.parent;
                 }
@@ -996,16 +1062,17 @@ fun main() = application {
 
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
-                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
                 drawBlobPath(visualization.tree1E, blob, t1values[blob.second], visualization.tree1BlobsTest.size)
+                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
                 count += 1
             }
 //
 //            count = 0
 //            //Draw mapping of blob in the second tree onto the second tree
             for (blob in visualization.tree2BlobsTest) {
-                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], blob.third)// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
                 drawBlobPath(visualization.tree2E, blob, t2values[blob.second], visualization.tree2BlobsTest.size)
+                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], blob.third)// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
+
                 count+=1
             }
 
