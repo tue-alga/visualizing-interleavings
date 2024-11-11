@@ -1,8 +1,11 @@
 import org.openrndr.KEY_SPACEBAR
 import org.openrndr.application
+import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import org.openrndr.color.rgb
 import org.openrndr.draw.isolated
+import org.openrndr.extra.color.spaces.ColorOKHSLa
+import org.openrndr.extra.color.spaces.ColorOKHSVa
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.parameters.*
 import org.openrndr.math.Matrix44
@@ -72,28 +75,51 @@ data class DrawSettings(
     @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
     var nonMappedRadius: Double = 0.5,
 
-    @DoubleParameter("Whiten", 0.0, 1.0)
-    var whiten: Double = 0.5,
+//    @DoubleParameter("Whiten", 0.0, 1.0)
+    var whiten: Double = 0.0,
 
-    @ColorParameter("Background color")
+//    @ColorParameter("Background color")
     var bgColor: ColorRGBa = ColorRGBa.WHITE,// ColorRGBa.fromHex("#D3D3D3"),
 
-    @DoubleParameter("Blacken", 0.0, 1.0)
-    var blacken: Double = 0.1
+//    @DoubleParameter("Blacken", 0.0, 1.0)
+    var blacken: Double = 0.0
     )
-
-
-
 
 data class GlobalColorSettings(
     @BooleanParameter("Enable Gradient")
     var enableGradient: Boolean = false,
 
     @ColorParameter("EdgeColor1", order = 0)
-    var edgeColor: ColorRGBa = ColorRGBa.WHITE,
+    var edgeColor: ColorRGBa = ColorRGBa.BLACK,
 
     @ColorParameter("EdgeColor2", order  = 1)
     var edgeColor2: ColorRGBa = ColorRGBa.BLACK,
+)
+
+data class DivergingColorSettings(
+    @DoubleParameter("Hue 1", 0.0, 360.0, order=10)
+    var hue1: Double = 255.0,
+
+    @DoubleParameter("Hue 2", 0.0, 360.0, order=20)
+    var hue2 : Double = 25.0,
+
+    @DoubleParameter("Saturation 1", 0.0, 1.0, order=30)
+    var sat1: Double = 0.8,
+
+    @DoubleParameter("Saturation 2", 0.0, 1.0, order=40)
+    var sat2: Double = 0.8,
+
+    @DoubleParameter("Saturation 3", 0.0, 1.0, order=50)
+    var sat3: Double = 0.8,
+
+    @DoubleParameter("Lightness 1", 0.0, 1.0, order=60)
+    var lig1: Double = 0.5,
+
+    @DoubleParameter("Lightness 2", 0.0, 1.0, order=70)
+    var lig2: Double = 0.7,
+
+    @DoubleParameter("Lightness 3", 0.0, 1.0, order=80)
+    var lig3: Double = 0.9,
 )
 
 data class ThreeColorSettings(
@@ -105,7 +131,8 @@ data class ThreeColorSettings(
 //    var t1c1: ColorRGBa = ColorRGBa(49 / 255.0,  135 / 255.0, 188 / 255.0),
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#C5037D"), //purple
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#66c2a5"), //purple
-    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
+//    var t1c1: ColorRGBa = ColorRGBa.fromHex("#1b9e77"), //purple
+    var t1c1: ColorRGBa = ColorRGBa(0.7333333772420884,0.2952000176752698, 0.27866668335199357),
 //    var t1c1: ColorRGBa = ColorRGBa.fromHex("#E41A1C"),
 
     @ColorParameter("Tree1 color2 hexcode")
@@ -142,8 +169,16 @@ data class ThreeColorSettings(
 //    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#8DBB25") //green
     var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
  //   var t2c3: ColorRGBa =  ColorRGBa.fromHex("#4DAF4A")
+) {
+//    constructor(dcs: DivergingColorSettings) : this(ColorHSVa(dcs.hue1, dcs.sat1, dcs.val1).toRGBa(), ColorHSVa(dcs.hue1, dcs.sat2, dcs.val2).toRGBa(), ColorHSVa(dcs.hue1, dcs.sat3, dcs.val3).toRGBa(),
+//                                                    ColorHSVa(dcs.hue2, dcs.sat1, dcs.val1).toRGBa(), ColorHSVa(dcs.hue2, dcs.sat2, dcs.val2).toRGBa(), ColorHSVa(dcs.hue2, dcs.sat3, dcs.val3).toRGBa())
+//    constructor(dcs: DivergingColorSettings) : this(ColorOKHSVa(dcs.hue1, dcs.sat1, dcs.val1).toRGBa(), ColorOKHSVa(dcs.hue1, dcs.sat2, dcs.val2).toRGBa(), ColorOKHSVa(dcs.hue1, dcs.sat3, dcs.val3).toRGBa(),
+//        ColorOKHSVa(dcs.hue2, dcs.sat1, dcs.val1).toRGBa(), ColorOKHSVa(dcs.hue2, dcs.sat2, dcs.val2).toRGBa(), ColorOKHSVa(dcs.hue2, dcs.sat3, dcs.val3).toRGBa())
+    constructor(dcs: DivergingColorSettings) : this(
+    ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig3).toRGBa(),
+        ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa())
+}
 
-)
 //val blue = ColorRGBa.fromHex("#8EBBD9")
 //val red = ColorRGBa.fromHex("#F08C8D")
 //val green = ColorRGBa.fromHex("#99CF95")
@@ -398,17 +433,36 @@ fun main() = application {
             }
         }
 
+        val dcs = DivergingColorSettings()
+
         val gui = GUI()
         gui.add(visualization.tes, "Tree embedding")
         gui.add(visualization.ds, "Drawing")
         gui.add(visualization.globalcs, "Global Color Settings")
         gui.add(visualization.tcs, "Three Color Settings")
         gui.add(visualization.gcs, "Gradient Color Settings")
+        gui.add(dcs, "Diverging Color Settings")
 
         gui.add(viewSettings, "View")
         gui.add(exportSettings, "Export")
 
+        val f = File("colors.txt")
+        val lines = f.readLines()
+        visualization.tcs.t1c1 = ColorRGBa.fromHex(lines[0])
+        visualization.tcs.t1c2 = ColorRGBa.fromHex(lines[1])
+        visualization.tcs.t1c3 = ColorRGBa.fromHex(lines[2])
+        visualization.tcs.t2c1 = ColorRGBa.fromHex(lines[3])
+        visualization.tcs.t2c2 = ColorRGBa.fromHex(lines[4])
+        visualization.tcs.t2c3 = ColorRGBa.fromHex(lines[5])
+
         gui.onChange { name, value ->
+            when (name) {
+                "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3" -> {
+//                    visualization.tcs = ThreeColorSettings(dcs)
+                    visualization.compute()
+                }
+            }
+
             // name is the name of the variable that changed
             when (name) {
                 "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius",
@@ -417,6 +471,7 @@ fun main() = application {
                     visualization.compute()
                 }
             }
+
         }
 
         var mouseTree1Position: TreePosition<EmbeddedMergeTree>? = null

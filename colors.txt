@@ -1,0 +1,33 @@
+#2166ac
+#d1e5f0
+#67a9cf
+#BD2032
+#ef8a62
+#fddbc7
+
+// RdBu modified
+
+#2166ac
+#d1e5f0
+#67a9cf
+#b2182b
+#ef8a62
+#fddbc7
+// RdBu
+
+// Spectral
+#3288bd
+#e6f598
+#99d594
+#d53e4f
+#fc8d59
+#fee08b
+
+// RdYlBu
+#4575b4
+#e0f3f8
+#91bfdb
+#d73027
+#fc8d59
+#fee090
+

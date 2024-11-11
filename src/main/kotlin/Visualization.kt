@@ -2,6 +2,7 @@ import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
+import org.openrndr.panel.elements.Div
 import org.openrndr.shape.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -14,7 +15,7 @@ class Visualization(
     val tes: TreeEmbedSettings = TreeEmbedSettings(),
     val ds: DrawSettings = DrawSettings(),
     val globalcs: GlobalColorSettings = GlobalColorSettings(),
-    val tcs: ThreeColorSettings = ThreeColorSettings(),
+    var tcs: ThreeColorSettings = ThreeColorSettings(DivergingColorSettings()),
     val gcs: GradientColorSettings = GradientColorSettings(),
     val createInterleaving: (EmbeddedMergeTree, EmbeddedMergeTree) -> Interleaving<EmbeddedMergeTree>
 ) {
