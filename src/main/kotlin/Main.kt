@@ -979,13 +979,15 @@ fun main() = application {
                 if (edge == null) return
                 val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
                 val subContour = edge.sub(0.0, curveOffset!!)
+                val blackBottomMargin = visualization.ds.verticalEdgeWidth * 0.3 / edge.length
+                val backgroundSubContour = edge.sub(0.0, curveOffset!! + blackBottomMargin)// - )
                 if (tree1)
                 {
                     if (true) {
                         //PathBackground
                         stroke = visualization.globalcs.edgeColor
                         strokeWeight = visualization.ds.verticalEdgeWidth
-                        contour(visualization.fromTree2Local(subContour))
+                        contour(visualization.fromTree2Local(backgroundSubContour))
                     }
 
                     //Path
@@ -999,7 +1001,7 @@ fun main() = application {
                         //PathBackground
                         stroke = visualization.globalcs.edgeColor
                         strokeWeight = visualization.ds.verticalEdgeWidth
-                        contour(visualization.fromTree1Local(subContour))
+                        contour(visualization.fromTree1Local(backgroundSubContour))
                     }
 
                     //Path
