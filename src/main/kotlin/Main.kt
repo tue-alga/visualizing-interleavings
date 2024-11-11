@@ -706,7 +706,7 @@ fun main() = application {
                     }
 
                     //val conTopY = shortestContour.bounds.center.y - visualization.ds.connectorRadius * 0.5
-                    val conTopY = min(shortestSideSegment.bounds.center.y, contourSideSegment.bounds.center.y) - visualization.ds.connectorRadius * 0.5
+                    val conTopY = min(shortestSideSegment.bounds.y, contourSideSegment.bounds.y)
                     val conHeight = visualization.ds.connectorRadius
 
                     if (conHeight > 0) {
