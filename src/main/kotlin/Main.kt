@@ -364,6 +364,7 @@ fun realExample3(pos: Vector2): Visualization { //Time step 26 vs 75
 fun largeExample2(pos: Vector2): Visualization { //timestep 0025
     val tree1 = parseTree("(1e-06(0.084303(0.16119(0.44434(0.68726)(0.4826))(0.16453(0.19375(0.24872(0.26234(0.35743(0.80995)(0.38392(0.4613)(0.39507(0.44174)(0.40794))))(0.27844))(0.26742(0.38999(0.3994(0.4488(0.51578)(0.47666(0.50018(0.63489)(0.50786(0.74173)(0.52643)))(0.4826(0.53126(0.54525(0.71821(0.89687)(0.73344))(0.57013))(0.54859))(0.50699))))(0.48025(0.52643)(0.50637)))(0.40249))(0.27819)))(0.19385(0.26358(0.3994(0.48037(0.5263)(0.50637))(0.41339(0.4488(0.51578)(0.47851(0.54549(0.896)(0.57013))(0.50711)))(0.41661(0.49857(0.57261(0.63464)(0.58276))(0.51343(0.74111)(0.52593)))(0.43741(0.50612)(0.44335(0.49114)(0.47629))))))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.25207(0.311(0.33267(0.34517(0.39073(1.0)(0.40138))(0.37092))(0.35186))(0.32734))(0.27088))(0.23312))))(0.22173)))(0.089764(0.11142)(0.10713))))")
     val tree1Adjusted = parseTree("(1e-06(0.084303(0.16119(0.44434(0.68726)(0.4826))(0.17453(0.19375(0.24872(0.26234(0.35743(0.80995)(0.38392(0.4613)(0.39507(0.44174)(0.40794))))(0.27844))(0.26742(0.38999(0.44(0.63489)(0.50786(0.74173)(0.52643))(0.50(0.53126(0.54525(0.71821(0.89687)(0.73344))(0.57013))(0.54859))(0.50699)))(0.48025(0.52643)(0.50637))))(0.27819)))(0.19385(0.26358(0.3994(0.4288(0.51578)(0.47851(0.54549(0.896))(0.50711))(0.49857(0.57261(0.63464)(0.58276))(0.51343(0.74111)(0.52593)))(0.44335(0.50612)(0.49114)(0.47629))))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.34517(0.39073(1.0)(0.40138))(0.37092)))(0.27088))(0.23312))(0.22173)))(0.089764(0.11142)(0.10713))))")
+    val tree4Adjusted = parseTree("(1e-06(0.084303(0.16119(0.44434(0.68726)(0.4826))(0.17453(0.19375(0.24872(0.26234(0.35743(0.80995)(0.38392(0.4613)(0.39507(0.44174)(0.40794))))(0.27844))(0.26742(0.38999(0.44(0.63489)(0.50786(0.74173)(0.52643))(0.50(0.53126(0.54525(0.71821(0.89687)(0.73344))(0.57013))(0.54859))(0.50699)))(0.48025(0.52643)(0.50637))))(0.27819)))(0.19385(0.26358(0.3994(0.4288(0.51578)(0.47851(0.54549(0.896))(0.50711))(0.49857(0.57261(0.63464)(0.58276))(0.51343(0.74111)(0.52593)))(0.44335(0.50612)(0.49114)(0.47629))))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.34517(0.39073(1.0)(0.40138))(0.37092)))(0.27088))(0.23312))(0.22173)))(0.089764(0.11142)(0.11713))))")
     val tree2 = parseTree("(1e-06(0.092946(0.1855(0.22022(0.28954(0.30738(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))(0.33538))(0.30587(0.45562(0.54141(0.59316)(0.56859))(0.50216(0.50545(0.59714(0.8589(0.94098)(0.92643))(0.63063))(0.57641))(0.51945(0.63228(0.81031)(0.69418(0.81991)(0.75074)))(0.5211(0.57147)(0.53757(0.55953)(0.55102))))))(0.31946)))(0.22118(0.29119(0.4025(0.99492)(0.43092(0.49296(0.51025(0.55033)(0.54855))(0.50751))(0.45686)))(0.29709(0.43147(0.45562(0.50312(0.55006(0.597(0.87894(0.94249)(0.92684))(0.63063))(0.55143(0.62748(0.82225)(0.68073(0.80976)(0.69707)))(0.59714)))(0.57641))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))))(0.19195(0.47786(0.77421)(0.55184))(0.25701)))(0.099749(0.12359)(0.11917))))\n")
     val tree2Adjusted = parseTree("(1e-06(0.092946(0.1855(0.22022(0.24954(0.30738(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))(0.33538))(0.30587(0.45562(0.54141(0.59316)(0.56859))(0.50216(0.50545(0.59714(0.8589(0.94098)(0.92643))(0.63063))(0.57641))(0.51945(0.63228(0.81031)(0.69418(0.81991)(0.75074)))(0.5211(0.57147)(0.53757(0.55953)(0.55102))))))(0.31946)))(0.22118(0.29119(0.4025(0.99492)(0.43092(0.49296(0.51025(0.55033)(0.54855))(0.50751))(0.45686)))(0.29709(0.43147(0.55143(0.597(0.87894(0.94249)(0.92684))(0.63063))(0.62748(0.82225)(0.68073(0.80976)(0.69707))(0.64714)))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))))(0.19195(0.47786(0.77421)(0.55184))(0.25701)))(0.099749(0.12359)(0.11917))))\n")
 
@@ -395,6 +396,8 @@ fun main() = application {
         var blobsEnabled = true
 
         val visualization = largeExample2(drawer.bounds.center)
+
+        println("Delta: " + visualization.interleaving.delta)
 
         println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
         println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
@@ -446,19 +449,19 @@ fun main() = application {
         gui.add(viewSettings, "View")
         gui.add(exportSettings, "Export")
 
-        val f = File("colors.txt")
-        val lines = f.readLines()
-        visualization.tcs.t1c1 = ColorRGBa.fromHex(lines[0])
-        visualization.tcs.t1c2 = ColorRGBa.fromHex(lines[1])
-        visualization.tcs.t1c3 = ColorRGBa.fromHex(lines[2])
-        visualization.tcs.t2c1 = ColorRGBa.fromHex(lines[3])
-        visualization.tcs.t2c2 = ColorRGBa.fromHex(lines[4])
-        visualization.tcs.t2c3 = ColorRGBa.fromHex(lines[5])
+//        val f = File("colors.txt")
+//        val lines = f.readLines()
+//        visualization.tcs.t1c1 = ColorRGBa.fromHex(lines[0])
+//        visualization.tcs.t1c2 = ColorRGBa.fromHex(lines[1])
+//        visualization.tcs.t1c3 = ColorRGBa.fromHex(lines[2])
+//        visualization.tcs.t2c1 = ColorRGBa.fromHex(lines[3])
+//        visualization.tcs.t2c2 = ColorRGBa.fromHex(lines[4])
+//        visualization.tcs.t2c3 = ColorRGBa.fromHex(lines[5])
 
         gui.onChange { name, value ->
             when (name) {
                 "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3" -> {
-//                    visualization.tcs = ThreeColorSettings(dcs)
+                    visualization.tcs = ThreeColorSettings(dcs)
                     visualization.compute()
                 }
             }
@@ -966,7 +969,7 @@ fun main() = application {
                 val pathNodes = if (tree1) visualization.tree2PathDecomposition[blob.second] else visualization.tree1PathDecomposition[blob.second]
                 //if (lowestPathNode == null) return //return if we don't hit the other tree.
                 if (pathNodes.isEmpty()) return
-                val lowestPathPoint = TreePosition(pathNodes.first(), pathNodes.first().height -(currentNode!!.height - visualization.interleaving.delta) )
+                val lowestPathPoint = if (visualization.interleaving.delta < 0.001) TreePosition(pathNodes.first(), 0.0) else TreePosition(pathNodes.first(), pathNodes.first().height -(currentNode!!.height - visualization.interleaving.delta))
 
                 //if (treePositionToPoint(pathNodes.first() == null) return
 
@@ -977,87 +980,76 @@ fun main() = application {
                 //Draw the lowest sub edge delta up from the leaf of the path
                 val edge = lowestPathPoint.firstDown.edgeContour;
                 if (edge == null) return
-                val curveOffset = edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
+                val curveOffset = if (visualization.interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
                 val subContour = edge.sub(0.0, curveOffset!!)
                 val blackBottomMargin = visualization.ds.verticalEdgeWidth * 0.3 / edge.length
                 val backgroundSubContour = edge.sub(0.0, curveOffset!! + blackBottomMargin)// - )
-                if (tree1)
-                {
-                    if (true) {
-                        //PathBackground
-                        stroke = visualization.globalcs.edgeColor
-                        strokeWeight = visualization.ds.verticalEdgeWidth
-                        contour(visualization.fromTree2Local(backgroundSubContour))
-                    }
 
-                    //Path
-                    stroke = blob.third
-                    strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
-                    contour(visualization.fromTree2Local(subContour))
+                val drawContour = subContour
 
-                }
-                else {
-                    if (true) {
-                        //PathBackground
-                        stroke = visualization.globalcs.edgeColor
-                        strokeWeight = visualization.ds.verticalEdgeWidth
-                        contour(visualization.fromTree1Local(backgroundSubContour))
-                    }
+                var highestY = subContour.bounds.y
 
-                    //Path
-                    stroke = blob.third
-                    strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
-                    contour(visualization.fromTree1Local(subContour))
-                }
+                val backgroundContours: MutableList<ShapeContour> = mutableListOf()
+                val pathContours: MutableList<ShapeContour> = mutableListOf()
+
+                backgroundContours.add(backgroundSubContour)
+                pathContours.add(subContour)
 
                 //draw rest of the path till the root node.
                 var pathParent: EmbeddedMergeTree? = lowestPathPoint.firstUp;
                 while (pathParent != null && pathNodes.contains(pathParent)) {
-
                     if (pathParent.edgeContour != null) {// && pathParent.pos.x == lowestPathPoint.firstDown.pos.x) {
+                        highestY = pathParent.edgeContour!!.bounds.y
+                        backgroundContours.add(pathParent.edgeContour!!)
+                        pathContours.add(pathParent.edgeContour!!)
+                    }
+
+                    //Mapped paths
+                    if (pathParent.edgeContour != null) {
                         if (tree1) {
-                            if (true) {
-                                //PathBackground
-                                stroke = visualization.globalcs.edgeColor
-                                strokeWeight = visualization.ds.verticalEdgeWidth
-
-//                                if (pathParent.parent == null || !pathNodes.contains(pathParent.parent)) {
-//                                    var cont = pathParent.edgeContour!!
-//                                    var interval = (visualization.ds.pathAreaPatchScale) / cont.bounds.height
-//
-//                                    contour(visualization.fromTree2Local(cont.sub(interval, 1.0)))
-//                                }
-                                contour(visualization.fromTree2Local(pathParent.edgeContour!!))
-                            }
-
-                            //Path
                             stroke = blob.third
                             strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
                             contour(visualization.fromTree2Local(pathParent.edgeContour!!))
-
-                        } else {
-                            if (true) {
-                                //PathBackground
-                                stroke = visualization.globalcs.edgeColor
-                                strokeWeight = visualization.ds.verticalEdgeWidth
-
-                                contour(visualization.fromTree1Local(pathParent.edgeContour!!))
-                            }
-
-
-                            //Path
+                            drawContour.union(pathParent.edgeContour!!.shape)
+                        }
+                        else {
                             stroke = blob.third
                             strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
                             contour(visualization.fromTree1Local(pathParent.edgeContour!!))
                         }
-                        if (pathParent.parent == null || !pathNodes.contains(pathParent.parent)){
-                            if (tree1){
-
-                            }
-
-                        }
                     }
                     pathParent = pathParent.parent;
+                }
+
+                for (cont in backgroundContours) {
+                    stroke = visualization.globalcs.edgeColor
+                    strokeWeight = visualization.ds.verticalEdgeWidth
+
+                    if (tree1) contour(visualization.fromTree2Local(cont))
+                    else contour(visualization.fromTree1Local(cont))
+                }
+
+                //Draw Area Patch
+                fill = blob.third
+                strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.patchStrokeScale
+                stroke = if (tree1) visualization.globalcs.edgeColor else visualization.globalcs.edgeColor2
+
+                val posY = if (pathParent != null) highestY else highestY - visualization.interleaving.delta - visualization.ds.blobRadius
+                val posX = lowestPathPoint.firstDown.pos.x
+                var pos = Vector2(posX, posY)
+                pos = if (!tree1) visualization.fromTree1Local(pos) else visualization.fromTree2Local(pos)
+
+                val rectWidth = visualization.ds.verticalEdgeWidth * visualization.ds.pathAreaPatchScale
+                pos -= rectWidth / 2
+                rectangle(pos, rectWidth)
+
+                //Draw colored path
+                for (cont in pathContours) {
+                    stroke = blob.third
+                    strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+
+                    if (tree1) contour(visualization.fromTree2Local(cont))
+                    else contour(visualization.fromTree1Local(cont))
                 }
             }
         }
@@ -1120,7 +1112,7 @@ fun main() = application {
             //Draw mapping of blob in the first tree onto the second tree
             for (blob in visualization.tree1BlobsTest) {
                 drawBlobPath(visualization.tree1E, blob, t1values[blob.second], visualization.tree1BlobsTest.size)
-                drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
+                //drawPathSquares(false, visualization.tree2PathDecomposition[blob.second], t1values[blob.second], blob.third)
                 count += 1
             }
 //
@@ -1128,7 +1120,7 @@ fun main() = application {
 //            //Draw mapping of blob in the second tree onto the second tree
             for (blob in visualization.tree2BlobsTest) {
                 drawBlobPath(visualization.tree2E, blob, t2values[blob.second], visualization.tree2BlobsTest.size)
-                drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], blob.third)// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
+                //drawPathSquares(true, visualization.tree1PathDecomposition[blob.second], t2values[blob.second], blob.third)// visualization.colorThreeValues(false, visualization.tree2BlobsTest.size)[blob.second])
 
                 count+=1
             }

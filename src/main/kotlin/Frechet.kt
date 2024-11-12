@@ -75,7 +75,7 @@ fun <T: MergeTreeLike<T>> monotoneInterleaving(source: T, target: T): Interleavi
         tsLeafMap[targetLeaf] = sourceLeaf
     }
 
-    return Interleaving(leafMapping(stLeafMap, delta - 0.0001), leafMapping(tsLeafMap, delta - 0.0001), delta - 0.0001)
+    return Interleaving(leafMapping(stLeafMap, delta - 0.00001), leafMapping(tsLeafMap, delta - 0.00001), delta - 0.00001)
 }
 
 fun <T: MergeTreeLike<T>>inducedCurve(tree: T, rootHeight: Double) : List<Double> {
