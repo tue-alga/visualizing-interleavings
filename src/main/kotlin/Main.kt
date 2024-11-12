@@ -15,6 +15,7 @@ import org.openrndr.svg.saveToFile
 import java.io.File
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -39,14 +40,17 @@ data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0, order = 0)
     var markRadius: Double = 1.5,
 
-    @BooleanParameter("Draw Nodes", order = 10)
+    @BooleanParameter("Draw Nodes", order = 9)
     var drawNodes: Boolean = false,
 
     @BooleanParameter("Carve Inwards")
     var carveInwards: Boolean = true,
 
-    @DoubleParameter("Connector radius, ", 0.0, 3.0)
+    @DoubleParameter("Connector radius, ", 0.0, 6.0, order = 10)
     var connectorRadius: Double = 1.0,
+
+    @BooleanParameter("Connector at Top", order = 11)
+    var connectorTop: Boolean = true,
 
     @DoubleParameter("Vertical Edge Width", 0.1, 5.0, order = 20)
     var verticalEdgeWidth: Double = 2.5,
@@ -471,7 +475,7 @@ fun main() = application {
 
             // name is the name of the variable that changed
             when (name) {
-                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius",
+                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "connectorTop", "nonMappedRadius", "markRadius",
                 "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
                 "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
@@ -766,8 +770,9 @@ fun main() = application {
 
                     }
 
-                    //val conTopY = shortestContour.bounds.center.y - visualization.ds.connectorRadius * 0.5
-                    val conTopY = min(shortestSideSegment.bounds.y, contourSideSegment.bounds.y)
+                    val conTopY = if (visualization.ds.connectorTop)
+                        min(shortestSideSegment.bounds.y, contourSideSegment.bounds.y) else min(shortestSideSegment.bounds.center.y, contourSideSegment.bounds.center.y) - visualization.ds.connectorRadius * 0.5
+
                     val conHeight = visualization.ds.connectorRadius
 
                     if (conHeight > 0) {
