@@ -51,16 +51,19 @@ data class DrawSettings(
     @DoubleParameter("Vertical Edge Width", 0.1, 5.0, order = 20)
     var verticalEdgeWidth: Double = 2.5,
 
-    @DoubleParameter("Horizontal Edge Width", 0.1, 5.0, order = 21)
+    @DoubleParameter("Vertical mapped Ratio", 0.1, 1.0, order = 21)
+    var verticalMappedRatio: Double = 0.7,
+
+    @DoubleParameter("Horizontal Edge Width", 0.1, 5.0, order = 22)
     var horizontalEdgeWidth: Double = verticalEdgeWidth / 9,
 
-    @DoubleParameter("Non Mapped Vertical Edge Width", 0.1, 5.0, order = 22)
+    @DoubleParameter("Non Mapped Vertical Edge Width", 0.1, 5.0, order = 23)
     var nonMappedVerticalEdges: Double = verticalEdgeWidth / 9,
 
-    @BooleanParameter("Collapse non mapped", order = 23)
+    @BooleanParameter("Collapse non mapped", order = 24)
     var collapseNonMapped: Boolean = true,
 
-    @BooleanParameter("Thin non-mapped", order = 24)
+    @BooleanParameter("Thin non-mapped", order = 25)
     var thinNonMapped: Boolean = true,
 
     @DoubleParameter("Path Area Scale", 0.0, 3.0)
@@ -469,7 +472,7 @@ fun main() = application {
             // name is the name of the variable that changed
             when (name) {
                 "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "nonMappedRadius", "markRadius",
-                "verticalEdgeWidth", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
+                "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
                 "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
                     visualization.compute()
                 }
@@ -955,7 +958,7 @@ fun main() = application {
 
             drawer.apply {
                 fill = null
-                strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+                strokeWeight = visualization.ds.verticalEdgeWidth
 
                 stroke = if (visualization.globalcs.enableGradient)
                     visualization.colorGradiantValue(tree1, gradientInterval)
@@ -982,7 +985,8 @@ fun main() = application {
                 if (edge == null) return
                 val curveOffset = if (visualization.interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, .5);
                 val subContour = edge.sub(0.0, curveOffset!!)
-                val blackBottomMargin = visualization.ds.verticalEdgeWidth * 0.3 / edge.length
+                val blackBottomMargin = visualization.ds.verticalEdgeWidth * (1- visualization.ds.verticalMappedRatio) / edge.length /2
+
                 val backgroundSubContour = edge.sub(0.0, curveOffset!! + blackBottomMargin)// - )
 
                 val drawContour = subContour
@@ -1008,13 +1012,13 @@ fun main() = application {
                     if (pathParent.edgeContour != null) {
                         if (tree1) {
                             stroke = blob.third
-                            strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+                            strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.verticalMappedRatio
                             contour(visualization.fromTree2Local(pathParent.edgeContour!!))
                             drawContour.union(pathParent.edgeContour!!.shape)
                         }
                         else {
                             stroke = blob.third
-                            strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+                            strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.verticalMappedRatio
                             contour(visualization.fromTree1Local(pathParent.edgeContour!!))
                         }
                     }
@@ -1046,7 +1050,7 @@ fun main() = application {
                 //Draw colored path
                 for (cont in pathContours) {
                     stroke = blob.third
-                    strokeWeight = visualization.ds.verticalEdgeWidth * 0.4
+                    strokeWeight = visualization.ds.verticalEdgeWidth * visualization.ds.verticalMappedRatio
 
                     if (tree1) contour(visualization.fromTree2Local(cont))
                     else contour(visualization.fromTree1Local(cont))
@@ -1129,7 +1133,7 @@ fun main() = application {
             drawer.apply {
                 stroke = ColorRGBa.BLACK
                 fill = null
-                strokeWeight = visualization.ds.verticalEdgeWidth*0.4
+                strokeWeight = visualization.ds.verticalEdgeWidth*visualization.ds.verticalMappedRatio
 
                 //Draw Contour
                 val pos1  = visualization.tree1E.pos
