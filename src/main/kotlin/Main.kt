@@ -1180,7 +1180,7 @@ fun main() = application {
             drawer.apply {
                 clear(visualization.ds.bgColor)
                 visualization.globalcs.edgeColor2 = visualization.globalcs.edgeColor
-                drawBlobs();
+                //drawBlobs();
 
                 var fillColor = ColorRGBa(0.0, 0.0, 0.0, visualization.ds.blacken)
                 fill = fillColor

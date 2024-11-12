@@ -98,23 +98,11 @@ class Visualization(
         //blobComposition(true, tcs.t1c1, tcs.t1c2)
         //blobComposition(false, tcs.t2c1, tcs.t2c2)
 
-        blobCompositionTest(true)
-        blobCompositionTest(false)
+
 
         hedgeComposition(true)
         hedgeComposition(false)
-        setHedgeColors()
 
-
-        nodes1ToColor = tree1E.nodes().toMutableList()
-        nodes2ToColor = tree2E.nodes().toMutableList()
-        nodes1ToColor.removeAll { it.children.isEmpty() }
-        nodes2ToColor.removeAll { it.children.isEmpty() }
-        nodes1ToColor.sortBy { it.height } //TODO: NEEDS CHANGE. SINCE BLOBS OF LOWER PARENT NODE CAN BE ABOVE OTHERS...
-        nodes2ToColor.sortBy { it.height }
-
-        setBlobColors(true, 0, tcs.t1c1)
-        setBlobColors(false, 0, tcs.t2c1)
     }
 
     private fun pathDecomposition(t1: Boolean) {
@@ -894,6 +882,200 @@ class Visualization(
 
     }
 
+    fun deepestNodeInBlob(blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>): TreePosition<EmbeddedMergeTree>? {
+        var deepest:TreePosition<EmbeddedMergeTree>? = null
+
+        for (node in blob.first){
+            if (deepest == null){
+                deepest = node
+                continue
+            }
+            if (node.height > deepest.height){
+                deepest = node
+            }
+        }
+        return deepest
+    }
+
+    fun highestNodeInBlob(blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>): TreePosition<EmbeddedMergeTree>? {
+        var highest:TreePosition<EmbeddedMergeTree>? = null
+
+        for (node in blob.first){
+            if (highest == null){
+                highest = node
+                continue
+            }
+            if (node.height < highest.height){
+                highest = node
+            }
+        }
+        return highest
+    }
+
+    fun drawBlob(drawer: CompositionDrawer, tree: EmbeddedMergeTree, blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>, numberOfBlobs: Int) {
+        val tree1 = (tree == tree1E)
+        val deepestNodeInBlob = deepestNodeInBlob(blob);
+        val highestNodeInBlob = highestNodeInBlob(blob)
+        val blobs = if(tree1) tree1BlobsTest else tree2BlobsTest
+
+        val highestBlobPos = highestPointInBlob(tree1, blobs, getBlobOfNode(blobs, highestNodeInBlob!!))
+
+        drawer.apply {
+            stroke = null
+            fill = blob.third
+
+            val leftLeaf = tree.leaves.first()
+            val rightLeaf = tree.leaves.last()
+
+            val drawRectangles: MutableList<Shape> = mutableListOf()
+            for (treePos in blob.first) {
+                val margin = if(treePos.firstDown.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+
+                val leftTopY = highestBlobPos.y
+                val leftTopX = min(deepestNodeInBlob!!.firstDown.pos.x, treePos.firstDown.pos.x) - margin// visualization.ds.blobRadius
+                val rectWidth = abs(deepestNodeInBlob.firstDown.pos.x - treePos.firstDown.pos.x) + (margin * 2)// (visualization.ds.blobRadius * 2)
+                val rectHeight = treePos.height - highestBlobPos.y
+
+                if (rectHeight > 0){
+                    drawRectangles.add(Rectangle(leftTopX, leftTopY, rectWidth, rectHeight).shape)
+                }
+            }
+            var drawRectangle = drawRectangles.first()
+
+            for (rect in drawRectangles){
+                drawRectangle = drawRectangle.union(rect)
+            }
+
+            //Draw hedge from root to root+delta
+            if (highestNodeInBlob.firstUp == null){
+                val leftLeave = if (tree1) tree1E.leaves.first() else tree2E.leaves.first()
+                val leftMargin = if(leftLeave.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+                val rightLeave = if (tree1) tree1E.leaves.last() else tree2E.leaves.last()
+                val rightMargin = if(rightLeave.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+                val rootWidth = abs(leftLeave.pos.x - rightLeave.pos.x) + (leftMargin + rightMargin)
+                strokeWeight = rootWidth + (ds.blobRadius * 2)
+
+                val topRect = Rectangle(leftLeave.pos.x - leftMargin, highestNodeInBlob.height - ds.blobRadius, rootWidth, ds.blobRadius).shape
+
+                drawRectangle = union(drawRectangle, topRect)
+            }
+
+            val lowestTreePositions: MutableList<TreePosition<EmbeddedMergeTree>> = mutableListOf()
+
+            for (leave in tree.leaves){
+                val currentMaskHighY = tree.getDeepestLeave().pos.y + 1
+                val carveHeight = abs(leave.pos.y - currentMaskHighY)
+                val carveWidth = ds.nonMappedRadius * ds.blobRadius * 2
+                val carveRect = Rectangle(leave.pos.x - carveWidth * 0.5, leave.pos.y- 0.01, carveWidth, carveHeight).shape
+
+                drawRectangle = drawRectangle.difference(carveRect)
+
+                val lowestTreePosInColumn = blob.first.filter { it.firstDown.pos.x == leave.pos.x }
+                    .maxByOrNull { it.height }
+
+                if (lowestTreePosInColumn != null)
+                    lowestTreePositions.add(lowestTreePosInColumn)
+            }
+
+            if (ds.carveInwards) {
+                for (i in lowestTreePositions.indices) {
+                    if (i == lowestTreePositions.size - 1) break
+
+                    val currentTreePos = lowestTreePositions[i]
+                    val nextTreePos = lowestTreePositions[i + 1]
+
+                    if (currentTreePos.height == nextTreePos.height) continue
+
+                    val leftMargin = if(currentTreePos.firstDown.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+                    val rightMargin = if(nextTreePos.firstDown.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+
+                    val carveXTop = currentTreePos.firstDown.pos.x + leftMargin
+                    val carveYTop = min(currentTreePos.height, nextTreePos.height)
+                    val carveWidth =
+                        abs(currentTreePos.firstDown.pos.x - nextTreePos.firstDown.pos.x) - (leftMargin + rightMargin)
+                    val carveHeight = abs(currentTreePos.height - nextTreePos.height)
+
+                    if (carveWidth > 0 && carveHeight > 0) {
+                        val carveRect = Rectangle(carveXTop, carveYTop, carveWidth, carveHeight).shape
+                        drawRectangle = drawRectangle.difference(carveRect)
+                    }
+                }
+            }
+
+            //Connectors
+            val shortestContour = drawRectangle.contours.minBy {it.bounds.height }
+
+            val connectors: MutableList<Shape> = mutableListOf()
+
+            for (contour in drawRectangle.contours) {
+                if (contour == shortestContour) continue
+
+                val shortTestIsLeft = shortestContour.bounds.center.x < contour.bounds.center.x
+
+                var conTopX = 0.0
+                var conWidth = 0.0
+                var shortestSideSegment: Segment? = null
+                var contourSideSegment: Segment? = null
+
+                if (shortTestIsLeft) {
+                    conTopX = shortestContour.bounds.x + shortestContour.bounds.width
+                    conWidth = abs(contour.bounds.x - conTopX)
+
+                    shortestSideSegment = shortestContour.segments.maxBy{ it.bounds.center.x }
+                    contourSideSegment = contour.segments.minBy { it.bounds.center.x }
+
+                }
+                else {
+                    conTopX = contour.bounds.x + contour.bounds.width
+                    conWidth = abs(conTopX - shortestContour.bounds.x)
+
+                    shortestSideSegment = shortestContour.segments.minBy{ it.bounds.center.x }
+                    contourSideSegment = contour.segments.maxBy { it.bounds.center.x }
+
+                }
+
+                val conTopY = if (ds.connectorTop)
+                    min(shortestSideSegment.bounds.y, contourSideSegment.bounds.y) else min(shortestSideSegment.bounds.center.y, contourSideSegment.bounds.center.y) - ds.connectorRadius * 0.5
+
+                val conHeight = ds.connectorRadius
+
+                if (conHeight > 0) {
+                    val connector = Rectangle(conTopX, conTopY, conWidth, conHeight).shape
+                    connectors.add(connector)
+                }
+            }
+
+            for (connector in connectors) {
+                drawRectangle = drawRectangle.union(connector)
+            }
+
+            fill = blob.third.mix(ColorRGBa.WHITE, ds.whiten)
+            if (tree1)
+                shape(drawRectangle)
+            else shape(drawRectangle)
+        }
+    }
+
+    fun drawBlobs(drawer: CompositionDrawer, t1: Boolean) {
+        //if (!blobsEnabled) return;
+        var count: Int = 0;
+
+        if (t1) {
+            for (blob in tree1BlobsTest.reversed()) {
+                drawBlob(drawer, tree1E, blob, tree1BlobsTest.size)
+                count += 1
+            }
+        }
+        else {
+            count = 0
+            //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
+            for (blob in tree2BlobsTest.reversed()) {
+                drawBlob(drawer, tree2E, blob, tree2BlobsTest.size)
+                count += 1
+            }
+        }
+    }
+
     /** Draw tree1E and tree2E side by side */
     private fun treePairComposition() {
         val tree1C = drawComposition {
@@ -907,6 +1089,26 @@ class Visualization(
         val bounds1 = tree1C.findShapes().map { it.bounds }.bounds
         val bounds2 = tree2C.findShapes().map { it.bounds }.bounds
         val halfGap = ds.markRadius * 20
+
+        blobCompositionTest(true)
+        blobCompositionTest(false)
+
+        setHedgeColors()
+
+
+        nodes1ToColor = tree1E.nodes().toMutableList()
+        nodes2ToColor = tree2E.nodes().toMutableList()
+        nodes1ToColor.removeAll { it.children.isEmpty() }
+        nodes2ToColor.removeAll { it.children.isEmpty() }
+        nodes1ToColor.sortBy { it.height } //TODO: NEEDS CHANGE. SINCE BLOBS OF LOWER PARENT NODE CAN BE ABOVE OTHERS...
+        nodes2ToColor.sortBy { it.height }
+
+        setBlobColors(true, 0, tcs.t1c1)
+        setBlobColors(false, 0, tcs.t2c1)
+
+        val tree1BlobDrawing = drawComposition { drawBlobs(this, true) }
+        val tree2BlobDrawing = drawComposition { drawBlobs(this, false) }
+
 
         val tree1Hedges = drawComposition {
             for (hedge in tree1Hedges) {
@@ -922,16 +1124,21 @@ class Visualization(
 
         composition = drawComposition {
             translate(pos)
+//            isolated{
+//
+//            }
             isolated {
                 translate(-bounds1.width / 2 - halfGap, 0.0)
                 tree1EMatrix = model
                 //composition(tree1Hedges)
+                composition(tree1BlobDrawing)
                 composition(tree1C)
             }
             isolated {
                 translate(bounds2.width / 2 + halfGap, 0.0)
                 tree2EMatrix = model
                 //composition(tree2Hedges)
+                composition(tree2BlobDrawing)
                 composition(tree2C)
             }
         }
