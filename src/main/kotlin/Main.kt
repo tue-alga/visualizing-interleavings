@@ -1198,7 +1198,7 @@ fun main() = application {
                 //Draw tree
                 composition(visualization.composition)
 
-                drawBlobPaths();
+                //drawBlobPaths();
 
                 //drawInverseMatching(visualization.tree2E, false)
                 //drawInverseMatching(visualization.tree1E, true)
