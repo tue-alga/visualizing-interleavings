@@ -96,16 +96,9 @@ class Visualization(
             repositionNodes(false, tree2E)
         }
 
-
         treePairComposition()
-
-        //blobComposition(true, tcs.t1c1, tcs.t1c2)
-        //blobComposition(false, tcs.t2c1, tcs.t2c2)
-
-
 //        hedgeComposition(true)
 //        hedgeComposition(false)
-
     }
 
     private fun pathDecomposition(t1: Boolean) {
@@ -376,7 +369,7 @@ class Visualization(
             blobID
         ).firstUp  //returns null if parent = null -> means that blob contains the root node
         if (parentNode == null) {
-            if (t1) println("FOUND THE ROOT")
+            //if (t1) println("FOUND THE ROOT")
             return -1
         }
 
@@ -1221,7 +1214,9 @@ class Visualization(
             strokeWeight = ds.verticalEdgeWidth * ds.patchStrokeScale
             stroke = if (tree1) globalcs.edgeColor else globalcs.edgeColor2
 
-            val posY = if (pathParent != null) highestY else highestY - interleaving.delta - ds.blobRadius
+            val highY = if (tree1) tree1E.pos.y else tree2E.pos.y
+
+            val posY = if (pathParent != null) highestY else highY - interleaving.delta - ds.blobRadius
             val posX = lowestPathPoint.firstDown.pos.x
             var pos = Vector2(posX, posY)
             //pos = if (!tree1) fromTree1Local(pos) else fromTree2Local(pos)
@@ -1248,10 +1243,13 @@ class Visualization(
         drawer.apply {
             fill = null
 
+            val tree1Pos = tree1E.pos
+            val tree2Pos = tree2E.pos
+
             if (!t1) {
                 //Draw Contour
                 val pos1 = tree1E.pos
-                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - interleaving.delta - ds.blobRadius)).contour
+                val contour1 = LineSegment(tree1Pos, Vector2(tree1Pos.x, tree2Pos.y - interleaving.delta - ds.blobRadius)).contour
 
                 // Draw white casing
                 stroke = globalcs.edgeColor
@@ -1260,7 +1258,7 @@ class Visualization(
             } else {
                 //Draw Contour
                 val pos2 = tree2E.pos
-                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - interleaving.delta - ds.blobRadius)).contour
+                val contour2 = LineSegment(tree2Pos, Vector2(tree2Pos.x, tree1Pos.y - interleaving.delta - ds.blobRadius)).contour
 
                 // Draw white casing
                 stroke = globalcs.edgeColor
@@ -1289,10 +1287,12 @@ class Visualization(
             fill = null
             strokeWeight = ds.verticalEdgeWidth * ds.verticalMappedRatio
 
+            val tree1Pos = tree1E.pos
+            val tree2Pos = tree2E.pos
+
             if (!t1) {
                 //Draw Contour
-                val pos1 = tree1E.pos
-                val contour1 = LineSegment(pos1, Vector2(pos1.x, pos1.y - interleaving.delta - ds.blobRadius)).contour
+                val contour1 = LineSegment(tree1Pos, Vector2(tree1Pos.x, tree2Pos.y - interleaving.delta - ds.blobRadius)).contour
 
                 //Set path Color
                 val pathID1 = tree1BlobsTest.first().second
@@ -1302,7 +1302,7 @@ class Visualization(
             else {
                 //Draw Contour
                 val pos2 = tree2E.pos
-                val contour2 = LineSegment(pos2, Vector2(pos2.x, pos2.y - interleaving.delta - ds.blobRadius)).contour
+                val contour2 = LineSegment(tree2Pos, Vector2(tree2Pos.x, tree1Pos.y - interleaving.delta - ds.blobRadius)).contour
 
                 //Set path Color
                 val pathID2 = tree2BlobsTest.first().second
@@ -1339,15 +1339,15 @@ class Visualization(
         tree2BlobIndicesSorted.sortBy { highestPointInBlob(false, tree2BlobsTest, it).y }
 
 
-
-        setHedgeColors()
-
-        nodes1ToColor = tree1E.nodes().toMutableList()
-        nodes2ToColor = tree2E.nodes().toMutableList()
-        nodes1ToColor.removeAll { it.children.isEmpty() }
-        nodes2ToColor.removeAll { it.children.isEmpty() }
-        nodes1ToColor.sortBy { it.height } //TODO: NEEDS CHANGE. SINCE BLOBS OF LOWER PARENT NODE CAN BE ABOVE OTHERS...
-        nodes2ToColor.sortBy { it.height }
+//
+//        setHedgeColors()
+//
+//        nodes1ToColor = tree1E.nodes().toMutableList()
+//        nodes2ToColor = tree2E.nodes().toMutableList()
+//        nodes1ToColor.removeAll { it.children.isEmpty() }
+//        nodes2ToColor.removeAll { it.children.isEmpty() }
+//        nodes1ToColor.sortBy { it.height } //TODO: NEEDS CHANGE. SINCE BLOBS OF LOWER PARENT NODE CAN BE ABOVE OTHERS...
+//        nodes2ToColor.sortBy { it.height }
 
 
         setBlobColorsTest(true)
