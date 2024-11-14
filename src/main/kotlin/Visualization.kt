@@ -482,25 +482,21 @@ class Visualization(
     private fun lowBlobsTouch(
         t1: Boolean,
         blobs: MutableList<Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>>,
-        leftBlobID: Int,
-        rightBlobID: Int
+        otherIsLeft: Boolean,
+        currentBlobID: Int,
+        otherLeave: EmbeddedMergeTree,
+//        leftBlobID: Int,
+//        leftLeave: EmbeddedMergeTree,
+//        rightBlobID: Int,
+//        rightleave: EmbeddedMergeTree
     ): Boolean {
-        val leftLeave1 = TreePosition(blobs[leftBlobID].first.maxBy { it.firstDown.pos.x }.firstDown.leaves.last(), 0.0)
-        val leftLeave = getLeavesInBlob(
-            blobs,
-            leftBlobID
-        ).first()// highestNodeInBlob(blobs, leftBlobID).leaves.first()// getLeavesInBlob(blobs, leftBlobID).first()
-        val leftHighestPos = highestPointInBlob(t1, blobs, leftBlobID)
+        val thisLeaveHighestPos = highestPointInBlob(t1, blobs, currentBlobID)
+        val otherHighestPos = highestPointInBlob(t1, blobs, getBlobOfNode(blobs, TreePosition(otherLeave, 0.0)))
 
-        val rightLeave1 = TreePosition(blobs[leftBlobID].first.minBy { it.firstDown.pos.x }.firstDown.leaves.first(), 0.0)
+        val thisLeave = if (otherIsLeft) TreePosition(blobs[currentBlobID].first.minBy { it.firstDown.pos.x }.firstDown.leaves.first(), 0.0) else
+            TreePosition(blobs[currentBlobID].first.maxBy { it.firstDown.pos.x }.firstDown.leaves.last(), 0.0)
 
-        val rightLeave = getLeavesInBlob(
-            blobs,
-            rightBlobID
-        ).last()// highestNodeInBlob(blobs, rightBlobID).leaves.last()// getLeavesInBlob(blobs, rightBlobID).last()
-        val rightHighestPos = highestPointInBlob(t1, blobs, rightBlobID)
-
-        return leftHighestPos.y < rightLeave1.firstDown.pos.y && rightHighestPos.y < leftLeave1.firstDown.pos.y
+        return thisLeaveHighestPos.y < otherLeave.pos.y && otherHighestPos.y < thisLeave.firstDown.pos.y
     }
 
     private fun touchLowBlobLeft(
@@ -555,11 +551,16 @@ class Visualization(
             val lowestTouching = tree.leaves[id - 1]
             val lowestBlob = getBlobOfNode(blobs, TreePosition(lowestTouching, 0.0))
 
+            if (!t1 && highestNodeInBlob(blobs, lowestBlob).firstUp == null && id == 1) {
+                println("checking leave of root blob")
+            }
+
             if (lowBlobsTouch(
                     t1,
                     blobs,
-                    lowestBlob,
-                    blobID
+                    true,
+                    blobID,
+                    lowestTouching
                 )
             ) {//  (touchLowBlobLeft(t1, blobs, bounds, lowestBlob)) { //    (lowBlobsTouch(t1, blobs, lowestBlob, blobID)) {
                 touchingBlobs.add(lowestBlob)
@@ -567,6 +568,9 @@ class Visualization(
                 if (highestPointInBlob(t1, blobs, blobID).y >= highestPointInBlob(t1, blobs, lowestBlob).y) {
                     return touchingBlobs
                 }
+            }
+            else if (!t1 && id == 1) {
+                print("no touching")
             }
 
             var parent = getAccurateParentBlob(t1, blobs, lowestBlob)
@@ -611,7 +615,7 @@ class Visualization(
                 touchingBlobs.add(lowestBlob)
             }
 
-            if (lowBlobsTouch(t1, blobs, blobID, lowestBlob)) {
+            if (lowBlobsTouch(t1, blobs, false, blobID, lowestTouching)) {
                 touchingBlobs.add(lowestBlob)
                 if (highestPointInBlob(t1, blobs, blobID).y >= highestPointInBlob(t1, blobs, lowestBlob).y) {
                     return touchingBlobs
