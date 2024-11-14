@@ -408,6 +408,15 @@ fun ionizationExample(pos: Vector2): Visualization { //TS 25 vs 26 -> space-fill
     }
 }
 
+fun ionizationExample2(pos: Vector2): Visualization { //TS 25 vs 75 -> space-filling curve
+    val tree1 = parseTree("(0.16119(0.68726)(0.19375(0.19509(0.26358(0.3994(0.41339(0.49857(0.74111)(0.63464))(0.896))(0.5263))(0.35706(0.81045)(0.46069)))(1.0))(0.24872(0.35743(0.4613)(0.80995))(0.3994(0.47666(0.50018(0.63489)(0.74173))(0.89687))(0.52643)))))")
+    val tree2 = parseTree("(0.1855(0.77421)(0.22022(0.28954(0.45562(0.50216(0.63228(0.81031)(0.81991))(0.94098))(0.59316))(0.41307(0.99629)(0.55033)))(0.22118(1.0)(0.29119(0.4025(0.55033)(0.99492))(0.45562(0.55006(0.62748(0.82225)(0.80976))(0.94249))(0.5933))))))")
+    val tree3 = parseTree("(0.16817(0.34362(0.34398(0.39567(0.49258)(0.64489))(0.52983))(0.53061))(0.19352(0.31891(0.56358)(0.37331))(0.19373(0.73369(1.0)(0.99644))(0.31898(0.56329)(0.37324)))))")
+    return Visualization(tree1, tree3, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
 fun main() = application {
     configure {
         width =  800//3500
@@ -420,7 +429,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = ionizationExample(drawer.bounds.center)
+        val visualization = ionizationExample2(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 

@@ -998,7 +998,7 @@ class Visualization(
             for (leave in tree.leaves) {
                 val currentMaskHighY = tree.getDeepestLeave().pos.y + 1
                 val carveHeight = abs(leave.pos.y - currentMaskHighY)
-                val carveWidth = ds.nonMappedRadius * ds.blobRadius * 2
+                val carveWidth = if(leave.fullWidth) ds.blobRadius * 2 else ds.nonMappedRadius * ds.blobRadius * 2
                 val carveRect =
                     Rectangle(leave.pos.x - carveWidth * 0.5, leave.pos.y - 0.01, carveWidth, carveHeight).shape
 
@@ -1206,12 +1206,38 @@ class Visualization(
                 pathParent = pathParent.parent;
             }
 
-            for (cont in backgroundContours) {
-                stroke = globalcs.edgeColor
-                strokeWeight = ds.verticalEdgeWidth
+            var rootContour: ShapeContour? = null
+            if (pathParent == null){
+                val tree1Pos = tree2E.pos
+                val tree2Pos = tree1E.pos
 
-                contour(cont)
+                if (tree1) {
+                    //val startPos = Vector2(tree1Pos.x, tree1Pos.y + 0.1)
+                    rootContour = LineSegment(
+                        tree1Pos,
+                        Vector2(tree1Pos.x, tree2Pos.y - interleaving.delta - ds.blobRadius)
+                    ).contour
+                }
+                else {
+                    //val pos2 = tree2E.pos
+                    rootContour = LineSegment(tree2Pos, Vector2(tree2Pos.x, tree1Pos.y - interleaving.delta - ds.blobRadius)).contour
+                }
             }
+
+            stroke = globalcs.edgeColor
+            strokeWeight = ds.verticalEdgeWidth
+            var backdraw = backgroundContours.first()
+            for (cont in backgroundContours) {
+
+                backdraw += cont
+                //contour(cont)
+            }
+            if (rootContour != null) {
+                backdraw += rootContour
+            }
+
+            contour(backdraw)
+
 
             //Draw Area Patch
             fill = blob.third
@@ -1229,13 +1255,21 @@ class Visualization(
             pos -= rectWidth / 2
             rectangle(Rectangle(pos, rectWidth))
 
+            stroke = blob.third
+            strokeWeight = ds.verticalEdgeWidth * ds.verticalMappedRatio
+            var draw = pathContours.first()
             //Draw colored path
             for (cont in pathContours) {
-                stroke = blob.third
-                strokeWeight = ds.verticalEdgeWidth * ds.verticalMappedRatio
+                //stroke = blob.third
+                //strokeWeight = ds.verticalEdgeWidth * ds.verticalMappedRatio
 
-                contour(cont)
+                draw += cont
+                //contour(cont)
             }
+            if (rootContour != null) {
+                draw += rootContour
+            }
+            contour(draw)
         }
     }
 
@@ -1296,12 +1330,13 @@ class Visualization(
 
             if (!t1) {
                 //Draw Contour
-                val contour1 = LineSegment(tree1Pos, Vector2(tree1Pos.x, tree2Pos.y - interleaving.delta - ds.blobRadius)).contour
+                val startPos = Vector2(tree1Pos.x, tree1Pos.y+0.1)
+                val contour1 = LineSegment(startPos, Vector2(tree1Pos.x, tree2Pos.y - interleaving.delta - ds.blobRadius)).contour
 
                 //Set path Color
                 val pathID1 = tree1BlobsTest.first().second
                 stroke = tree2BlobsTest[0].third
-                contour(contour1)
+                //contour(contour1)
             }
             else {
                 //Draw Contour
@@ -1312,7 +1347,7 @@ class Visualization(
                 val pathID2 = tree2BlobsTest.first().second
                 stroke = tree1BlobsTest[0].third
 
-                contour(contour2)
+                //contour(contour2)
             }
             //Draw nodes of the trees on top of the path decomposition
             if(ds.drawNodes)
