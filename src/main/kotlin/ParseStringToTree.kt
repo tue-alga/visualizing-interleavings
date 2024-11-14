@@ -23,7 +23,7 @@ fun parseTree(s: String, parent: MergeTree? = null): MergeTree {
     val i = s.withIndex().firstOrNull() { it.index > 0 && it.value == '(' }?.index ?: s.length
     val h = s.substring(1, i)
 
-    val tree = MergeTree(h.toDouble() *230, parent=parent)
+    val tree = MergeTree(h.toDouble() *130, parent=parent)
     val subtrees = if (i == s.length) emptyList() else findSubtrees(s.substring(i, s.length)).map { parseTree(it, tree) }
     tree.children.addAll(subtrees)
 

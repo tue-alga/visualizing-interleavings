@@ -390,10 +390,28 @@ fun largeExample1(pos: Vector2): Visualization {
     }
 }
 
+fun volcanicExampleSmall(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0.56233(0.90966(1.0633(1.149(6.4553)(4.9931))(6.0679))(1.2913(6.2512)(1.6497(8.8859)(8.8254))))(4.5984))")
+    val tree2 = parseTree("(0.33197(0.85816(5.8418)(1.1753(1.2979(5.4803)(1.4873(5.3434)(4.9546)))(5.1361)))(4.6036))")
+
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
+fun ionizationExample(pos: Vector2): Visualization { //TS 25 vs 26 -> space-filling curve
+    val tree1 = parseTree("(0.16119(0.68726)(0.19375(0.19509(0.26358(0.3994(0.41339(0.49857(0.74111)(0.63464))(0.896))(0.5263))(0.35706(0.81045)(0.46069)))(1.0))(0.24872(0.35743(0.4613)(0.80995))(0.3994(0.47666(0.50018(0.63489)(0.74173))(0.89687))(0.52643)))))")
+    val tree2 = parseTree("(0.1855(0.77421)(0.22022(0.28954(0.45562(0.50216(0.63228(0.81031)(0.81991))(0.94098))(0.59316))(0.41307(0.99629)(0.55033)))(0.22118(1.0)(0.29119(0.4025(0.55033)(0.99492))(0.45562(0.55006(0.62748(0.82225)(0.80976))(0.94249))(0.5933))))))")
+
+    return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
+        monotoneInterleaving(tree1E, tree2E)
+    }
+}
+
 fun main() = application {
     configure {
-        width =  2000//3500
-        height = 800
+        width =  800//3500
+        height = 700
         title = "Visualizing interleavings"
         windowResizable = true
     }
@@ -402,7 +420,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = largeExample2(drawer.bounds.center)
+        val visualization = ionizationExample(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
@@ -1182,10 +1200,10 @@ fun main() = application {
                 visualization.globalcs.edgeColor2 = visualization.globalcs.edgeColor
                 //drawBlobs();
 
-                var fillColor = ColorRGBa(0.0, 0.0, 0.0, visualization.ds.blacken)
-                fill = fillColor
-
-                rectangle(bounds)
+//                var fillColor = ColorRGBa(0.0, 0.0, 0.0, visualization.ds.blacken)
+//                fill = fillColor
+//
+//                rectangle(bounds)
 
                 // Draw ray upward from roots
 //                stroke = visualization.globalcs.edgeColor
