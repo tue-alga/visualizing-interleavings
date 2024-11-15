@@ -63,6 +63,17 @@ class Visualization(
         tree1E = tidyTree(tree1, tes)
         tree2E = tidyTree(tree2, tes)
 
+
+        val tree1Width = abs(tree1E.leaves.first().pos.x - tree1E.leaves.last().pos.x)
+        val tree2Width = abs(tree2E.leaves.first().pos.y - tree2E.leaves.last().pos.y)
+
+        val height = abs(min(tree1E.height, tree2E.height) - max(tree1E.leaves().maxOf{ it.height }, tree2E.leaves().maxOf{ it.height }))
+
+        val scaling = (tree1Width+tree2Width) / height * 1.3
+
+        tree1E.scaleTreeHeight(scaling)
+        tree2E.scaleTreeHeight(scaling)
+
         interleaving = createInterleaving(tree1E, tree2E)
 
         tree1E.setID(0)
@@ -569,9 +580,7 @@ class Visualization(
                     return touchingBlobs
                 }
             }
-            else if (!t1 && id == 1) {
-                print("no touching")
-            }
+
 
             var parent = getAccurateParentBlob(t1, blobs, lowestBlob)
 //            touchingBlobs.add(parent)
@@ -1179,7 +1188,7 @@ class Visualization(
             val edge = lowestPathPoint.firstDown.edgeContour;
             if (edge == null) return
             val curveOffset =
-                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 0.5);
+                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 0.7);
             val subContour = edge.sub(0.0, curveOffset!!)
             val blackBottomMargin = ds.verticalEdgeWidth * (1 - ds.verticalMappedRatio) / edge.length / 2
 
@@ -1373,7 +1382,6 @@ class Visualization(
     }
 
     private fun drawGrid(drawer: CompositionDrawer, bound1: Rectangle, bound2:Rectangle, halfGap: Double){
-        val startHeight = min(tree1E.pos.y, tree2E.pos.y) - interleaving.delta - ds.blobRadius
         val deepestLeaveY = max(tree1E.getDeepestLeave().pos.y, tree1E.getDeepestLeave().pos.y)
 
         var leftX = bound1.x -bound1.width / 2 - halfGap
@@ -1385,6 +1393,7 @@ class Visualization(
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
         val yStep = interleaving.delta / 4
+        val startHeight = min(tree1E.pos.y, tree2E.pos.y) - interleaving.delta - ds.blobRadius - yStep
 
         drawer.apply {
             strokeWeight = ds.gridlineThickness

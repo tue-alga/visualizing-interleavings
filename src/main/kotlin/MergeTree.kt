@@ -84,10 +84,19 @@ open class EmbeddedMergeTree(var pos: Vector2,
                              override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
                              override val parent: EmbeddedMergeTree? = null,
                              override var id: Int = -1) : MergeTreeLike<EmbeddedMergeTree> {
-    override val height: Double = pos.y
+    override var height: Double = pos.y
 
     val leaves: List<EmbeddedMergeTree> by lazy {
         this.leaves()
+    }
+
+    fun scaleTreeHeight(scaling: Double) {
+        pos = Vector2(pos.x, pos.y*scaling)
+        height = pos.y
+
+        for (child in children) {
+            child.scaleTreeHeight(scaling)
+        }
     }
 
     fun setID(currentID: Int): Int{

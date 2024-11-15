@@ -38,7 +38,7 @@ fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
 
 data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0, order = 0)
-    var markRadius: Double = 1.5,
+    var markRadius: Double = .5,
 
     @BooleanParameter("Draw Nodes", order = 9)
     var drawNodes: Boolean = false,
@@ -82,8 +82,8 @@ data class DrawSettings(
     @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
     var nonMappedRadius: Double = 0.5,
 
-    @DoubleParameter("Gridline Thickness", 0.01, 0.2, order = 50)
-    var gridlineThickness: Double = 0.1,
+    @DoubleParameter("Gridline Thickness", 0.01, 0.5, order = 50)
+    var gridlineThickness: Double = 0.2,
 
     @DoubleParameter("Gridline padding", 1.0, 50.0, order = 51)
     var gridlinePadding: Double = 10.0,
@@ -441,7 +441,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = ionizationExample(drawer.bounds.center)
+        val visualization = volcanicExampleSmall(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
@@ -529,6 +529,7 @@ fun main() = application {
         var mouseTree2Position: TreePosition<EmbeddedMergeTree>? = null
 
         mouse.moved.listen { mouseEvent ->
+
             val pos = camera.view.inversed * mouseEvent.position
             val posT1 = visualization.toTree1Local(pos)
             mouseTree1Position = visualization.closestPositionT1(posT1, 3.0)
@@ -537,11 +538,12 @@ fun main() = application {
         }
 
         fun drawMatching(one: TreePosition<EmbeddedMergeTree>, t1ToT2: Boolean) {
+
             drawer.apply {
                 if (treePositionToPoint(one) == null) return
                 treePositionToPoint(one)?.let { onePoint ->
 
-
+                    //if (visualization.interleaving.f == null)
                     val other = if (t1ToT2) visualization.interleaving.f[one] else visualization.interleaving.g[one]
                     if (other == null) return
                     treePositionToPoint(other)?.let { otherPoint ->
