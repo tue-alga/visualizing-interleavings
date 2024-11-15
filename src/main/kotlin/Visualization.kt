@@ -551,9 +551,9 @@ class Visualization(
             val lowestTouching = tree.leaves[id - 1]
             val lowestBlob = getBlobOfNode(blobs, TreePosition(lowestTouching, 0.0))
 
-            if (!t1 && highestNodeInBlob(blobs, lowestBlob).firstUp == null && id == 1) {
-                println("checking leave of root blob")
-            }
+//            if (!t1 && highestNodeInBlob(blobs, lowestBlob).firstUp == null && id == 1) {
+//                println("checking leave of root blob")
+//            }
 
             if (lowBlobsTouch(
                     t1,
@@ -785,6 +785,14 @@ class Visualization(
                 touchingColors.add(blobs[blob].third)
             touchingColors.add(blobs[parentBlobID].third)
 
+            val parentOfParent = getAccurateParentBlob(t1, blobs, parentBlobID)
+
+            touchingColors = touchingColors.apply { removeAll{ it == ColorRGBa.BLACK } }
+            if (touchingColors.distinct().size < 2 && parentOfParent != -1){
+                println("yaaaaaaaaa")
+                touchingColors.add(blobs[parentOfParent].third)
+            }
+
             var color = ColorRGBa.BLACK
             for (c in colors) {
                 if (!touchingColors.contains(c)) {
@@ -973,14 +981,17 @@ class Visualization(
             val drawRectangles: MutableList<Shape> = mutableListOf()
             for (treePos in blob.first) {
                 val margin = if (treePos.firstDown.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+                val secondMargin = if (deepestNodeInBlob!!.firstDown.fullWidth) ds.blobRadius else ds.nonMappedRadius * ds.blobRadius
+
+                val leftMargin = if (treePos.firstDown.pos.x < deepestNodeInBlob!!.firstDown.pos.x) margin else secondMargin
 
                 val leftTopY = highestBlobPos.y
                 val leftTopX = min(
                     deepestNodeInBlob!!.firstDown.pos.x,
                     treePos.firstDown.pos.x
-                ) - margin// visualization.ds.blobRadius
+                ) - leftMargin// visualization.ds.blobRadius
                 val rectWidth =
-                    abs(deepestNodeInBlob.firstDown.pos.x - treePos.firstDown.pos.x) + (margin * 2)// (visualization.ds.blobRadius * 2)
+                    abs(deepestNodeInBlob.firstDown.pos.x - treePos.firstDown.pos.x) + (margin + secondMargin)// (visualization.ds.blobRadius * 2)
                 val rectHeight = treePos.height - highestBlobPos.y
 
                 if (rectHeight > 0) {
@@ -1022,11 +1033,14 @@ class Visualization(
                 val rootWidth = abs(leftLeave.pos.x - rightLeave.pos.x) + (leftMargin + rightMargin)
                 strokeWeight = rootWidth + (ds.blobRadius * 2)
 
+                val otherHighestPos = if (tree1) tree2E.pos else tree1E.pos
+                val topY = min(highestNodeInBlob.height - ds.blobRadius, otherHighestPos.y - ds.blobRadius)
+
                 val topRect = Rectangle(
                     leftLeave.pos.x - leftMargin,
-                    highestNodeInBlob.height - ds.blobRadius,
+                    topY,
                     rootWidth,
-                    ds.blobRadius
+                    abs(topY - highestNodeInBlob.height)
                 ).shape
 
                 drawRectangle = union(drawRectangle, topRect)
@@ -1211,16 +1225,19 @@ class Visualization(
                 val tree1Pos = tree2E.pos
                 val tree2Pos = tree1E.pos
 
+                //val otherHighestPos = if (tree1) tree2E.pos else tree1E.pos
+                val topY = min(tree1Pos.y, tree2Pos.y)
+
                 if (tree1) {
                     //val startPos = Vector2(tree1Pos.x, tree1Pos.y + 0.1)
                     rootContour = LineSegment(
                         tree1Pos,
-                        Vector2(tree1Pos.x, tree2Pos.y - interleaving.delta - ds.blobRadius)
+                        Vector2(tree1Pos.x, topY - interleaving.delta - ds.blobRadius)
                     ).contour
                 }
                 else {
                     //val pos2 = tree2E.pos
-                    rootContour = LineSegment(tree2Pos, Vector2(tree2Pos.x, tree1Pos.y - interleaving.delta - ds.blobRadius)).contour
+                    rootContour = LineSegment(tree2Pos, Vector2(tree2Pos.x, topY - interleaving.delta - ds.blobRadius)).contour
                 }
             }
 
@@ -1244,7 +1261,7 @@ class Visualization(
             strokeWeight = ds.verticalEdgeWidth * ds.patchStrokeScale
             stroke = if (tree1) globalcs.edgeColor else globalcs.edgeColor2
 
-            val highY = if (tree1) tree1E.pos.y else tree2E.pos.y
+            val highY = min(tree1E.pos.y, tree2E.pos.y)
 
             val posY = if (pathParent != null) highestY else highY - interleaving.delta - ds.blobRadius
             val posX = lowestPathPoint.firstDown.pos.x
