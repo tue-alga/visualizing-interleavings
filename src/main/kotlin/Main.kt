@@ -401,7 +401,7 @@ fun largeExample1(pos: Vector2): Visualization {
 
 fun volcanicExampleSmall(pos: Vector2): Visualization {
     val tree1 = parseTree("(0.56233(0.90966(1.0633(1.149(6.4553)(4.9931))(6.0679))(1.2913(6.2512)(1.6497(8.8859)(8.8254))))(4.5984))")
-    val tree2 = parseTree("(0.33197(0.85816(5.8418)(1.1753(1.2979(5.4803)(1.4873(5.3434)(4.9546)))(5.1361)))(4.6036))")
+    val tree2 = parseTree("(0.33197(0.85816(5.8418)(1.1753(1.2979(5.4803)(1.4873(5.3434)(4.9546)))(5.1361)))(5.6036))")
 
     return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
@@ -438,7 +438,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = ionizationExample(drawer.bounds.center)
+        val visualization = ionizationExample2(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
