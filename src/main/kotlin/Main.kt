@@ -82,6 +82,12 @@ data class DrawSettings(
     @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
     var nonMappedRadius: Double = 0.5,
 
+    @DoubleParameter("Gridline Thickness", 0.01, 0.2, order = 50)
+    var gridlineThickness: Double = 0.1,
+
+    @DoubleParameter("Gridline padding", 1.0, 50.0, order = 51)
+    var gridlinePadding: Double = 10.0,
+
 //    @DoubleParameter("Whiten", 0.0, 1.0)
     var whiten: Double = 0.0,
 
@@ -101,6 +107,9 @@ data class GlobalColorSettings(
 
     @ColorParameter("EdgeColor2", order  = 1)
     var edgeColor2: ColorRGBa = ColorRGBa.BLACK,
+
+    @ColorParameter("Grid color", order = 10)
+    var gridColor: ColorRGBa = ColorRGBa.fromHex("#B2B2B2"),
 )
 
 data class DivergingColorSettings(
@@ -429,7 +438,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = ionizationExample2(drawer.bounds.center)
+        val visualization = ionizationExample(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
@@ -504,7 +513,9 @@ fun main() = application {
             when (name) {
                 "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "connectorTop", "nonMappedRadius", "markRadius",
                 "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
-                "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3"-> {
+                "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3",
+                "gridlineThickness", "gridlinePadding", "gridColor"
+                    -> {
                     visualization.compute()
                 }
             }

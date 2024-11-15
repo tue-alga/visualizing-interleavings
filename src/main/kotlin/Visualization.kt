@@ -1372,6 +1372,56 @@ class Visualization(
         }
     }
 
+    private fun drawGrid(drawer: CompositionDrawer, bound1: Rectangle, bound2:Rectangle, halfGap: Double){
+        val startHeight = min(tree1E.pos.y, tree2E.pos.y) - interleaving.delta - ds.blobRadius
+        val deepestLeaveY = max(tree1E.getDeepestLeave().pos.y, tree1E.getDeepestLeave().pos.y)
+
+        var leftX = bound1.x -bound1.width / 2 - halfGap
+        leftX -= if(tree1E.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
+        leftX -= ds.gridlinePadding
+
+        var rightX = bound2.x+ bound2.width + bound2.width / 2 + halfGap// bound1.width/2 + halfGap*2 + (bound2.width) + ds.gridlinePadding
+        rightX += ds.gridlinePadding
+        rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
+
+//        var leftX = tree.leaves().first().pos.x - ds.gridlinePadding
+//
+//        leftX -= if(tree.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
+//
+//        var rightX = tree.leaves.last().pos.x + ds.gridlinePadding
+//        rightX += if(tree.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
+//
+//        if (tree==tree1E){
+//            rightX += halfGap
+//        }
+//        else {
+//            leftX -= halfGap
+//        }
+
+        //rightX += if(tree1E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
+
+        //rightX += halfGap *2
+//        rightX += if(tree2E.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
+//        rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
+//
+//        rightX += abs(tree2E.leaves().first().pos.x - tree2E.leaves().last().pos.x)
+        //rightX += ds.gridlinePadding
+
+        val yStep = interleaving.delta / 4
+
+        drawer.apply {
+            strokeWeight = ds.gridlineThickness
+            stroke = globalcs.gridColor
+            var currentY = startHeight
+            while (currentY <= deepestLeaveY + yStep){
+                val line = LineSegment(leftX, currentY, rightX, currentY).contour
+                contour(line)
+
+                currentY += yStep
+            }
+        }
+    }
+
     /** Draw tree1E and tree2E side by side */
     private fun treePairComposition() {
         val tree1C = drawComposition {
@@ -1394,41 +1444,18 @@ class Visualization(
         tree1BlobIndicesSorted.sortBy { highestPointInBlob(true, tree1BlobsTest, it).y }
         tree2BlobIndicesSorted.sortBy { highestPointInBlob(false, tree2BlobsTest, it).y }
 
-
-//
 //        setHedgeColors()
-//
-//        nodes1ToColor = tree1E.nodes().toMutableList()
-//        nodes2ToColor = tree2E.nodes().toMutableList()
-//        nodes1ToColor.removeAll { it.children.isEmpty() }
-//        nodes2ToColor.removeAll { it.children.isEmpty() }
-//        nodes1ToColor.sortBy { it.height } //TODO: NEEDS CHANGE. SINCE BLOBS OF LOWER PARENT NODE CAN BE ABOVE OTHERS...
-//        nodes2ToColor.sortBy { it.height }
-
-
         setBlobColorsTest(true)
         setBlobColorsTest(false)
-//        setBlobColors(true, 0, tcs.t1c1)
-//        setBlobColors(false, 0, tcs.t2c1)
 
         val tree1BlobDrawing = drawComposition { drawBlobs(this, true) }
         val tree2BlobDrawing = drawComposition { drawBlobs(this, false) }
 
-        val blacken1 = drawComposition { this.apply{
-            val fillColor = ColorRGBa(0.0, 0.0, 0.0, ds.blacken)
-            fill = fillColor
-            rectangle(bounds1)
-        } }
-        val blacken2 = drawComposition { this.apply{
-            val fillColor = ColorRGBa(0.0, 0.0, 0.0, ds.blacken)
-            fill = fillColor
-            rectangle(bounds2)
-        } }
-
-
         val tree1PathDrawing = drawComposition { drawPaths(this, false) }
         val tree2PathDrawing = drawComposition { drawPaths(this, true) }
 
+        val grid1 = drawComposition { drawGrid(this, bounds1, bounds2, halfGap) }
+        //val grid2 = drawComposition { drawGrid(this, tree2E, halfGap) }
 
 
 //        val tree1Hedges = drawComposition {
@@ -1445,6 +1472,7 @@ class Visualization(
 
         composition = drawComposition {
             translate(pos)
+            composition(grid1)
 
             isolated {
                 translate(-bounds1.width / 2 - halfGap, 0.0)
