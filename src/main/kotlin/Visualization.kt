@@ -789,7 +789,7 @@ class Visualization(
 
             touchingColors = touchingColors.apply { removeAll{ it == ColorRGBa.BLACK } }
             if (touchingColors.distinct().size < 2 && parentOfParent != -1){
-                println("yaaaaaaaaa")
+                //println("yaaaaaaaaa")
                 touchingColors.add(blobs[parentOfParent].third)
             }
 
@@ -1384,34 +1384,12 @@ class Visualization(
         rightX += ds.gridlinePadding
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
-//        var leftX = tree.leaves().first().pos.x - ds.gridlinePadding
-//
-//        leftX -= if(tree.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
-//
-//        var rightX = tree.leaves.last().pos.x + ds.gridlinePadding
-//        rightX += if(tree.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
-//
-//        if (tree==tree1E){
-//            rightX += halfGap
-//        }
-//        else {
-//            leftX -= halfGap
-//        }
-
-        //rightX += if(tree1E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
-
-        //rightX += halfGap *2
-//        rightX += if(tree2E.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
-//        rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
-//
-//        rightX += abs(tree2E.leaves().first().pos.x - tree2E.leaves().last().pos.x)
-        //rightX += ds.gridlinePadding
-
         val yStep = interleaving.delta / 4
 
         drawer.apply {
             strokeWeight = ds.gridlineThickness
-            stroke = globalcs.gridColor
+            val color = ColorRGBa(globalcs.gridColor.r, globalcs.gridColor.g, globalcs.gridColor.b, globalcs.gridAlpha)
+            stroke = color
             var currentY = startHeight
             while (currentY <= deepestLeaveY + yStep){
                 val line = LineSegment(leftX, currentY, rightX, currentY).contour
@@ -1472,13 +1450,24 @@ class Visualization(
 
         composition = drawComposition {
             translate(pos)
+            isolated {
+                translate(-bounds1.width / 2 - halfGap, 0.0)
+                tree1EMatrix = model
+                composition(tree1BlobDrawing)
+            }
+            isolated {
+                translate(bounds2.width / 2 + halfGap, 0.0)
+                tree2EMatrix = model
+                composition(tree2BlobDrawing)
+            }
+
             composition(grid1)
 
             isolated {
                 translate(-bounds1.width / 2 - halfGap, 0.0)
                 tree1EMatrix = model
                 //composition(tree1Hedges)
-                composition(tree1BlobDrawing)
+                //composition(tree1BlobDrawing)
                 composition(tree1C)
 
                 composition(tree1PathDrawing)
@@ -1489,10 +1478,11 @@ class Visualization(
                 translate(bounds2.width / 2 + halfGap, 0.0)
                 tree2EMatrix = model
                 //composition(tree2Hedges)
-                composition(tree2BlobDrawing)
+                //composition(tree2BlobDrawing)
                 composition(tree2C)
                 composition(tree2PathDrawing)
             }
+
         }
 
         nodeComposition = drawComposition {

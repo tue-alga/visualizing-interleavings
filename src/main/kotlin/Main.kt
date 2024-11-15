@@ -109,7 +109,10 @@ data class GlobalColorSettings(
     var edgeColor2: ColorRGBa = ColorRGBa.BLACK,
 
     @ColorParameter("Grid color", order = 10)
-    var gridColor: ColorRGBa = ColorRGBa.fromHex("#B2B2B2"),
+    var gridColor: ColorRGBa = ColorRGBa.BLACK,
+
+    @DoubleParameter("Grid alpha", 0.01, 1.0, order = 11)
+    var gridAlpha: Double = 0.15
 )
 
 data class DivergingColorSettings(
@@ -438,7 +441,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = ionizationExample2(drawer.bounds.center)
+        val visualization = ionizationExample(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
@@ -512,9 +515,9 @@ fun main() = application {
             // name is the name of the variable that changed
             when (name) {
                 "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "connectorTop", "nonMappedRadius", "markRadius",
-                "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "areaPatchStrokeScale",
+                "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "patchStrokeScale", "areaPatchStrokeScale",
                 "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3",
-                "gridlineThickness", "gridlinePadding", "gridColor"
+                "gridlineThickness", "gridlinePadding", "gridColor", "gridAlpha"
                     -> {
                     visualization.compute()
                 }
@@ -535,8 +538,12 @@ fun main() = application {
 
         fun drawMatching(one: TreePosition<EmbeddedMergeTree>, t1ToT2: Boolean) {
             drawer.apply {
+                if (treePositionToPoint(one) == null) return
                 treePositionToPoint(one)?.let { onePoint ->
+
+
                     val other = if (t1ToT2) visualization.interleaving.f[one] else visualization.interleaving.g[one]
+                    if (other == null) return
                     treePositionToPoint(other)?.let { otherPoint ->
                         val onePos =
                             if (t1ToT2) visualization.fromTree1Local(onePoint) else visualization.fromTree2Local(
