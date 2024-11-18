@@ -1386,7 +1386,7 @@ class Visualization(
         leftX -= if(tree1E.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
         leftX -= ds.gridlinePadding
 
-        var rightX = bound1.width + 2 * halfGap + bound2.width
+        var rightX = bound1.width + halfGap + bound2.width
         rightX += ds.gridlinePadding
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
