@@ -1,11 +1,8 @@
 import org.openrndr.KEY_SPACEBAR
 import org.openrndr.application
-import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
-import org.openrndr.color.rgb
 import org.openrndr.draw.isolated
 import org.openrndr.extra.color.spaces.ColorOKHSLa
-import org.openrndr.extra.color.spaces.ColorOKHSVa
 import org.openrndr.extra.gui.GUI
 import org.openrndr.extra.parameters.*
 import org.openrndr.math.Matrix44
@@ -15,7 +12,6 @@ import org.openrndr.svg.saveToFile
 import java.io.File
 import java.util.*
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -752,7 +748,7 @@ fun main() = application {
                             continue
                     }
 
-                    val currentMaskHighY = tree.getDeepestLeave().pos.y + 1
+                    val currentMaskHighY = tree.getDeepestLeaf().pos.y + 1
                     val carveHeight = abs(leave.pos.y - currentMaskHighY)
                     val carveWidth = visualization.ds.nonMappedRadius * visualization.ds.blobRadius * 2// if (leave.fullWidth || !visualization.ds.collapseNonMapped) visualization.ds.blobRadius else visualization.tes.nodeWidth * visualization.ds.nonMappedRadius
 
@@ -860,7 +856,7 @@ fun main() = application {
                 }
 
                 var currentMaskLeaf: EmbeddedMergeTree? = null
-                var currentMaskHighY = tree.getDeepestLeave().pos.y + 1
+                var currentMaskHighY = tree.getDeepestLeaf().pos.y + 1
 
                 for (leaf in leavesLeftOfDeepest.reversed()){
                     if (!blob.first.contains(TreePosition(leaf, 0.0))){// && leaf.pos.y > highestBlobPos.y) { //Leaf is from another blob
@@ -907,7 +903,7 @@ fun main() = application {
                     //val isFromSameBlob = blob.first.contains(leaf)
                     //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
                     val highY = currentMaskHighY// lowestHedgePos//currentMaskHighY//min(leaf.pos.y, currentMaskHighY)// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
-                    val lowY = tree.getDeepestLeave().pos.y + visualization.interleaving.delta + 10
+                    val lowY = tree.getDeepestLeaf().pos.y + visualization.interleaving.delta + 10
                     val maskHeight = abs(highY - lowY)
                     val maskWidth = visualization.ds.blobRadius*2
 
@@ -918,7 +914,7 @@ fun main() = application {
 
                 }
                 currentMaskLeaf = null
-                currentMaskHighY = tree.getDeepestLeave().pos.y + 1
+                currentMaskHighY = tree.getDeepestLeaf().pos.y + 1
 
 
 
@@ -956,7 +952,7 @@ fun main() = application {
 
                     val highY = currentMaskHighY// lowestHedgePos// currentMaskHighY// min(leaf.pos.y, currentMaskHighY)
                     //val highY = if(isFromSameBlob) leaf.pos.y else visualization.highestPointInBlob(tree1, blobs, visualization.getBlobOfNode(blobs, leaf)).y// currentMaskHighY// leaf.pos.y //if (isFromSameBlob) deepestNodeInBlob.pos.y else leaf.pos.y
-                    val lowY = tree.getDeepestLeave().pos.y  + visualization.interleaving.delta + 10
+                    val lowY = tree.getDeepestLeaf().pos.y  + visualization.interleaving.delta + 10
                     val maskHeight = abs(highY - lowY)
                     val maskWidth = visualization.ds.blobRadius*2
 

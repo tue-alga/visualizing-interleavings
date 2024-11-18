@@ -1,6 +1,5 @@
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
-import org.openrndr.panel.elements.Element
 import org.openrndr.shape.CompositionDrawer
 import org.openrndr.shape.LineSegment
 import org.openrndr.shape.ShapeContour
@@ -109,7 +108,7 @@ open class EmbeddedMergeTree(var pos: Vector2,
         return nextID
     }
 
-    fun getDeepestLeave(): EmbeddedMergeTree {
+    fun getDeepestLeaf(): EmbeddedMergeTree {
         var deepest = leaves.first()
 
         for (leave in leaves) {

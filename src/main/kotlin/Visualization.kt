@@ -2,12 +2,10 @@ import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
-import org.openrndr.panel.elements.Div
 import org.openrndr.shape.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import org.openrndr.draw.Drawer
 
 
 class Visualization(
@@ -1016,7 +1014,7 @@ class Visualization(
             val lowestTreePositions: MutableList<TreePosition<EmbeddedMergeTree>> = mutableListOf()
 
             for (leave in tree.leaves) {
-                val currentMaskHighY = tree.getDeepestLeave().pos.y + 1
+                val currentMaskHighY = tree.getDeepestLeaf().pos.y + 1
                 val carveHeight = abs(leave.pos.y - currentMaskHighY)
                 val carveWidth = if(leave.fullWidth) ds.blobRadius * 2 else ds.nonMappedRadius * ds.blobRadius * 2
                 val carveRect =
@@ -1382,13 +1380,13 @@ class Visualization(
     }
 
     private fun drawGrid(drawer: CompositionDrawer, bound1: Rectangle, bound2:Rectangle, halfGap: Double){
-        val deepestLeaveY = max(tree1E.getDeepestLeave().pos.y, tree1E.getDeepestLeave().pos.y)
+        val deepestLeaveY = max(tree1E.getDeepestLeaf().pos.y, tree2E.getDeepestLeaf().pos.y)
 
         var leftX = -halfGap
         leftX -= if(tree1E.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
         leftX -= ds.gridlinePadding
 
-        var rightX = bound1.width + 2 * halfGap + bound2.width// bound1.width/2 + halfGap*2 + (bound2.width) + ds.gridlinePadding
+        var rightX = bound1.width + 2 * halfGap + bound2.width
         rightX += ds.gridlinePadding
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
@@ -1400,7 +1398,7 @@ class Visualization(
             val color = ColorRGBa(globalcs.gridColor.r, globalcs.gridColor.g, globalcs.gridColor.b, globalcs.gridAlpha)
             stroke = color
             var currentY = startHeight
-            while (currentY <= deepestLeaveY + yStep){
+            while (currentY <= deepestLeaveY + yStep * 1.5){
                 val line = LineSegment(leftX, currentY, rightX, currentY).contour
                 contour(line)
 
@@ -1457,27 +1455,28 @@ class Visualization(
 //        }
 
         composition = drawComposition {
+            translate(pos)
             isolated {
-                translate(-bounds1.corner - Vector2(halfGap, 0.0))
+                translate(-bounds1.corner.x - halfGap, 0.0)
                 tree1EMatrix = model
                 composition(tree1BlobDrawing)
             }
-
             isolated {
-                translate(-bounds1.corner - Vector2(halfGap, 0.0))
+                translate(-bounds2.corner.x + bounds1.width + halfGap, 0.0)
+                tree2EMatrix = model
+                composition(tree2BlobDrawing)
+            }
+            if (interleaving.delta > 1.0)
+                composition(grid1)
+            isolated {
+                translate(-bounds1.corner.x - halfGap, 0.0)
                 composition(tree1C)
                 composition(tree1PathDrawing)
                 if(ds.drawNodes)
                     composition(nodeComposition)
             }
-            composition(grid1)
             isolated {
-                translate(-bounds2.corner + Vector2(bounds1.width + ds.treeSeparation / 2, 0.0))
-                tree2EMatrix = model
-                composition(tree2BlobDrawing)
-            }
-            isolated {
-                translate(-bounds2.corner + Vector2(bounds1.width + ds.treeSeparation / 2, 0.0))
+                translate(-bounds2.corner.x + bounds1.width + halfGap, 0.0)
                 composition(tree2C)
                 composition(tree2PathDrawing)
             }
@@ -1502,11 +1501,11 @@ class Visualization(
         nodeComposition = drawComposition {
             translate(pos)
             isolated {
-                translate(-bounds1.corner - Vector2(ds.treeSeparation/2, 0.0))
+                translate(-bounds1.corner.x - halfGap, 0.0)
                 composition(tree1NC)
             }
             isolated {
-                translate(-bounds2.corner + Vector2(bounds1.width + ds.treeSeparation/2, 0.0))
+                translate(-bounds2.corner.x + bounds1.width + halfGap, 0.0)
                 composition(tree2NC)
             }
         }
