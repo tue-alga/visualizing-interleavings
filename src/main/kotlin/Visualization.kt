@@ -1140,7 +1140,9 @@ class Visualization(
             }
 
             for (connector in connectors) {
-                drawRectangle = drawRectangle.union(connector)
+
+                if (connector.bounds.height > 0 && connector.bounds.width > 0)
+                    drawRectangle = drawRectangle.union(connector)
             }
 
             fill = blob.third.mix(ColorRGBa.WHITE, ds.whiten)
@@ -1197,7 +1199,7 @@ class Visualization(
             val edge = lowestPathPoint.firstDown.edgeContour;
             if (edge == null) return
             val curveOffset =
-                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 0.7);
+                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 1.0);
             val subContour = edge.sub(0.0, curveOffset!!)
             val blackBottomMargin = ds.verticalEdgeWidth * (1 - ds.verticalMappedRatio) / edge.length / 2
 
@@ -1205,7 +1207,7 @@ class Visualization(
 
             val drawContour = subContour
 
-            var highestY = subContour.bounds.y
+            var highestY = max(subContour.bounds.y, 10.0)
 
             val backgroundContours: MutableList<ShapeContour> = mutableListOf()
             val pathContours: MutableList<ShapeContour> = mutableListOf()
@@ -1281,6 +1283,8 @@ class Visualization(
 
             val highY = min(tree1E.pos.y, tree2E.pos.y)
 
+            val blobs = if(tree1) tree1BlobsTest else tree2BlobsTest
+            highestY = highestPointInBlob(tree1, blobs, getBlobOfNode(blobs, blob.first.first())).y - interleaving.delta
             val posY = if (pathParent != null) highestY else highY - interleaving.delta - ds.blobRadius
             val posX = lowestPathPoint.firstDown.pos.x
             var pos = Vector2(posX, posY)
@@ -1288,7 +1292,9 @@ class Visualization(
 
             val rectWidth = ds.verticalEdgeWidth * ds.pathAreaPatchScale
             pos -= rectWidth / 2
-            rectangle(Rectangle(pos, rectWidth))
+
+            if (pos.y != Double.POSITIVE_INFINITY)
+                rectangle(Rectangle(pos, rectWidth))
 
             stroke = blob.third
             strokeWeight = ds.verticalEdgeWidth * ds.verticalMappedRatio
