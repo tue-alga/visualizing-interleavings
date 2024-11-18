@@ -40,6 +40,9 @@ data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0, order = 0)
     var markRadius: Double = .5,
 
+    @DoubleParameter("Tree separation", 0.0, 100.0, order = 5)
+    var treeSeparation: Double = 30.0,
+
     @BooleanParameter("Draw Nodes", order = 9)
     var drawNodes: Boolean = false,
 
@@ -77,7 +80,7 @@ data class DrawSettings(
     var patchStrokeScale: Double = 0.15,
 
     @DoubleParameter("Blob radius", 0.1, 10.0)
-    var blobRadius: Double = 4.0,
+    var blobRadius: Double = 8.0,
 
     @DoubleParameter("Non-mapped blob radius scale", 0.1, 1.0)
     var nonMappedRadius: Double = 0.5,
@@ -441,7 +444,7 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = volcanicExampleSmall(drawer.bounds.center)
+        val visualization = ionizationExample(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
@@ -495,6 +498,8 @@ fun main() = application {
         gui.add(viewSettings, "View")
         gui.add(exportSettings, "Export")
 
+        gui.loadParameters(File("gui-parameters/paper.json"))
+
 //        val f = File("colors.txt")
 //        val lines = f.readLines()
 //        visualization.tcs.t1c1 = ColorRGBa.fromHex(lines[0])
@@ -510,19 +515,22 @@ fun main() = application {
                     visualization.tcs = ThreeColorSettings(dcs)
                     visualization.compute()
                 }
-            }
 
-            // name is the name of the variable that changed
-            when (name) {
-                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "connectorTop", "nonMappedRadius", "markRadius",
-                "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "patchStrokeScale", "areaPatchStrokeScale",
-                "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3",
-                "gridlineThickness", "gridlinePadding", "gridColor", "gridAlpha"
-                    -> {
+                else -> {
                     visualization.compute()
                 }
             }
 
+            // name is the name of the variable that changed
+//            when (name) {
+//                "drawNodes", "nodeWidth", "carveInwards", "connectorRadius", "connectorTop", "nonMappedRadius", "markRadius",
+//                "verticalEdgeWidth", "verticalMappedRatio", "horizontalEdgeWidth", "nonMappedVerticalEdges", "collapseNonMapped", "thinNonMapped", "pathAreaPatchScale", "patchStrokeScale", "areaPatchStrokeScale",
+//                "edgeColor", "edgeColor2", "blacken", "enableGradient", "colorInterpolation", "t1c1", "t1c2", "t1c3", "t2c1", "t2c2", "t2c3",
+//                "gridlineThickness", "gridlinePadding", "gridColor", "gridAlpha"
+//                    -> {
+//                    visualization.compute()
+//                }
+//            }
         }
 
         var mouseTree1Position: TreePosition<EmbeddedMergeTree>? = null

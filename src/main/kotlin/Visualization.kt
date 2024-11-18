@@ -69,7 +69,7 @@ class Visualization(
 
         val height = abs(min(tree1E.height, tree2E.height) - max(tree1E.leaves().maxOf{ it.height }, tree2E.leaves().maxOf{ it.height }))
 
-        val scaling = (tree1Width+tree2Width) / height * 1.3
+        val scaling = (tree1Width+tree2Width) / height * 0.8
 
         tree1E.scaleTreeHeight(scaling)
         tree2E.scaleTreeHeight(scaling)
@@ -307,7 +307,7 @@ class Visualization(
     ): Vector2 {
         val highestNode = highestNodeInBlob(blobs, blobID)
 
-        val treePos = if (t1) interleaving.f[highestNode] else interleaving.g[highestNode]
+        val treePos = if (t1) interleaving.f[highestNode]!! else interleaving.g[highestNode]!!
         var parent = treePos.firstUp
         val child = treePos.firstDown
 
@@ -410,7 +410,7 @@ class Visualization(
 
         val treePos = TreePosition(highestNode!!.firstDown, h + .1)// highestPos.y - 50)
 
-        val pathNode = if (t1) interleaving.f[treePos] else interleaving.g[treePos]
+        val pathNode = if (t1) interleaving.f[treePos]!! else interleaving.g[treePos]!!
 
         val pathID = getPathID(pathNode.firstDown, if (t1) tree2PathDecomposition else tree1PathDecomposition)
 
@@ -431,8 +431,8 @@ class Visualization(
         blob: Triple<MutableList<TreePosition<EmbeddedMergeTree>>, Int, ColorRGBa>,
         treePos: TreePosition<EmbeddedMergeTree>
     ): Boolean {
-        val pathID = if (t1) interleaving.f.getPathID(interleaving.f[treePos].firstDown) else interleaving.g.getPathID(
-            interleaving.g[treePos].firstDown
+        val pathID = if (t1) interleaving.f.getPathID(interleaving.f[treePos]!!.firstDown) else interleaving.g.getPathID(
+            interleaving.g[treePos]!!.firstDown
         )
 
         return pathID == blob.second
@@ -1384,11 +1384,11 @@ class Visualization(
     private fun drawGrid(drawer: CompositionDrawer, bound1: Rectangle, bound2:Rectangle, halfGap: Double){
         val deepestLeaveY = max(tree1E.getDeepestLeave().pos.y, tree1E.getDeepestLeave().pos.y)
 
-        var leftX = bound1.x -bound1.width / 2 - halfGap
+        var leftX = -halfGap
         leftX -= if(tree1E.leaves().first().fullWidth) ds.blobRadius else ds.nonMappedRadius
         leftX -= ds.gridlinePadding
 
-        var rightX = bound2.x+ bound2.width + bound2.width / 2 + halfGap// bound1.width/2 + halfGap*2 + (bound2.width) + ds.gridlinePadding
+        var rightX = bound1.width + 2 * halfGap + bound2.width// bound1.width/2 + halfGap*2 + (bound2.width) + ds.gridlinePadding
         rightX += ds.gridlinePadding
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
@@ -1419,10 +1419,7 @@ class Visualization(
         val tree2C = drawComposition { tree2E.draw(this, false, ds, globalcs) }
         val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
         val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
-        val bounds1 = tree1C.findShapes().map { it.bounds }.bounds
-        val bounds2 = tree2C.findShapes().map { it.bounds }.bounds
-        val halfGap = ds.markRadius * 20
-
+        val halfGap = ds.treeSeparation / 2
         blobCompositionTest(true)
         blobCompositionTest(false)
 
@@ -1437,6 +1434,8 @@ class Visualization(
 
         val tree1BlobDrawing = drawComposition { drawBlobs(this, true) }
         val tree2BlobDrawing = drawComposition { drawBlobs(this, false) }
+        val bounds1 = tree1BlobDrawing.findShapes().map { it.bounds }.bounds
+        val bounds2 = tree2BlobDrawing.findShapes().map { it.bounds }.bounds
 
         val tree1PathDrawing = drawComposition { drawPaths(this, false) }
         val tree2PathDrawing = drawComposition { drawPaths(this, true) }
@@ -1458,52 +1457,56 @@ class Visualization(
 //        }
 
         composition = drawComposition {
-            translate(pos)
             isolated {
-                translate(-bounds1.width / 2 - halfGap, 0.0)
+                translate(-bounds1.corner - Vector2(halfGap, 0.0))
                 tree1EMatrix = model
                 composition(tree1BlobDrawing)
             }
-            isolated {
-                translate(bounds2.width / 2 + halfGap, 0.0)
-                tree2EMatrix = model
-                composition(tree2BlobDrawing)
-            }
-
-            composition(grid1)
 
             isolated {
-                translate(-bounds1.width / 2 - halfGap, 0.0)
-                tree1EMatrix = model
-                //composition(tree1Hedges)
-                //composition(tree1BlobDrawing)
+                translate(-bounds1.corner - Vector2(halfGap, 0.0))
                 composition(tree1C)
-
                 composition(tree1PathDrawing)
                 if(ds.drawNodes)
                     composition(nodeComposition)
             }
+            composition(grid1)
             isolated {
-                translate(bounds2.width / 2 + halfGap, 0.0)
+                translate(-bounds2.corner + Vector2(bounds1.width + ds.treeSeparation / 2, 0.0))
                 tree2EMatrix = model
-                //composition(tree2Hedges)
-                //composition(tree2BlobDrawing)
+                composition(tree2BlobDrawing)
+            }
+            isolated {
+                translate(-bounds2.corner + Vector2(bounds1.width + ds.treeSeparation / 2, 0.0))
                 composition(tree2C)
                 composition(tree2PathDrawing)
             }
+
+//            isolated {
+//                translate(-bounds1.width / 2 - halfGap, 0.0)
+//                tree1EMatrix = model
+//                //composition(tree1Hedges)
+//                //composition(tree1BlobDrawing)
+//            }
+//            isolated {
+//                translate(bounds2.width / 2 + halfGap, 0.0)
+//                tree2EMatrix = model
+//                //composition(tree2Hedges)
+//                //composition(tree2BlobDrawing)
+//                composition(tree2C)
+//                composition(tree2PathDrawing)
+//            }
 
         }
 
         nodeComposition = drawComposition {
             translate(pos)
             isolated {
-                translate(-bounds1.width / 2 - halfGap, 0.0)
-                tree1EMatrix = model
+                translate(-bounds1.corner - Vector2(ds.treeSeparation/2, 0.0))
                 composition(tree1NC)
             }
             isolated {
-                translate(bounds2.width / 2 + halfGap, 0.0)
-                tree2EMatrix = model
+                translate(-bounds2.corner + Vector2(bounds1.width + ds.treeSeparation/2, 0.0))
                 composition(tree2NC)
             }
         }

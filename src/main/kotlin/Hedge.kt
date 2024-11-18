@@ -92,7 +92,7 @@ class Hedge(
         val h = abs(highestNode.firstDown.pos.y - highestPoint.y)
         val treePos = TreePosition(highestNode.firstDown, h + 1)
 
-        val pathNode = treeMapping[treePos]
+        val pathNode = treeMapping[treePos]!!
 
         val pathID = visualization.getPathID(pathNode.firstDown, if (t1) visualization.tree2PathDecomposition else visualization.tree1PathDecomposition)
         println("checked pathID: $pathID")

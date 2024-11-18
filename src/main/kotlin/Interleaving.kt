@@ -241,7 +241,7 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
     operator fun get(pos: TreePosition<T>): TreePosition<T>? {
         if (nodeMap.isEmpty()) return null
 
-        val nodeResult = nodeMap[pos.firstDown]!!
+        val nodeResult = nodeMap[pos.firstDown] ?: return null
         if (pos.heightDelta == 0.0) {
             return nodeResult
         }
