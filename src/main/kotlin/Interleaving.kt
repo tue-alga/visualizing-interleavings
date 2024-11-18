@@ -238,9 +238,7 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         return deepestPath
     }
 
-    operator fun get(pos: TreePosition<T>): TreePosition<T>? {
-        if (nodeMap.isEmpty()) return null
-
+    operator fun get(pos: TreePosition<T>): TreePosition<T> {
         val nodeResult = nodeMap[pos.firstDown]!!
         if (pos.heightDelta == 0.0) {
             return nodeResult
