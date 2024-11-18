@@ -473,9 +473,9 @@ fun vulc_25_ts150am_vs_150pm(pos: Vector2): Visualization {
     }
 }
 
-fun vulc_25_ts151am_vs_151pm(pos: Vector2): Visualization {
-    val tree1 = parseTree("")
-    val tree2 = parseTree("")
+fun vulc_25_ts150am_vs_151pm(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0.2397(3.1925)(0.543(0.98799(1.3234(1.7029(3.4772(6.4383)(5.9871))(6.0748))(1.629(4.7824)(4.2939)))(1.2587(1.3776(2.0052(7.6294)(6.0667))(9.4685))(7.3541)))(3.2373)))")
+    val tree2 = parseTree("(0.3907(0.46803(3.2518)(0.81681(2.0717(7.3303)(5.495))(2.3462(5.4626)(8.0314))))(4.3764))")
 
     return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
@@ -494,12 +494,22 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = vulc_25_ts150am_vs_150pm(drawer.bounds.center)
+        var visualization = vulc_25_ts150am_vs_151pm(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
 
         println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
         println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
+
+//        val input = object {
+//
+//            var tree1 = null
+//            @ActionParameter("Tree 1") {
+//                fun getTree1(){
+//
+//                }
+//            }
+//        }
 
         val viewSettings = object {
             @ActionParameter("Fit to screen")
@@ -581,6 +591,39 @@ fun main() = application {
 //                    visualization.compute()
 //                }
 //            }
+        }
+
+        window.drop.listen { dropped ->
+
+            //println("${dropped.files.size} files dropped at ${dropped.position}")
+            val firstFile = dropped.files.firstOrNull {
+                File(it).extension.lowercase() in listOf("txt")
+            }
+            val secondFile = dropped.files.lastOrNull {
+                File(it).extension.lowercase() in listOf("txt")
+            }
+
+            if (firstFile != null && secondFile != null) {
+                println(File(firstFile).readText())
+                val tree1 = parseTree(File(firstFile).readText())
+                val tree2 = parseTree(File(secondFile).readText())
+
+                visualization.reCompute(tree1, tree2)
+
+//                visualization = Visualization(tree1, tree2, drawer.bounds.center) { tree1E, tree2E ->
+//                    monotoneInterleaving(tree1E, tree2E)
+//                }
+//                visualization.tcs = ThreeColorSettings(dcs)
+//                visualization.ds = DrawSettings()
+//                visualization.compute()
+
+                println("Delta: " + visualization.interleaving.delta)
+
+                println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
+                println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
+
+                //gui.loadParameters(File("gui-parameters/paper.json"))
+            }
         }
 
         var mouseTree1Position: TreePosition<EmbeddedMergeTree>? = null

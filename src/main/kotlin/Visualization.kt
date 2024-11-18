@@ -9,15 +9,15 @@ import kotlin.math.min
 
 
 class Visualization(
-    val tree1: MergeTree,
-    val tree2: MergeTree,
+    var tree1: MergeTree,
+    var tree2: MergeTree,
     val pos: Vector2,
     val tes: TreeEmbedSettings = TreeEmbedSettings(),
-    val ds: DrawSettings = DrawSettings(),
+    var ds: DrawSettings = DrawSettings(),
     val globalcs: GlobalColorSettings = GlobalColorSettings(),
     var tcs: ThreeColorSettings = ThreeColorSettings(DivergingColorSettings()),
     val gcs: GradientColorSettings = GradientColorSettings(),
-    val createInterleaving: (EmbeddedMergeTree, EmbeddedMergeTree) -> Interleaving<EmbeddedMergeTree>
+    var createInterleaving: (EmbeddedMergeTree, EmbeddedMergeTree) -> Interleaving<EmbeddedMergeTree>
 ) {
     lateinit var tree1E: EmbeddedMergeTree
     lateinit var tree2E: EmbeddedMergeTree
@@ -54,6 +54,17 @@ class Visualization(
     val bbox: Rectangle get() = compBounds.offsetEdges(min(compBounds.width, compBounds.height) * 0.1)
 
     init {
+        compute()
+    }
+
+    fun reCompute (tree1: MergeTree, tree2: MergeTree){
+        this.tree1 = tree1
+        this.tree2 = tree2
+
+        tree1E = tidyTree(tree1, tes)
+        tree2E = tidyTree(tree2, tes)
+
+        interleaving = monotoneInterleaving(tree1E, tree2E)
         compute()
     }
 
