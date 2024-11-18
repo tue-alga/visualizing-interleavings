@@ -78,7 +78,7 @@ class Visualization(
 
         val height = abs(min(tree1E.height, tree2E.height) - max(tree1E.leaves().maxOf{ it.height }, tree2E.leaves().maxOf{ it.height }))
 
-        val scaling = (tree1Width+tree2Width) / height * 0.8
+        val scaling = (tree1Width+tree2Width) / height * 0.4
 
         tree1E.scaleTreeHeight(scaling)
         tree2E.scaleTreeHeight(scaling)
@@ -1199,7 +1199,7 @@ class Visualization(
             val edge = lowestPathPoint.firstDown.edgeContour;
             if (edge == null) return
             val curveOffset =
-                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 1.0);
+                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 2.0);
             val subContour = edge.sub(0.0, curveOffset!!)
             val blackBottomMargin = ds.verticalEdgeWidth * (1 - ds.verticalMappedRatio) / edge.length / 2
 
@@ -1407,7 +1407,7 @@ class Visualization(
         rightX += ds.gridlinePadding
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
-        val yStep = interleaving.delta / 4
+        val yStep = interleaving.delta /2
         val startHeight = min(tree1E.pos.y, tree2E.pos.y) - interleaving.delta - ds.blobRadius - yStep
 
         drawer.apply {
