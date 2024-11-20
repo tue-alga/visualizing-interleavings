@@ -36,7 +36,9 @@ fun <T: MergeTreeLike<T>> monotoneInterleaving(source: T, target: T): Interleavi
 
     val (delta, reachableSpace) = computeFrechet(sourceCurve, targetCurve)
     val path = getReachablePath(reachableSpace)
+    //println("reach path")
     val matching = getMatching(path)
+    //println("aftermatching")
     val (sourceToTarget, targetToSource) = matching
 
     val stLeafMap = mutableMapOf<T, T>()
@@ -52,7 +54,13 @@ fun <T: MergeTreeLike<T>> monotoneInterleaving(source: T, target: T): Interleavi
         // Take floor and ceiling of curve parameter.
         // The integer that is odd is the 'leaf index'
         val f = floor(map.second).toInt()
-        val c = ceil(map.second).toInt()
+        var c = ceil(map.second).toInt()
+
+        if (f == c && c % 2 ==0){
+            //println("panic")
+            c+=1
+        }
+
         val l = listOf(f, c).first { it % 2 == 1 }
 
         val sourceLeaf = sLeaves[(map.first - 1) / 2]
@@ -60,22 +68,35 @@ fun <T: MergeTreeLike<T>> monotoneInterleaving(source: T, target: T): Interleavi
         stLeafMap[sourceLeaf] = targetLeaf
     }
 
-    for (i in 0 until target.leaves().size) {
+    //println("first for loop")
+    //println("leaveSize: "+ tLeaves.size)
+
+    for (i in 0 until tLeaves.size) {
+        //println("i: " + i)
         val pathVertexIndex = i * 2 + 1
         val map = targetToSource.first { it.first == pathVertexIndex }
-
+        //println("1")
         // Take floor and ceiling of curve parameter.
         // The integer that is odd is the 'leaf index'
         val f = floor(map.second).toInt()
-        val c = ceil(map.second).toInt()
+        var c = ceil(map.second).toInt()
+
+        if (f == c && c % 2 ==0){
+            //println("panic")
+            c+=1
+        }
+
         val l = listOf(f, c).first { it % 2 == 1 }
+        //println("l")
 
         val targetLeaf = tLeaves[(map.first - 1) / 2]
         val sourceLeaf = sLeaves[(l - 1)/2]
         tsLeafMap[targetLeaf] = sourceLeaf
     }
+    //println("second for loop")
 
-    return Interleaving(leafMapping(stLeafMap, delta - 0.00001), leafMapping(tsLeafMap, delta - 0.00001), delta - 0.00001)
+
+    return Interleaving(leafMapping(stLeafMap, delta), leafMapping(tsLeafMap, delta), delta)
 }
 
 fun <T: MergeTreeLike<T>>inducedCurve(tree: T, rootHeight: Double) : List<Double> {
@@ -129,6 +150,7 @@ fun computeFrechet(source: List<Double>, target: List<Double>) : Pair<Double, Re
         if (passed) {
             upperbound = mid
             finalReachableSpace = reachableSpace
+            //println(finalReachableSpace)
         } else {
             lowerbound = mid
         }
@@ -146,6 +168,7 @@ fun frechetDecision(delta: Double, source: List<Double>, target: List<Double>) :
     val (freeLeft, freeBottom) = computeFreeSpace(delta, source, target)
 
     val reachable = computeReachableSpace(delta, source, target, freeLeft, freeBottom)
+
     return (reachable.left.last().last() < Double.POSITIVE_INFINITY) to reachable
 }
 
@@ -191,6 +214,7 @@ fun freeBoundary(delta: Double, h: Double, start: Double, end: Double) : Interva
     }
 
     if (ineq2 > 1.0 || ineq1 < 0.0) { return Interval() }
+
 
     return Interval(max(0.0, ineq2), min(1.0, ineq1))
 }

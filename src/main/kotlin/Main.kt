@@ -583,7 +583,9 @@ fun main() = application {
                     visualization.tcs = ThreeColorSettings(dcs)
                     visualization.compute()
                 }
-
+                "svgFileName" ->{
+                    //donothing
+                }
                 else -> {
                     visualization.compute()
                 }
@@ -613,6 +615,7 @@ fun main() = application {
 
             if (firstFile != null && secondFile != null) {
                 println(File(firstFile).readText())
+                println(File(secondFile).readText())
                 val tree1 = parseTree(File(firstFile).readText())
                 val tree2 = parseTree(File(secondFile).readText())
 

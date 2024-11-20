@@ -4,6 +4,7 @@ import org.openrndr.shape.CompositionDrawer
 import org.openrndr.shape.LineSegment
 import org.openrndr.shape.ShapeContour
 import java.util.*
+import kotlin.math.abs
 
 interface MergeTreeLike<T> {
     val height: Double
@@ -81,7 +82,7 @@ open class EmbeddedMergeTree(var pos: Vector2,
                              var horizontalContour: ShapeContour?,
                              var fullWidth: Boolean = true,
                              override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
-                             override val parent: EmbeddedMergeTree? = null,
+                             override var parent: EmbeddedMergeTree? = null,
                              override var id: Int = -1) : MergeTreeLike<EmbeddedMergeTree> {
     override var height: Double = pos.y
 
@@ -95,6 +96,25 @@ open class EmbeddedMergeTree(var pos: Vector2,
 
         for (child in children) {
             child.scaleTreeHeight(scaling)
+        }
+    }
+
+    fun mergeCloseNodes(){
+        for (i in children.indices) {
+            if (i > children.size -1) break
+            if (abs(height - children[i].height) < 5) {
+                //child.height = height
+                for (grandChild in children[i].children) {
+                    grandChild.parent = this
+                }
+                children.addAll(i+1, children[i].children)
+
+                children.removeAt(i)
+            }
+        }
+
+        for (child in children) {
+            child.mergeCloseNodes()
         }
     }
 

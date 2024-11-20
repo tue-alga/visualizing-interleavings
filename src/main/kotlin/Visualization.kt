@@ -64,24 +64,36 @@ class Visualization(
         tree1E = tidyTree(tree1, tes)
         tree2E = tidyTree(tree2, tes)
 
+        preprosses()
         interleaving = monotoneInterleaving(tree1E, tree2E)
         compute()
+    }
+
+    fun preprosses(){
+        val tree1Width = abs(tree1E.leaves.first().pos.x - tree1E.leaves.last().pos.x)
+        val tree2Width = abs(tree2E.leaves.first().pos.y - tree2E.leaves.last().pos.y)
+
+        val height = abs(min(tree1E.height, tree2E.height) - max(tree1E.leaves().maxOf{ it.height }, tree2E.leaves().maxOf{ it.height }))
+
+        val scaling = (tree1Width+tree2Width) / height * 0.3
+
+        tree1E.scaleTreeHeight(scaling)
+        tree2E.scaleTreeHeight(scaling)
+
+//        for (i in 0..5) {
+//            tree1E.mergeCloseNodes()
+//            tree2E.mergeCloseNodes()
+//        }
     }
 
     fun compute() {
         tree1E = tidyTree(tree1, tes)
         tree2E = tidyTree(tree2, tes)
 
+        preprosses()
 
-        val tree1Width = abs(tree1E.leaves.first().pos.x - tree1E.leaves.last().pos.x)
-        val tree2Width = abs(tree2E.leaves.first().pos.y - tree2E.leaves.last().pos.y)
+        interleaving = monotoneInterleaving(tree1E, tree2E)
 
-        val height = abs(min(tree1E.height, tree2E.height) - max(tree1E.leaves().maxOf{ it.height }, tree2E.leaves().maxOf{ it.height }))
-
-        val scaling = (tree1Width+tree2Width) / height * 0.4
-
-        tree1E.scaleTreeHeight(scaling)
-        tree2E.scaleTreeHeight(scaling)
 
         interleaving = createInterleaving(tree1E, tree2E)
 
@@ -417,7 +429,7 @@ class Visualization(
         val highestNode = highestNodeInBlob(blobs, blobID)
         val h = abs(highestNode.firstDown.pos.y - highestPos.y)
 
-        val treePos = TreePosition(highestNode!!.firstDown, h + .1)// highestPos.y - 50)
+        val treePos = TreePosition(highestNode!!.firstDown, h + .00001)// highestPos.y - 50)
 
         val pathNode = if (t1) interleaving.f[treePos]!! else interleaving.g[treePos]!!
 
@@ -564,7 +576,7 @@ class Visualization(
         val tree = if (t1) tree1E else tree2E
         val leftMostLeave = blobs[blobID].first.minBy { it.firstDown.pos.x }.firstDown.leaves.first()
 //        val leftMostLeave =
-//            highestNodeInBlob(blobs, blobID)!!.firstDown.leaves.first()// getLeavesInBlob(blobs, blobID).first() //TODO: make work for non-connected blobs
+//            highestNodeInBlob(blobs, blobID)!!.firstDown.leaves.first()// getLeavesInBlob(blobs, blobID).first()
         val id = tree.leaves.indexOf(leftMostLeave)
 
         if (id != 0) {
@@ -708,7 +720,7 @@ class Visualization(
 
         touchingColors.add(parentColor)
 
-        if (leftMost && leftBlobID != -1) {
+        if (leftBlobID != -1) {
             val touchingBlobIDs = getBlobsTouchingLeft(t1, blobs, blobID, leftBlobID)
 
             for (id in touchingBlobIDs) {
@@ -717,7 +729,7 @@ class Visualization(
                 }
             }
         }
-        if (rightMost && rightBlobID != -1) {
+        if (rightBlobID != -1) {
             val touchingBlobIDs = getBlobsTouchingRight(t1, blobs, blobID, rightBlobID)
 
             for (id in touchingBlobIDs) {
@@ -1199,7 +1211,7 @@ class Visualization(
             val edge = lowestPathPoint.firstDown.edgeContour;
             if (edge == null) return
             val curveOffset =
-                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 2.0);
+                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 5.0);
             val subContour = edge.sub(0.0, curveOffset!!)
             val blackBottomMargin = ds.verticalEdgeWidth * (1 - ds.verticalMappedRatio) / edge.length / 2
 
@@ -1407,7 +1419,7 @@ class Visualization(
         rightX += ds.gridlinePadding
         rightX += if(tree2E.leaves().last().fullWidth) ds.blobRadius else ds.nonMappedRadius
 
-        val yStep = interleaving.delta /2
+        val yStep = interleaving.delta
         val startHeight = min(tree1E.pos.y, tree2E.pos.y) - interleaving.delta - ds.blobRadius - yStep
 
         drawer.apply {
