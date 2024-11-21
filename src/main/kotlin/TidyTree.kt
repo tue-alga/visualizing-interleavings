@@ -5,7 +5,7 @@ import kotlin.math.abs
 
 data class TreeEmbedSettings(
     @DoubleParameter("Node width", 0.1, 50.0)
-    var nodeWidth: Double = 20.0,
+    var nodeWidth: Double = 16.0,
 )
 
 private fun MergeTree.toAtzeTree(w: Double, h: Double = 0.0): Atze.Tree {
@@ -21,7 +21,10 @@ private fun tidyEmbedding(tree: Atze.Tree, parent: Pair<EmbeddedMergeTree, Vecto
     val contour: ShapeContour? = parent?.let {
         edgeContour(it.second, pos)
     }
-    val t = EmbeddedMergeTree(pos, parent=parent?.first, edgeContour=contour)
+    val horizontal: ShapeContour? = parent?.let {
+        horizontalConnector(it.second, pos)
+    }
+    val t = EmbeddedMergeTree(pos, parent=parent?.first, edgeContour=contour, horizontalContour=horizontal)
     for (child in tree.c) {
         val embeddedChild = tidyEmbedding(child, t to pos)
         t.children.add(embeddedChild)

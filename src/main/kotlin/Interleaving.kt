@@ -13,9 +13,15 @@ data class TreePosition<T: MergeTreeLike<T>>(val firstDown: T, val heightDelta: 
 class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
     val nodeMap: MutableMap<T, TreePosition<T>> = mutableMapOf()
     val edgeMap: MutableMap<T, List<Pair<Double, T>>> = mutableMapOf()
+    val inverseNodeEpsilonMap: MutableMap<T, MutableList<TreePosition<T>>> = mutableMapOf()
+    val pathCharges: MutableMap<T, Int> = mutableMapOf()
+
 
     //A list containing groups of leaves (represented as a list) that map to the same monotonically increasing path in the other merge tree.
     val leafGroups: MutableList<MutableList<T>> = mutableListOf()
+
+    //Stores the leave that belongs to the nodes path <node, leaves>
+    val pathDecomposition: MutableList<MutableList<T>> = mutableListOf()
 
     init {
         val key = leafMap.keys.first()
@@ -28,17 +34,17 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
         }
 
         //Create Groups of leaves that map to the same monotone path.
-        for (currentLeaf in leafMap) {
+        for (currentLeaf in leafMap.keys.reversed()) {
             var addedToGroup = false;
             for (group in leafGroups) {
-                if(shareMonotonePath(leafMap[group[0]]!!.firstDown, currentLeaf.value.firstDown)) {
-                    group.add(currentLeaf.key)
+                if(shareMonotonePath(leafMap[group[0]]!!.firstDown, leafMap[currentLeaf]!!.firstDown)) {
+                    group.add(currentLeaf)
                     addedToGroup = true
                     break
                 }
             }
             if (!addedToGroup) {
-                leafGroups.add(mutableListOf(currentLeaf.key))
+                leafGroups.add(mutableListOf(currentLeaf))
             }
         }
         //Sort groups based on deepest leaf
@@ -67,9 +73,24 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
                 val thisHeight = current.height + delta
 
                 // Check if current is mapped to by a point on this edge
-                if (thisHeight >= node.parent!!.height) {
+                if (thisHeight >= node.parent!!.height){// || (thisHeight > node.parent!!.height && node.parent == null)) {
+                    //heightDelta = node.height - (lowestPathPoint.firstUp!!.height + delta)
+                    //thisHeight - (node.height - current.height)
+                    val treePoint = TreePosition(node, (node.height) - thisHeight)// - current.height))
+
+                    if (thisHeight > node.parent!!.height) {
+                        if (!inverseNodeEpsilonMap.contains(current)) {
+                            inverseNodeEpsilonMap[current] = mutableListOf()
+                        }
+
+                        //val checkIfAlreadyInMap = inverseNodeEpsilonMap[current]!!.any { it.firstDown == treePoint.firstUp }
+
+                       // if (!checkIfAlreadyInMap)
+                            inverseNodeEpsilonMap[current]!!.add(treePoint)
+                    }
                     thisEdgeMap.add(Pair(thisHeight, current))
                     current = current.parent
+
                 } else {
                     break
                 }
@@ -83,10 +104,147 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
 
             edgeMap[node] = thisEdgeMap
         }
+        val root = getRoot(inverseNodeEpsilonMap.keys.first())
+
+        //Set charge of all nodes (1 charge for each path that maps to that node)
+        for (n in inverseNodeEpsilonMap.keys) {
+            if (inverseNodeEpsilonMap[n] == null) continue;
+
+            for (i in inverseNodeEpsilonMap[n]!!.indices) {
+
+                val treePos = nodeMap[inverseNodeEpsilonMap[n]!![i].firstDown]
+                val pathNode = treePos!!.firstDown;
+
+
+                if (!pathCharges.contains(pathNode)) {
+                    pathCharges[pathNode] = 0;
+                }
+                pathCharges[pathNode] = pathCharges[pathNode]!! + 1;
+            }
+        }
+        createPaths(root)
     }
 
-    operator fun get(pos: TreePosition<T>): TreePosition<T> {
-        val nodeResult = nodeMap[pos.firstDown]!!
+    private fun createPaths(node: T) {
+        for (child in node.children) {
+            createPaths(child)
+        }
+
+        //First node of path
+        if (!hasChargedChildren(node) && pathCharges.contains(node)) {
+            pathDecomposition.add(mutableListOf(node))
+            if (!pathCharges.contains(node.parent)){
+                pathCharges[node.parent!!] = 1
+            }
+        }
+        else if (node.children.isNotEmpty()) {
+            if (getIdOfPriorityPath(node) != -1) {
+                pathDecomposition[getIdOfPriorityPath(node)].add(node)
+                if (!pathCharges.contains(node)) {
+                    pathCharges[node] = 1
+                }
+            }
+        }
+    }
+
+    private fun getRoot(node: T): T {
+        var current: T? = node
+
+        while (current!!.parent != null){
+            current = current.parent
+        }
+
+        return current
+    }
+
+    private fun hasChargedChildren(node: MergeTreeLike<T>): Boolean {
+        if (node.children.isEmpty()) return false
+
+        for (child in node.children) {
+            if (pathCharges.contains(child) && pathCharges[child] != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private fun getIdOfPriorityPath(node: T): Int {
+        val highCharged: MutableList<T> = mutableListOf()
+
+        val chargeList: MutableMap<Int, MutableList<T>> = mutableMapOf()
+
+        var highestCharge = 0
+
+        for (child in node.children) {
+            if (pathCharges[child] != null) {
+                if (chargeList[pathCharges[child]] == null){
+                    chargeList[pathCharges[child]!!] = mutableListOf()
+                    chargeList[pathCharges[child]!!]!!.add(child)
+
+                    if (pathCharges[child]!! >= highestCharge) {
+                        highestCharge = pathCharges[child]!!;
+                    }
+                }
+                else if (chargeList.contains(pathCharges[child])){
+                    chargeList[pathCharges[child]]!!.add(child)
+                }
+            }
+        }
+
+        if (highestCharge == 0){
+            if (node.children.isEmpty()) return getPathID(node)
+
+            for (child in node.children) {
+                if (getPathID(child) != -1)
+                    return getPathID(child)
+            }
+
+            return getPathID(node.children.first())
+        }
+
+        if (chargeList[highestCharge]!!.count() == 1) {
+            getPathID(chargeList[highestCharge]!!.first())//id of chargeList[highestCharge].first()
+        }
+
+        return getPathID(getDeepestPath(chargeList[highestCharge]!!))
+    }
+
+    fun getPathID(node: T): Int {
+        for (i in pathDecomposition.indices) {
+            if (pathDecomposition[i].contains(node)) {
+                return i;
+            }
+        }
+        return -1
+    }
+
+    private fun getDeepestPath(nodes: MutableList<T>): T{
+
+        var deepestPath: T = nodes.first()
+
+        for (i in nodes.indices){
+            if (i == 0) continue
+
+            if(getPathID(nodes[i]) == -1){ continue }
+
+            if (getPathID(deepestPath) == -1){
+                deepestPath = nodes[i]
+                continue
+            }
+
+            if (pathDecomposition[getPathID(nodes[i])].first().height >= pathDecomposition[getPathID(deepestPath)].first().height) {
+                deepestPath = nodes[i]
+            }
+
+        }
+
+        return deepestPath
+    }
+
+    operator fun get(pos: TreePosition<T>): TreePosition<T>? {
+        if (nodeMap.isEmpty()) return null
+
+        val nodeResult = nodeMap[pos.firstDown] ?: return null
         if (pos.heightDelta == 0.0) {
             return nodeResult
         }
@@ -98,6 +256,11 @@ class TreeMapping<T: MergeTreeLike<T>>(leafMap: Map<T, TreePosition<T>>) {
     }
 }
 
+// tm : TreeMapping
+// tp: TreePosition
+// tm[tp]
+// tm.get(tp)
+
 data class Interleaving<T: MergeTreeLike<T>>(val f: TreeMapping<T>, val g: TreeMapping<T>, val delta: Double)
 
 /** Helper function to create a tree mapping. [leafMap] should map leaves to leaves. The function returns
@@ -106,14 +269,28 @@ fun <T: MergeTreeLike<T>> leafMapping(leafMap: Map<T, T>, delta: Double): TreeMa
     val leafToPointMap = buildMap {
         for ((leaf1, leaf2) in leafMap) {
             var current = leaf2
-            while (current.parent != null && current.parent!!.height > leaf1.height - delta) {
+            while (current.parent != null && current.parent!!.height > leaf1.height - delta - 0.0001) {
                 current = current.parent!!
             }
-            set(leaf1, TreePosition(current, current.height - (leaf1.height - delta)))
+            set(leaf1, TreePosition(current, current.height - (leaf1.height - delta - 0.0001)))
         }
     }
 
     return TreeMapping(leafToPointMap)
+}
+
+fun <T: MergeTreeLike<T>> getDeepestNodeInPath(path: MutableList<T>): MergeTreeLike<T> {
+    var deepest: MergeTreeLike<T>? = null
+
+    for (node in path) {
+        if (deepest == null) { deepest = node}
+        else {
+            if (node.height <= deepest.height) {
+                deepest = node
+            }
+        }
+    }
+    return deepest!!
 }
 
 //Helper method to check if two nodes are on one monotone path.

@@ -1,13 +1,16 @@
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Vector2
 import org.openrndr.shape.CompositionDrawer
+import org.openrndr.shape.LineSegment
 import org.openrndr.shape.ShapeContour
 import java.util.*
+import kotlin.math.abs
 
 interface MergeTreeLike<T> {
     val height: Double
     val children: List<T>
     val parent: T?
+    var id: Int
 }
 
 fun <T: MergeTreeLike<T>> T.leaves(): List<T> {
@@ -39,7 +42,8 @@ fun <T: MergeTreeLike<T>> T.nodes(): Iterable<T> = object : Iterable<T> {
 class MergeTree(
     override val height: Double,
     override val children: MutableList<MergeTree> = mutableListOf(),
-    override val parent: MergeTree? = null): MergeTreeLike<MergeTree> {
+    override val parent: MergeTree? = null,
+    override var id: Int = -1): MergeTreeLike<MergeTree> {
 
     val leaves: List<MergeTree> by lazy {
         this.leaves()
@@ -73,29 +77,104 @@ fun MergeTree.reverse(): MergeTree {
     return MergeTree(height, children.map { it.reverse() }.reversed().toMutableList(), this)
 }
 
-class EmbeddedMergeTree(val pos: Vector2,
-                        val edgeContour: ShapeContour?,
-                        override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
-                        override val parent: EmbeddedMergeTree? = null) : MergeTreeLike<EmbeddedMergeTree> {
-    override val height: Double = pos.y
+open class EmbeddedMergeTree(var pos: Vector2,
+                             var edgeContour: ShapeContour?,
+                             var horizontalContour: ShapeContour?,
+                             var fullWidth: Boolean = true,
+                             override val children: MutableList<EmbeddedMergeTree> = mutableListOf(),
+                             override var parent: EmbeddedMergeTree? = null,
+                             override var id: Int = -1) : MergeTreeLike<EmbeddedMergeTree> {
+    override var height: Double = pos.y
 
     val leaves: List<EmbeddedMergeTree> by lazy {
         this.leaves()
     }
 
+    fun scaleTreeHeight(scaling: Double) {
+        pos = Vector2(pos.x, pos.y*scaling)
+        height = pos.y
+
+        for (child in children) {
+            child.scaleTreeHeight(scaling)
+        }
+    }
+
+    fun mergeCloseNodes(){
+        for (i in children.indices) {
+            if (i > children.size -1) break
+            if (abs(height - children[i].height) < 5) {
+                //child.height = height
+                for (grandChild in children[i].children) {
+                    grandChild.parent = this
+                }
+                children.addAll(i+1, children[i].children)
+
+                children.removeAt(i)
+            }
+        }
+
+        for (child in children) {
+            child.mergeCloseNodes()
+        }
+    }
+
+    fun setID(currentID: Int): Int{
+        id = currentID
+        var nextID = currentID + 1
+
+        for (child in children) {
+            nextID = child.setID(nextID)
+        }
+        return nextID
+    }
+
+    fun getDeepestLeaf(): EmbeddedMergeTree {
+        var deepest = leaves.first()
+
+        for (leave in leaves) {
+            if (leave.pos.y > deepest.pos.y){
+                deepest = leave
+            }
+        }
+
+        return deepest
+    }
+
     //Color of the root node from the blob decomposition. BLACK = not assigned.
     var blobColor = ColorRGBa.BLACK;
 
-    fun draw(drawer: CompositionDrawer, markRadius: Double) {
+    fun draw(drawer: CompositionDrawer, t1: Boolean, ds: DrawSettings, globalcs: GlobalColorSettings) {
         drawer.apply {
             for (child in children) {
-                stroke = ColorRGBa.BLACK
+                stroke = if (t1) globalcs.edgeColor else globalcs.edgeColor2
                 fill = null
-                strokeWeight = markRadius / 3.0
+
+                val vWidth = if(ds.thinNonMapped) ds.nonMappedVerticalEdges else if (child.fullWidth) ds.verticalEdgeWidth else ds.nonMappedVerticalEdges
+                strokeWeight = vWidth
                 contour(child.edgeContour!!)
-                child.draw(this, markRadius)
+                strokeWeight = ds.horizontalEdgeWidth
+
+                //val blobContour = LineSegment(pos, Vector2(pos.x, -5.0)).contour
+                var hContour = child.horizontalContour
+                if (hContour != null) {
+                    var pos1 = hContour.position(0.0)
+                    val pos2 = hContour.position(1.0)
+                    if (pos1.x != pos2.x) {
+                        if (pos1.x < pos2.x) {
+                            pos1 = Vector2(pos1.x - vWidth/2, pos1.y)
+                        }
+                        else {
+                            pos1 = Vector2(pos1.x + vWidth/2, pos1.y)
+                        }
+                        hContour = LineSegment(pos1, pos2).contour
+                    }
+                }
+                contour(hContour!!)
+
+                child.draw(this, t1, ds, globalcs)
             }
-            node(pos, markRadius)
+            if (ds.drawNodes)
+                node(pos, ds.markRadius)
         }
     }
 
