@@ -1,4 +1,3 @@
-import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector2
@@ -16,7 +15,6 @@ class Visualization(
     var ds: DrawSettings = DrawSettings(),
     val globalcs: GlobalColorSettings = GlobalColorSettings(),
     var tcs: ThreeColorSettings = ThreeColorSettings(DivergingColorSettings()),
-    val gcs: GradientColorSettings = GradientColorSettings(),
     var createInterleaving: (EmbeddedMergeTree, EmbeddedMergeTree) -> Interleaving<EmbeddedMergeTree>
 ) {
     lateinit var tree1E: EmbeddedMergeTree
@@ -928,24 +926,6 @@ class Visualization(
         }
     }
 
-    fun colorGradiantValue(t1: Boolean, t: Double): ColorRGBa {
-        val startColor = if (t1) gcs.t1c1 else gcs.t2c1;
-        val endColor = if (t1) gcs.t1c2 else gcs.t2c2;
-
-        when (gcs.colorInterpolation) {
-            ColorInterpolationType.RGBLinear -> {
-                return startColor.mix(endColor, t)
-            }
-
-            ColorInterpolationType.HSVShort -> {
-                val hsvStartColor = ColorHSVa.fromRGBa(startColor)
-                val hsvEndColor = ColorHSVa.fromRGBa(endColor)
-                return hsvStartColor.mix(hsvEndColor, t).toRGBa();
-            }
-        }
-    }
-
-
     fun colorThreeValues(t1: Boolean, size: Int): List<ColorRGBa> {
         val c1 = if (t1) tcs.t1c1 else tcs.t2c1;
         val c2 = if (t1) tcs.t1c2 else tcs.t2c2;
@@ -1211,7 +1191,7 @@ class Visualization(
             val edge = lowestPathPoint.firstDown.edgeContour;
             if (edge == null) return
             val curveOffset =
-                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 5.0);
+                if (interleaving.delta < 0.001) 0.0 else edge!!.on(treePositionToPoint(lowestPathPoint)!!, 50.0);
             val subContour = edge.sub(0.0, curveOffset!!)
             val blackBottomMargin = ds.verticalEdgeWidth * (1 - ds.verticalMappedRatio) / edge.length / 2
 
