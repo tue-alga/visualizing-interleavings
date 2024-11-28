@@ -167,11 +167,6 @@ data class ThreeColorSettings(
         ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa())
 }
 
-
-enum class ColorInterpolationType {
-    RGBLinear, HSVShort
-}
-
 fun vulc_25_ts150am_vs_151pm(pos: Vector2): Visualization {
     val tree1 = parseTree("(0.2397(3.1925)(0.543(0.98799(1.3234(1.7029(3.4772(6.4383)(5.9871))(6.0748))(1.629(4.7824)(4.2939)))(1.2587(1.3776(2.0052(7.6294)(6.0667))(9.4685))(7.3541)))(3.2373)))")
     val tree2 = parseTree("(0.3907(0.46803(3.2518)(0.81681(2.0717(7.3303)(5.495))(2.3462(5.4626)(8.0314))))(4.3764))")
@@ -245,15 +240,6 @@ fun main() = application {
         gui.add(viewSettings, "View")
         gui.add(exportSettings, "Export")
 
-//        val f = File("colors.txt")
-//        val lines = f.readLines()
-//        visualization.tcs.t1c1 = ColorRGBa.fromHex(lines[0])
-//        visualization.tcs.t1c2 = ColorRGBa.fromHex(lines[1])
-//        visualization.tcs.t1c3 = ColorRGBa.fromHex(lines[2])
-//        visualization.tcs.t2c1 = ColorRGBa.fromHex(lines[3])
-//        visualization.tcs.t2c2 = ColorRGBa.fromHex(lines[4])
-//        visualization.tcs.t2c3 = ColorRGBa.fromHex(lines[5])
-
         gui.loadParameters(File("gui-parameters/paper.json"))
 
         gui.onChange { name, value ->
@@ -272,8 +258,6 @@ fun main() = application {
         }
 
         window.drop.listen { dropped ->
-
-            //println("${dropped.files.size} files dropped at ${dropped.position}")
             val firstFile = dropped.files.firstOrNull {
                 File(it).extension.lowercase() in listOf("txt")
             }
