@@ -300,10 +300,8 @@ fun <T1: MergeTreeLike<T1>, T2: MergeTreeLike<T2>> shareMonotonePath(tree1: T1, 
     if(tree1 == tree2) return true
 
     //return true if they share a common child.
-    for (current in tree1.nodes()) {
-        for (other in tree2.nodes()) {
-            if (current == other) return true
-        }
+    for (current in tree1.leaves()) {
+        if (current == tree2.leaves().first() || current == tree2.leaves().last()) return true
     }
 
     return false

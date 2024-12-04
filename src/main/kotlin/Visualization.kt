@@ -65,7 +65,6 @@ class Visualization(
         this.tree1 = tree1
         this.tree2 = tree2
 
-        println("starting recompute")
         compute()
     }
 
@@ -92,11 +91,7 @@ class Visualization(
 
         preprosses()
 
-        interleaving = monotoneInterleaving(tree1E, tree2E)
-
         interleaving = createInterleaving(tree1E, tree2E)
-
-        println("interleaving finished")
 
         tree1E.setID(0)
         tree2E.setID(0)
@@ -106,7 +101,6 @@ class Visualization(
         if (interleaving.f.inverseNodeEpsilonMap.keys.first().parent == null) {
             interleaving.f.inverseNodeEpsilonMap.keys.first().setID(0)
         }
-        println("inversenodemap finished")
 
         tree1Colors.clear()
         tree2Colors.clear()
@@ -120,8 +114,6 @@ class Visualization(
         pathDecomposition(true)
         pathDecomposition(false)
 
-        println("path decomp finished")
-
         repositionNodes(true, tree1E)
         repositionNodes(false, tree2E)
 
@@ -132,8 +124,6 @@ class Visualization(
             repositionNodes(true, tree1E)
             repositionNodes(false, tree2E)
         }
-
-        println("repositioning finished")
 
         treePairComposition()
 //        hedgeComposition(true)
@@ -894,21 +884,19 @@ class Visualization(
         }
     }
 
-    fun drawBlobs(drawer: CompositionDrawer, t1: Boolean) {
-        //if (!blobsEnabled) return;
-        var count: Int = 0;
-
+    fun drawBlobs (drawer: CompositionDrawer, t1: Boolean)  = runBlocking  {
         if (t1) {
             for (blob in tree1BlobsTest.reversed()) {
-                drawBlob(drawer, tree1E, blob, tree1BlobsTest.size)
-                count += 1
+                launch {
+                    drawBlob(drawer, tree1E, blob, tree1BlobsTest.size)
+                }
             }
         } else {
-            count = 0
             //Draw blobs of tree2 (reversed to draw large blobs on top of smaller blobs)
             for (blob in tree2BlobsTest.reversed()) {
-                drawBlob(drawer, tree2E, blob, tree2BlobsTest.size)
-                count += 1
+                launch {
+                    drawBlob(drawer, tree2E, blob, tree2BlobsTest.size)
+                }
             }
         }
     }
@@ -1170,7 +1158,6 @@ class Visualization(
 
     /** Draw tree1E and tree2E side by side */
     private fun treePairComposition() = runBlocking<Unit> {
-        println("starting treePairComp")
 
         val tree1CAsync = async{ drawComposition {
             //drawBlobs(this)
@@ -1182,58 +1169,39 @@ class Visualization(
         val tree1C = tree1CAsync.await()
         val tree2C = tree2CAsync.await()
 
-        println("tree draw comp finished")
-
         val tree1NC = drawComposition { tree1E.drawNodes(this, ds.markRadius) }
         val tree2NC = drawComposition { tree2E.drawNodes(this, ds.markRadius) }
 
-        println("node draw comp finished")
-
-        val halfGap = ds.treeSeparation / 2
+        val halfGap = ds.treeSeparation * 0.5
         blobCompositionTest(true)
         blobCompositionTest(false)
-
-        println("blobcomp finished")
 
         tree1BlobIndicesSorted = tree1BlobsTest.indices.toMutableList()
         tree2BlobIndicesSorted = tree2BlobsTest.indices.toMutableList()
         tree1BlobIndicesSorted.sortBy { highestPointInBlob(true, tree1BlobsTest, it).y }
         tree2BlobIndicesSorted.sortBy { highestPointInBlob(false, tree2BlobsTest, it).y }
 
-        println("sorting finished")
-
 //        setHedgeColors()
         setBlobColorsTest(true)
         setBlobColorsTest(false)
 
-        println("setting colors finished")
-
-//        val time = measureTimeMillis {
-//            val one = async { Dosomething() }
-//            val two = async { Dosomething() }
-//            println("The answer is ${one.await() + two.await()}")
-//        }
-//        println("Completed in $time ms")
 
         val tree1BlobDrawingAsync = async { drawComposition { drawBlobs(this, true) } }
         val tree2BlobDrawingAsync = async { drawComposition { drawBlobs(this, false) } }
-        val tree1BlobDrawing = tree1BlobDrawingAsync.await()
-        val tree2BlobDrawing = tree2BlobDrawingAsync.await()
-
-        println("blob drawing finished")
-
-        val bounds1 = tree1BlobDrawing.findShapes().map { it.bounds }.bounds
-        val bounds2 = tree2BlobDrawing.findShapes().map { it.bounds }.bounds
 
         val tree1PathDrawingAsync = async { drawComposition { drawPaths(this, false) } }
         val tree2PathDrawingAsync = async { drawComposition { drawPaths(this, true) } }
 
+        val tree1BlobDrawing = tree1BlobDrawingAsync.await()
+        val tree2BlobDrawing = tree2BlobDrawingAsync.await()
+
+        val bounds1 = tree1BlobDrawing.findShapes().map { it.bounds }.bounds
+        val bounds2 = tree2BlobDrawing.findShapes().map { it.bounds }.bounds
         val grid1 = drawComposition { drawGrid(this, bounds1, bounds2, halfGap) }
 
         val tree1PathDrawing = tree1PathDrawingAsync.await()
         val tree2PathDrawing = tree2PathDrawingAsync.await()
 
-        println("pathdrawing finished")
         //val grid2 = drawComposition { drawGrid(this, tree2E, halfGap) }
 
 
