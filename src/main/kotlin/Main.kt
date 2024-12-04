@@ -14,6 +14,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sqrt
+import kotlinx.coroutines.*
 
 fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
     val c = tp.firstDown.edgeContour ?: LineSegment(tp.firstDown.pos, tp.firstDown.pos - Vector2(0.0, 1000.0)).contour
@@ -167,9 +168,9 @@ data class ThreeColorSettings(
         ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa())
 }
 
-fun vulc_25_ts150am_vs_151pm(pos: Vector2): Visualization {
-    val tree1 = parseTree("(0.2397(3.1925)(0.543(0.98799(1.3234(1.7029(3.4772(6.4383)(5.9871))(6.0748))(1.629(4.7824)(4.2939)))(1.2587(1.3776(2.0052(7.6294)(6.0667))(9.4685))(7.3541)))(3.2373)))")
-    val tree2 = parseTree("(0.3907(0.46803(3.2518)(0.81681(2.0717(7.3303)(5.495))(2.3462(5.4626)(8.0314))))(4.3764))")
+fun startInput(pos: Vector2): Visualization {
+    val tree1 = parseTree("(0.084303(0.089764(0.11142)(0.10713))(0.16119(0.44434(0.68726)(0.4826))(0.16453(0.19375(0.19375(0.26358(0.3994(0.41339(0.41661(0.49857(0.51343(0.52593)(0.74111))(0.57261(0.63464)(0.58276)))(0.43741(0.50612)(0.44335(0.49114)(0.47629))))(0.4488(0.47851(0.50711)(0.54549(0.896)(0.57013)))(0.51578)))(0.48037(0.5263)(0.50637)))(0.29094(0.35706(0.81045)(0.39061(0.46069)(0.44162)))(0.30308)))(0.22247(0.25207(0.311(0.33267(0.34517(0.39073(0.40138)(1.0))(0.37092))(0.35186))(0.32734))(0.27088))(0.23312)))(0.24872(0.26234(0.35743(0.38392(0.39507(0.44174)(0.40794))(0.4613))(0.80995))(0.27844))(0.26742(0.38999(0.3994(0.4488(0.47666(0.50018(0.63489)(0.50786(0.52643)(0.74173)))(0.4826(0.50699)(0.53126(0.54859)(0.54525(0.71821(0.89687)(0.73344))(0.57013)))))(0.51578))(0.48025(0.52643)(0.50637)))(0.40249))(0.27819))))(0.22173))))")
+    val tree2 = parseTree("(0.092946(0.099749(0.12359)(0.11917))(0.1855(0.19195(0.47786(0.77421)(0.55184))(0.25701))(0.22022(0.28954(0.30587(0.45562(0.50216(0.51945(0.63228(0.81031)(0.69418(0.75074)(0.81991)))(0.5211(0.57147)(0.53757(0.55102)(0.55953))))(0.50545(0.59714(0.8589(0.92643)(0.94098))(0.63063))(0.57641)))(0.54141(0.59316)(0.56859)))(0.31946))(0.30738(0.33538)(0.41307(0.99629)(0.48596(0.50531(0.55033)(0.54896))(0.50765)))))(0.22118(0.29613(0.3115(0.3535(0.37286(0.40607(0.45727(1.0)(0.47114))(0.42804))(0.39427))(0.36915))(0.33799))(0.3067))(0.29119(0.4025(0.43092(0.49296(0.51025(0.54855)(0.55033))(0.50751))(0.45686))(0.99492))(0.29709(0.43147(0.45562(0.50312(0.55006(0.55143(0.62748(0.82225)(0.68073(0.69707)(0.80976)))(0.59714))(0.597(0.87894(0.94249)(0.92684))(0.63063)))(0.57641))(0.54141(0.5933)(0.56859)))(0.44176))(0.3137)))))))")
 
     return Visualization(tree1, tree2, pos) { tree1E, tree2E ->
         monotoneInterleaving(tree1E, tree2E)
@@ -188,7 +189,8 @@ fun main() = application {
 
         var blobsEnabled = true
 
-        val visualization = vulc_25_ts150am_vs_151pm(drawer.bounds.center)
+        //val visualization = vulc_25_ts150am_vs_151pm(drawer.bounds.center)
+        val visualization = startInput(drawer.bounds.center)
 
         println("Delta: " + visualization.interleaving.delta)
         println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
@@ -197,7 +199,15 @@ fun main() = application {
         val viewSettings = object {
             @ActionParameter("Fit to screen")
             fun fitToScreen() {
-                camera.view = Matrix44.fit(visualization.bbox, drawer.bounds)
+
+                if (visualization.bbox.height.isNaN()){
+                    val box = Rectangle(400.0, 100.0, 800.0, 800.0)
+                    camera.view = Matrix44.fit(box, drawer.bounds)
+                }
+                else {
+                    camera.view = Matrix44.fit(visualization.bbox, drawer.bounds)
+                    println(visualization.bbox)
+                }
             }
 
             @ActionParameter("Toggle Blobs")
@@ -257,6 +267,19 @@ fun main() = application {
             }
         }
 
+        fun HandleTreeInput(firstFile: String, secondFile: String) = runBlocking<Unit>  {
+            val tree1 = async { parseTree(File(firstFile).readText()) }
+            val tree2 = async { parseTree(File(secondFile).readText()) }
+
+            println("Computing ParkView...")
+            visualization.reCompute(tree1.await(), tree2.await())
+
+            println("Delta: " + visualization.interleaving.delta)
+
+            println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
+            println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
+        }
+
         window.drop.listen { dropped ->
             val firstFile = dropped.files.firstOrNull {
                 File(it).extension.lowercase() in listOf("txt")
@@ -266,16 +289,7 @@ fun main() = application {
             }
 
             if (firstFile != null && secondFile != null) {
-                val tree1 = parseTree(File(firstFile).readText())
-                val tree2 = parseTree(File(secondFile).readText())
-
-                println("Computing ParkView...")
-                visualization.reCompute(tree1, tree2)
-
-                println("Delta: " + visualization.interleaving.delta)
-
-                println("T1 Number of leaves: " + visualization.tree1E.leaves.size)
-                println("T2 Number of leaves: " + visualization.tree2E.leaves.size)
+                HandleTreeInput(firstFile, secondFile)
             }
         }
 
