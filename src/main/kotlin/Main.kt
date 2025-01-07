@@ -194,18 +194,27 @@ data class ThreeColorSettings(
         ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig11).toRGBa(),
         ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig22).toRGBa(),
         ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig33).toRGBa(),
+
         ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig11).toRGBa(),
         ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig22).toRGBa(),
         ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig33).toRGBa()
     )
 
     constructor() :this(
-        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
-        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
-        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
-        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
-        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
-        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02")
+//        ColorRGBa.fromHex("#ff0000"), ColorRGBa.fromHex("#ffff00"),
+//        ColorRGBa.fromHex("#00ff00"), ColorRGBa.fromHex("#00ffff"),
+//        ColorRGBa.fromHex("#0000ff"), ColorRGBa.fromHex("#ff00ff"),
+//
+//        ColorRGBa.fromHex("#ff8000"), ColorRGBa.fromHex("#80ff00"),
+//        ColorRGBa.fromHex("#00ff80"), ColorRGBa.fromHex("#0080ff"),
+//        ColorRGBa.fromHex("#8000ff"), ColorRGBa.fromHex("#ff0080")
+        ColorRGBa.fromHex("#F07A75"), ColorRGBa.fromHex("#7A75F0"),
+        ColorRGBa.fromHex("#F5F7BA"), ColorRGBa.fromHex("#AFF075"),
+        ColorRGBa.fromHex("#F0B675"), ColorRGBa.fromHex("#B675F0"),
+
+        ColorRGBa.fromHex("#F39B97"), ColorRGBa.fromHex("#9B97F3"),
+        ColorRGBa.fromHex("#F7F9CB"), ColorRGBa.fromHex("#C3F397"),
+        ColorRGBa.fromHex("#F3C897"), ColorRGBa.fromHex("#C897F3")
     )
 }
 

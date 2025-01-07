@@ -648,12 +648,9 @@ class Visualization(
             //Root blob
             val parentBlobID = getAccurateParentBlob(t1, blobs, blobID)
             if (parentBlobID == -1) {
-                println(colors)
                 val color = colors.removeFirst()
                 blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
                 colors.add(color)
-                println(colors)
-
                 continue
             }
             //non-root blobs
@@ -694,12 +691,9 @@ class Visualization(
             }
 
             colors.removeAll{ it == color }
-
             if (color != ColorRGBa.BLACK)
                 colors.add(color)
 
-            //println(colors)
-            //println(colors)
             blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
         }
     }
