@@ -99,19 +99,19 @@ data class DrawSettings(
     )
 
 data class GlobalColorSettings(
-    @BooleanParameter("Enable Gradient")
-    var enableGradient: Boolean = false,
+    @BooleanParameter("Use Rainbow Colors", order=0)
+    var rainbowColors: Boolean = false,
 
-    @ColorParameter("EdgeColor1", order = 0)
+    @ColorParameter("EdgeColor1", order = 10)
     var edgeColor: ColorRGBa = ColorRGBa.BLACK,
 
-    @ColorParameter("EdgeColor2", order  = 1)
+    @ColorParameter("EdgeColor2", order  = 20)
     var edgeColor2: ColorRGBa = ColorRGBa.BLACK,
 
-    @ColorParameter("Grid color", order = 10)
+    @ColorParameter("Grid color", order = 30)
     var gridColor: ColorRGBa = ColorRGBa.BLACK,
 
-    @DoubleParameter("Grid alpha", 0.01, 1.0, order = 11)
+    @DoubleParameter("Grid alpha", 0.01, 1.0, order = 35)
     var gridAlpha: Double = 0.15
 )
 
@@ -191,12 +191,22 @@ data class ThreeColorSettings(
 ) {
 
     constructor(dcs: DivergingColorSettings) : this(
-    ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig11).toRGBa(),
+        ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig11).toRGBa(),
         ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig22).toRGBa(),
         ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig33).toRGBa(),
         ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig11).toRGBa(),
         ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig22).toRGBa(),
-        ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig33).toRGBa())
+        ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig33).toRGBa()
+    )
+
+    constructor() :this(
+        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
+        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
+        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
+        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
+        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02"),
+        ColorRGBa.fromHex("#d95f02"), ColorRGBa.fromHex("#d95f02")
+    )
 }
 
 fun startInput(pos: Vector2): Visualization {
@@ -285,8 +295,11 @@ fun main() = application {
 
         gui.onChange { name, value ->
             when (name) {
-                "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3", "lig11", "lig22", "lig33" -> {
-                    visualization.tcs = ThreeColorSettings(dcs)
+                "rainbowColors", "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3", "lig11", "lig22", "lig33" -> {
+                    if (visualization.globalcs.rainbowColors)
+                        visualization.tcs = ThreeColorSettings()
+                    else
+                        visualization.tcs = ThreeColorSettings(dcs)
                     visualization.compute()
                 }
                 "svgFileName" ->{
