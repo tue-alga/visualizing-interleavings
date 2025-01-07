@@ -132,13 +132,22 @@ data class DivergingColorSettings(
     var sat3: Double = 0.8,
 
     @DoubleParameter("Lightness 1", 0.0, 1.0, order=60)
-    var lig1: Double = 0.5,
+    var lig1: Double = 0.42, //0.5
 
     @DoubleParameter("Lightness 2", 0.0, 1.0, order=70)
-    var lig2: Double = 0.7,
+    var lig2: Double = 0.62, //0.7
 
     @DoubleParameter("Lightness 3", 0.0, 1.0, order=80)
-    var lig3: Double = 0.9,
+    var lig3: Double = 0.82, //0.9
+
+    @DoubleParameter("Lightness 1.1", 0.0, 1.0, order=65)
+    var lig11: Double = 0.52,
+
+    @DoubleParameter("Lightness 2.1", 0.0, 1.0, order=75)
+    var lig22: Double = 0.72,
+
+    @DoubleParameter("Lightness 3.1", 0.0, 1.0, order=95)
+    var lig33: Double = 0.92
 )
 
 data class ThreeColorSettings(
@@ -146,26 +155,48 @@ data class ThreeColorSettings(
     @ColorParameter("Tree1 color1 hexcode")
     var t1c1: ColorRGBa = ColorRGBa(0.7333333772420884,0.2952000176752698, 0.27866668335199357),
 
+    @ColorParameter("Tree1 color1.1 hexcode")
+    var t1c11: ColorRGBa = ColorRGBa(0.7333333772420884,0.2952000176752698, 0.27866668335199357),
+
     @ColorParameter("Tree1 color2 hexcode")
     var t1c2: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
 
+    @ColorParameter("Tree1 color2.1 hexcode")
+    var t1c22: ColorRGBa =  ColorRGBa.fromHex("#66a61e"), //light-blue
+
     @ColorParameter("Tree1 color3 hexcode")
     var t1c3: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
+
+    @ColorParameter("Tree1 color3.1 hexcode")
+    var t1c33: ColorRGBa =  ColorRGBa.fromHex("#7570b3"), //yellow
 
     //Tree2
     @ColorParameter("Tree2 color1 hexcode")
     var t2c1: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
 
+    @ColorParameter("Tree2 color1.1 hexcode")
+    var t2c11: ColorRGBa =  ColorRGBa.fromHex("#e7298a"), //dark-blue
+
     @ColorParameter("Tree2 color2 hexcode")
     var t2c2: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
 
+    @ColorParameter("Tree2 color2.2 hexcode")
+    var t2c22: ColorRGBa =  ColorRGBa.fromHex("#e6ab02"), //orange
+
     @ColorParameter("Tree2 color3 hexcode")
-    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
+    var t2c3: ColorRGBa =  ColorRGBa.fromHex("#d95f02"), //green
+
+    @ColorParameter("Tree2 color3.3 hexcode")
+    var t2c33: ColorRGBa =  ColorRGBa.fromHex("#d95f02") //green
 ) {
 
     constructor(dcs: DivergingColorSettings) : this(
-    ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig3).toRGBa(),
-        ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa())
+    ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat1, dcs.lig11).toRGBa(),
+        ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat2, dcs.lig22).toRGBa(),
+        ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue1, dcs.sat3, dcs.lig33).toRGBa(),
+        ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig1).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat1, dcs.lig11).toRGBa(),
+        ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig2).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat2, dcs.lig22).toRGBa(),
+        ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig33).toRGBa())
 }
 
 fun startInput(pos: Vector2): Visualization {
