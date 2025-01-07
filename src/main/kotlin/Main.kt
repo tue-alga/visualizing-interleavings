@@ -132,22 +132,22 @@ data class DivergingColorSettings(
     var sat3: Double = 0.8,
 
     @DoubleParameter("Lightness 1", 0.0, 1.0, order=60)
-    var lig1: Double = 0.42, //0.5
+    var lig1: Double = 0.3, //0.5
 
     @DoubleParameter("Lightness 2", 0.0, 1.0, order=70)
-    var lig2: Double = 0.62, //0.7
+    var lig2: Double = 0.55, //0.7
 
     @DoubleParameter("Lightness 3", 0.0, 1.0, order=80)
-    var lig3: Double = 0.82, //0.9
+    var lig3: Double = 0.8, //0.9
 
     @DoubleParameter("Lightness 1.1", 0.0, 1.0, order=65)
-    var lig11: Double = 0.52,
+    var lig11: Double = 0.425,
 
     @DoubleParameter("Lightness 2.1", 0.0, 1.0, order=75)
-    var lig22: Double = 0.72,
+    var lig22: Double = 0.675,
 
     @DoubleParameter("Lightness 3.1", 0.0, 1.0, order=95)
-    var lig33: Double = 0.92
+    var lig33: Double = 0.925
 )
 
 data class ThreeColorSettings(
@@ -285,7 +285,7 @@ fun main() = application {
 
         gui.onChange { name, value ->
             when (name) {
-                "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3" -> {
+                "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3", "lig11", "lig22", "lig33" -> {
                     visualization.tcs = ThreeColorSettings(dcs)
                     visualization.compute()
                 }

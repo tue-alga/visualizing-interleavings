@@ -6,7 +6,9 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.*
-
+import java.awt.Color
+import java.util.Queue
+import java.util.ArrayDeque
 
 class Visualization(
     var tree1: MergeTree,
@@ -105,11 +107,17 @@ class Visualization(
         tree1Colors.clear()
         tree2Colors.clear()
         tree1Colors.add(tcs.t1c1)
+        tree1Colors.add(tcs.t1c11)
         tree1Colors.add(tcs.t1c2)
+        tree1Colors.add(tcs.t1c22)
         tree1Colors.add(tcs.t1c3)
+        tree1Colors.add(tcs.t1c33)
         tree2Colors.add(tcs.t2c1)
+        tree2Colors.add(tcs.t2c11)
         tree2Colors.add(tcs.t2c2)
+        tree2Colors.add(tcs.t2c22)
         tree2Colors.add(tcs.t2c3)
+        tree2Colors.add(tcs.t2c33)
 
         pathDecomposition(true)
         pathDecomposition(false)
@@ -634,12 +642,18 @@ class Visualization(
         val blobsIndices = if (t1) tree1BlobIndicesSorted else tree2BlobIndicesSorted
         val blobs = if (t1) tree1BlobsTest else tree2BlobsTest
         val colors = if (t1) tree1Colors else tree2Colors
+        //val colorsQueue: Queue<ColorRGBa> = if (t1) ArrayDeque(tree1Colors) else ArrayDeque(tree2Colors)
 
         for (blobID in blobsIndices) {
             //Root blob
             val parentBlobID = getAccurateParentBlob(t1, blobs, blobID)
             if (parentBlobID == -1) {
-                blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, colors.first())
+                println(colors)
+                val color = colors.removeFirst()
+                blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
+                colors.add(color)
+                println(colors)
+
                 continue
             }
             //non-root blobs
@@ -668,7 +682,6 @@ class Visualization(
 
             touchingColors = touchingColors.apply { removeAll{ it == ColorRGBa.BLACK } }
             if (touchingColors.distinct().size < 2 && parentOfParent != -1){
-                //println("yaaaaaaaaa")
                 touchingColors.add(blobs[parentOfParent].third)
             }
 
@@ -679,6 +692,14 @@ class Visualization(
                     break
                 }
             }
+
+            colors.removeAll{ it == color }
+
+            if (color != ColorRGBa.BLACK)
+                colors.add(color)
+
+            //println(colors)
+            //println(colors)
             blobs[blobID] = Triple(blobs[blobID].first, blobs[blobID].second, color)
         }
     }
