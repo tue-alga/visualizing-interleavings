@@ -207,23 +207,23 @@ data class ThreeColorSettings(
     )
 
     constructor(rainbow: Boolean) :this(
-        ColorRGBa.fromHex("#f3212b"), ColorRGBa.fromHex("#f3e821"),
-        ColorRGBa.fromHex("#2bf321"), ColorRGBa.fromHex("#21f3e8"),
-        ColorRGBa.fromHex("#212bf3"), ColorRGBa.fromHex("#e821f3"),
+        ColorRGBa.fromHex("#f3212b"), ColorRGBa.fromHex("#f37f21"),
+        ColorRGBa.fromHex("#f3e821"), ColorRGBa.fromHex("#94f321"),
+        ColorRGBa.fromHex("#2bf321"), ColorRGBa.fromHex("#21f380"),
 
-        ColorRGBa.fromHex("#f37f21"), ColorRGBa.fromHex("#94f321"),
-        ColorRGBa.fromHex("#21f380"), ColorRGBa.fromHex("#2196f3"),
-        ColorRGBa.fromHex("#7f21f3"), ColorRGBa.fromHex("#f32194")
+        ColorRGBa.fromHex("#2196f3"), ColorRGBa.fromHex("#212bf3"),
+        ColorRGBa.fromHex("#7f21f3"), ColorRGBa.fromHex("#e821f3"),
+        ColorRGBa.fromHex("#f32194"), ColorRGBa.fromHex("#21f3e8")
     )
 
     constructor() :this(
-        ColorRGBa.fromHex("#F07A75"), ColorRGBa.fromHex("#7A75F0"),
-        ColorRGBa.fromHex("#F5F7BA"), ColorRGBa.fromHex("#AFF075"),
-        ColorRGBa.fromHex("#F0B675"), ColorRGBa.fromHex("#B675F0"),
+        ColorRGBa.fromHex("#F07A75"),ColorRGBa.fromHex("#F39B97"),//
+        ColorRGBa.fromHex("#F0B675"),ColorRGBa.fromHex("#F3C897"),//
+        ColorRGBa.fromHex("#F5F7BA"), ColorRGBa.fromHex("#F7F9CB"),//
 
-        ColorRGBa.fromHex("#F39B97"), ColorRGBa.fromHex("#9B97F3"),
-        ColorRGBa.fromHex("#F7F9CB"), ColorRGBa.fromHex("#C3F397"),
-        ColorRGBa.fromHex("#F3C897"), ColorRGBa.fromHex("#C897F3")
+        ColorRGBa.fromHex("#7A75F0"), ColorRGBa.fromHex("#9B97F3"),
+        ColorRGBa.fromHex("#AFF075"), ColorRGBa.fromHex("#C3F397"),
+        ColorRGBa.fromHex("#B675F0"),ColorRGBa.fromHex("#C897F3")
     )
 }
 
