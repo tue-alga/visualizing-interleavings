@@ -33,6 +33,12 @@ fun treePositionToPoint(tp: TreePosition<EmbeddedMergeTree>): Vector2? {
     }
 }
 
+enum class ColorOptions {
+    LIGHTNESS_GRADIENT,
+    RAINBOW,
+    MAXIM
+}
+
 data class DrawSettings(
     @DoubleParameter("Mark radius", 0.1, 10.0, order = 0)
     var markRadius: Double = .5,
@@ -99,8 +105,8 @@ data class DrawSettings(
     )
 
 data class GlobalColorSettings(
-    @BooleanParameter("Use Rainbow Colors", order=0)
-    var rainbowColors: Boolean = false,
+    @OptionParameter("Color palette", order=1)
+    var colorPalette: ColorOptions = ColorOptions.LIGHTNESS_GRADIENT,
 
     @ColorParameter("EdgeColor1", order = 10)
     var edgeColor: ColorRGBa = ColorRGBa.BLACK,
@@ -200,14 +206,17 @@ data class ThreeColorSettings(
         ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig3).toRGBa(), ColorOKHSLa(dcs.hue2, dcs.sat3, dcs.lig33).toRGBa()
     )
 
+    constructor(rainbow: Boolean) :this(
+        ColorRGBa.fromHex("#f3212b"), ColorRGBa.fromHex("#f3e821"),
+        ColorRGBa.fromHex("#2bf321"), ColorRGBa.fromHex("#21f3e8"),
+        ColorRGBa.fromHex("#212bf3"), ColorRGBa.fromHex("#e821f3"),
+
+        ColorRGBa.fromHex("#f37f21"), ColorRGBa.fromHex("#94f321"),
+        ColorRGBa.fromHex("#21f380"), ColorRGBa.fromHex("#2196f3"),
+        ColorRGBa.fromHex("#7f21f3"), ColorRGBa.fromHex("#f32194")
+    )
+
     constructor() :this(
-//        ColorRGBa.fromHex("#ff0000"), ColorRGBa.fromHex("#ffff00"),
-//        ColorRGBa.fromHex("#00ff00"), ColorRGBa.fromHex("#00ffff"),
-//        ColorRGBa.fromHex("#0000ff"), ColorRGBa.fromHex("#ff00ff"),
-//
-//        ColorRGBa.fromHex("#ff8000"), ColorRGBa.fromHex("#80ff00"),
-//        ColorRGBa.fromHex("#00ff80"), ColorRGBa.fromHex("#0080ff"),
-//        ColorRGBa.fromHex("#8000ff"), ColorRGBa.fromHex("#ff0080")
         ColorRGBa.fromHex("#F07A75"), ColorRGBa.fromHex("#7A75F0"),
         ColorRGBa.fromHex("#F5F7BA"), ColorRGBa.fromHex("#AFF075"),
         ColorRGBa.fromHex("#F0B675"), ColorRGBa.fromHex("#B675F0"),
@@ -304,11 +313,14 @@ fun main() = application {
 
         gui.onChange { name, value ->
             when (name) {
-                "rainbowColors", "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3", "lig11", "lig22", "lig33" -> {
-                    if (visualization.globalcs.rainbowColors)
-                        visualization.tcs = ThreeColorSettings()
-                    else
-                        visualization.tcs = ThreeColorSettings(dcs)
+                "colorPalette", "hue1", "hue2", "hue3", "sat1", "sat2", "sat3", "lig1", "lig2", "lig3", "lig11", "lig22", "lig33" -> {
+
+                    when (visualization.globalcs.colorPalette){
+                        ColorOptions.LIGHTNESS_GRADIENT -> visualization.tcs = ThreeColorSettings(dcs)
+                        ColorOptions.RAINBOW -> visualization.tcs = ThreeColorSettings(true)
+                        ColorOptions.MAXIM -> visualization.tcs = ThreeColorSettings()
+                        else -> visualization.tcs = ThreeColorSettings(dcs)
+                    }
                     visualization.compute()
                 }
                 "svgFileName" ->{
